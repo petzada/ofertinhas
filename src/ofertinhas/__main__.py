@@ -52,6 +52,8 @@ def main(argv: list[str] | None = None) -> int:
         return _recut()
     if args.command == "telegram-setup":
         return _telegram_setup()
+    if args.command == "whatsapp-groups":
+        return _whatsapp_groups()
     if args.command == "setup":
         from .setup import run_setup
 
@@ -118,6 +120,34 @@ def _run(dry_run: bool) -> int:
         return 1
     setup_logging(settings.data_dir)
     asyncio.run(run(settings, cfg, dry_run))
+    return 0
+
+
+def _whatsapp_groups() -> int:
+    import asyncio
+
+    import httpx
+
+    from .publisher.whatsapp import WhatsAppError
+    from .run import whatsapp_sender
+    from .settings import Settings
+
+    async def fetch(settings: Settings) -> list[dict]:
+        async with httpx.AsyncClient() as http:
+            return await whatsapp_sender(settings, http).list_groups()
+
+    settings = Settings.load()
+    if not (settings.whatsmiau_api_key and settings.whatsmiau_instance):
+        print("Erro: preencha WHATSMIAU_API_KEY e WHATSMIAU_INSTANCE no .env", file=sys.stderr)
+        return 1
+    try:
+        groups = asyncio.run(fetch(settings))
+    except WhatsAppError as e:
+        print(f"Erro da WhatsMiau.dev: {e}", file=sys.stderr)
+        return 1
+    for group in groups or []:
+        print(f"{group.get('id')}  {group.get('subject') or group.get('name') or ''}")
+    print(f"{len(groups or [])} grupo(s).")
     return 0
 
 

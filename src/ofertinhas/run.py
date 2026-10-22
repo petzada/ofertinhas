@@ -21,6 +21,7 @@ from .pipeline import render_linked
 from .publisher.publish import publish_due
 from .publisher.queue import expire_stale
 from .publisher.telegram import TelegramSender
+from .publisher.whatsapp import WhatsAppSender
 from .scheduler import build_scheduler
 from .settings import Settings
 from .winops import keep_awake
@@ -44,6 +45,13 @@ def setup_logging(data_dir: Path) -> None:
     logging.getLogger("httpx").setLevel(logging.WARNING)  # não logar URLs com o token do bot
 
 
+def whatsapp_sender(settings: Settings, http: httpx.AsyncClient) -> WhatsAppSender | None:
+    if not (settings.whatsmiau_api_key and settings.whatsmiau_instance):
+        return None
+    return WhatsAppSender(http, settings.whatsmiau_base_url, settings.whatsmiau_api_key,
+                          settings.whatsmiau_instance)
+
+
 def make_jobs(
     *,
     conn: sqlite3.Connection,
@@ -52,6 +60,7 @@ def make_jobs(
     templates_dir: Path,
     bot,
     telegram,
+    whatsapp=None,
     fetch_image: Callable[[str | None], Awaitable[object]],
     notify: Callable[[str], Awaitable[None]],
     admin_chat_id: int,
@@ -68,8 +77,9 @@ def make_jobs(
                                    now=clock())
 
     async def publish():
-        posted = await publish_due(conn, cfg, telegram=telegram, admin_chat_id=admin_chat_id,
-                                   dry_run=dry_run, now=clock(), notify=notify)
+        posted = await publish_due(conn, cfg, telegram=telegram, whatsapp=whatsapp,
+                                   admin_chat_id=admin_chat_id, dry_run=dry_run, now=clock(),
+                                   notify=notify)
         if posted:
             log.info("postadas: %s", ", ".join(posted))
         return posted
@@ -89,6 +99,7 @@ async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
     conn = db.connect(settings.data_dir / "ofertinhas.db")
     http = httpx.AsyncClient()
     telegram = TelegramSender(http, settings.telegram_bot_token)
+    whatsapp = whatsapp_sender(settings, http)
 
     async def notify(text: str) -> None:
         try:
@@ -103,7 +114,8 @@ async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
     application = build_application(settings.telegram_bot_token, bot_deps)
     jobs = make_jobs(
         conn=conn, cfg=cfg, data_dir=settings.data_dir, templates_dir=TEMPLATES_DIR,
-        bot=application.bot, telegram=telegram, fetch_image=fetch_image, notify=notify,
+        bot=application.bot, telegram=telegram, whatsapp=whatsapp, fetch_image=fetch_image,
+        notify=notify,
         admin_chat_id=settings.admin_chat_id, dry_run=dry_run,
     )
     scheduler = build_scheduler(jobs, conn, notify, utcnow)
@@ -119,8 +131,11 @@ async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
             await application.updater.start_polling()
             scheduler.start()
             mode = "🧪 MODO DE TESTE: todo post vem só para este chat" if dry_run else "posts reais"
-            whatsapp = "ligado" if cfg.whatsapp_enabled else "travado"
-            await notify(f"✅ Ofertinhas ligado ({mode}; WhatsApp {whatsapp}).")
+            if dry_run or not cfg.whatsapp_enabled:
+                wa_state = "travado"
+            else:
+                wa_state = "ligado" if whatsapp else "sem chave da WhatsMiau no .env"
+            await notify(f"✅ Ofertinhas ligado ({mode}; WhatsApp {wa_state}).")
             log.info("Ofertinhas rodando: API em 127.0.0.1:%s, %s", settings.api_port, mode)
             await server.serve()  # até Ctrl+C
             scheduler.shutdown(wait=False)
