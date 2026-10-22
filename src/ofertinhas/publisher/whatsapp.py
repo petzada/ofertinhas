@@ -17,6 +17,9 @@ class WhatsAppError(Exception):
         self.retryable = retryable
 
 
+MAX_ERROR_CHARS = 300  # a API às vezes ecoa a requisição inteira (com a imagem) no erro
+
+
 def _error_message(response: httpx.Response) -> str:
     try:
         data = response.json()
@@ -27,7 +30,7 @@ def _error_message(response: httpx.Response) -> str:
         for value in (data.get("message"), inner.get("message") if isinstance(inner, dict)
                       else None, data.get("error")):
             if value:
-                return str(value)
+                return str(value)[:MAX_ERROR_CHARS]
     return f"HTTP {response.status_code}"
 
 

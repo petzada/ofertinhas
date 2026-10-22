@@ -56,6 +56,15 @@ async def test_client_errors_are_not_retried(sender, sleeps):
 
 
 @respx.mock
+async def test_huge_error_messages_are_truncated(sender):
+    respx.post(f"{BASE}/message/sendMedia/Ofertas01").mock(return_value=httpx.Response(
+        400, json={"error": {"Op": "Get", "URL": "iVBOR" * 10_000}}))
+    with pytest.raises(WhatsAppError) as exc:
+        await sender.send_image(JID, b"x", "y")
+    assert len(str(exc.value)) <= 300
+
+
+@respx.mock
 async def test_server_errors_retry_with_backoff(sender, sleeps):
     ok = httpx.Response(200, json={"key": {"id": "Z"}})
     respx.post(f"{BASE}/message/sendMedia/Ofertas01").mock(
