@@ -13,8 +13,11 @@ def normalize_text(text: str) -> str:
 
 
 def contains_term(normalized_text: str, term: str) -> bool:
-    """`term` aparece como palavra(s) inteira(s) em `normalized_text`."""
-    pattern = rf"(?<!\w){re.escape(normalize_text(term))}(?!\w)"
+    """`term` aparece como palavra(s) inteira(s) em `normalized_text`; com `*` no fim, vale
+    como começo de palavra (`panela*` casa com "panela" e "panelas")."""
+    prefix = term.endswith("*")
+    body = re.escape(normalize_text(term.rstrip("*")))
+    pattern = rf"(?<!\w){body}" + ("" if prefix else r"(?!\w)")
     return re.search(pattern, normalized_text) is not None
 
 
@@ -38,4 +41,8 @@ def passes(offer: Offer, filters: Filters) -> tuple[bool, str | None]:
     for keyword in filters.blocked_keywords:
         if contains_term(title, keyword):
             return False, f"palavra bloqueada: {keyword}"
+    if filters.required_keywords and not any(
+        contains_term(title, k) for k in filters.required_keywords
+    ):
+        return False, "nenhum termo do nicho no título"
     return True, None

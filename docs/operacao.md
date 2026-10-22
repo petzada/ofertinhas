@@ -22,6 +22,32 @@ O PC e a nuvem rodam os mesmos jobs no mesmo calendário (`jobs.SCHEDULE`):
 | `status`: edita a mensagem fixada no chat do admin | 08:00, 13:00 e 20:00 |
 | `backup` (só no PC; a nuvem usa a recuperação de 30 dias do Durable Object) | 04:00 |
 
+### Grupos e nichos
+
+- **Telegram:** um grupo só, com as ofertas de todos os nichos gerais (`casa`, `tech`,
+  `beleza` etc., todos com o mesmo `telegram_chat_id` e sem WhatsApp).
+- **WhatsApp:** cada grupo é um nicho fino, só com `whatsapp_group_jid`. O primeiro é o
+  `noivas`, no grupo Achadinhos das Noivas. Como o destino é outro, ele tem fila, cota e
+  ritmo próprios (`whatsapp_pacing`).
+- `multi_niche: true` deixa a mesma oferta entrar no nicho geral (Telegram) e no fino
+  (WhatsApp). Cada um tem a sua candidata, o seu card e o seu cooldown.
+- O nicho fino filtra por categoria **e** título. `required_keywords` exige pelo menos um
+  termo no título, e `*` no fim pega o começo da palavra (`panela*`). Também valem os
+  `blocked_keywords`. As listas do nicho trocam as dos `defaults` inteiras, por isso os
+  bloqueios gerais precisam ser repetidos.
+
+**Novo grupo de nicho:** antes de ligar, teste o bloco do nicho nas ofertas já coletadas,
+sem postar nada:
+
+```powershell
+$body = @{ niche = "noivas"; days = 3; config = @{ categories = @("MLB1574"); filters = @{ required_keywords = @("panela*") } } } | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Method Post https://ofertinhas.marciopetigrosso.workers.dev/admin/niche-preview -Headers $h -Body $body -ContentType "application/json"
+```
+
+Sem `config`, o teste usa o nicho como está no ar. A resposta traz quantas ofertas
+entrariam, quantas sairiam automáticas ou para aprovar, e o que ficou de fora e por quê,
+com exemplos de títulos.
+
 ### Coleta pedida pela nuvem (`collect_now`)
 
 Um grupo está "curto" quando nem todas as aprovadas, com link ou esperando, cobrem os posts

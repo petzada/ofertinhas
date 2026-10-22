@@ -27,6 +27,7 @@ THEMES = {
     "pets": Theme(bg="#8A5A3C", badge="#E8452C", price="#8A5A3C"),
     "esporte": Theme(bg="#1E7B34", badge="#FF3D3D", price="#1E7B34"),
     "auto": Theme(bg="#37474F", badge="#FF5A1F", price="#37474F"),
+    "noivas": Theme(bg="#B5677A", badge="#C2185B", price="#9C4A5E"),  # rosé
 }
 
 

@@ -215,3 +215,25 @@ def test_build_info_comes_from_the_bundle(bundle):
     assert client.get("/admin/status", headers=ADMIN).json()["build"]["config_sha"] \
         == "1a2b3c4d5e6f"
     conn.close()
+
+
+def test_niche_preview_tests_a_new_niche_before_deploy(backend):
+    client = TestClient(backend.app)
+    db.upsert_offer(backend.conn, db_offer("MLB1", "Jogo de Cama Casal 4 Peças"),
+                    now=backend.clock_state["now"])
+    body = {"niche": "noivas", "days": 1,
+            "config": {"categories": ["MLB1574"], "filters": {"required_keywords": ["jogo*"]}}}
+    assert client.post("/admin/niche-preview", json=body, headers=H).status_code == 401
+    report = client.post("/admin/niche-preview", json=body, headers=ADMIN).json()
+    assert report["matched"] == 1 and report["matched_sample"][0]["title"].startswith("Jogo")
+    unknown = client.post("/admin/niche-preview", json={"niche": "nada"}, headers=ADMIN)
+    assert unknown.status_code == 404
+    bad = {"niche": "x", "config": {"categories": ["MLB0"]}}
+    assert client.post("/admin/niche-preview", json=bad, headers=ADMIN).status_code == 422
+
+
+def db_offer(mlb_id, title):
+    from ofertinhas.models import Offer
+
+    return Offer(mlb_id=mlb_id, title=title, price=50, original_price=100, commission_pct=25,
+                 category_path=("MLB1574",), permalink="https://x")

@@ -73,3 +73,18 @@ def test_blocked_keyword_matches_whole_words_only():
 
 def test_normalize_text():
     assert normalize_text("  Réplica  ÇÃO ") == "replica cao"
+
+
+def test_required_keywords_need_one_term_in_the_title():
+    filters = Filters(required_keywords=["jogo de cama", "panela*", "maquiagem"])
+    assert passes(offer(title="Jogo de Cama Queen 4 Peças"), filters) == (True, None)
+    assert passes(offer(title="Kit Panelas Antiaderente"), filters)[0]  # curinga pega o plural
+    ok, reason = passes(offer(title="Lixeira Inox 30 Litros"), filters)
+    assert not ok and reason == "nenhum termo do nicho no título"
+
+
+def test_wildcard_only_matches_the_start_of_a_word():
+    filters = Filters(required_keywords=["toalha*"])
+    assert passes(offer(title="Jogo de Toalhas de Banho"), filters)[0]
+    assert not passes(offer(title="Porta-toalhasx"), Filters(required_keywords=["toalhax*"]))[0]
+    assert not passes(offer(title="Microtoalha"), filters)[0]

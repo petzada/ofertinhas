@@ -14,17 +14,19 @@ from pathlib import Path
 
 import httpx
 from fastapi import Depends, HTTPException, Request
+from pydantic import ValidationError
 from telegram import Bot
 
 from .. import db
 from ..api.app import ApiState, create_app
 from ..approval.bot import BotDeps
 from ..buildinfo import describe, load_build
-from ..config import load_config
+from ..config import NicheConfig, deep_merge, load_config
 from ..creative.image import fetch_product_image
 from ..jobs import SCHEDULE, guarded, is_due, make_jobs
 from ..models import TZ, utcnow
-from ..pipeline import INFLATED_KEY
+from ..pipeline import INFLATED_KEY, niche_configs
+from ..preview import niche_preview
 from ..publisher.publish import publish_due, x_thread
 from ..publisher.telegram import TelegramSender
 from ..publisher.whatsapp import WhatsAppSender
@@ -248,6 +250,30 @@ class CloudBackend:
                 "ORDER BY id DESC LIMIT 1"
             ).fetchone()
             return dict(zip(last.keys(), last, strict=True))
+
+        @app.post("/admin/niche-preview", dependencies=[Depends(app.state.require_admin)])
+        async def admin_niche_preview(request: Request) -> dict:
+            """Testa um nicho nas ofertas coletadas nos últimos `days` dias, sem postar. Sem
+            `config`, usa o nicho como está; com `config` (o bloco do nicho no YAML, em JSON),
+            testa a versão nova antes do deploy."""
+            body = await request.json()
+            name = body.get("niche") or "preview"
+            raw = body.get("config")
+            if raw is None:
+                niche = niche_configs(self.conn, self.cfg).get(name)
+                if niche is None:
+                    raise HTTPException(status_code=404, detail=f"nicho desconhecido: {name}")
+            else:
+                data = deep_merge(self.cfg.defaults, raw)
+                data.setdefault("template", name)
+                if not (data.get("telegram_chat_id") or data.get("whatsapp_group_jid")):
+                    data["whatsapp_group_jid"] = "preview@g.us"  # o teste não posta
+                try:
+                    niche = NicheConfig(name=name, **data)
+                except ValidationError as e:
+                    raise HTTPException(status_code=422, detail=str(e)) from None
+            return niche_preview(self.conn, niche, self.clock(), float(body.get("days", 3)),
+                                 int(body.get("sample", 40)))
 
         @app.post("/admin/import", dependencies=[Depends(app.state.require_admin)])
         async def admin_import(request: Request) -> dict:

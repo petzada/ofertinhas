@@ -43,6 +43,7 @@ defaults:
     require_free_shipping: false
     require_full: false
     blocked_keywords: [usado, recondicionado, réplica, seminovo]
+    # required_keywords: [jogo de cama, panela*]  # nicho fino: o título precisa ter um destes
   price_check:           # desconto inflado, conferido no histórico de preços da coleta
     enabled: true
     lookback_days: 30    # se o preço já foi menor nesse período, a "promoção" vale 0% de desconto
@@ -114,3 +115,13 @@ niches:
   auto:
     categories: [MLB5672]  # Acessórios para Veículos
     telegram_chat_id: -1001234567897
+
+  # Nicho fino só para um grupo de WhatsApp (o Telegram acima continua com tudo). Precisa de
+  # `multi_niche: true` para a mesma oferta ir ao grupo geral e a este. As listas trocam as
+  # dos defaults inteiras: repita os bloqueios gerais. Teste antes com POST /admin/niche-preview.
+  # noivas:
+  #   categories: [MLB1574, MLB5726, MLB1246, MLB3937, MLB12404]
+  #   whatsapp_group_jid: "120363000000000009@g.us"
+  #   filters:
+  #     required_keywords: [jogo de cama, edredom, toalha*, panela*, faqueiro, maquiagem, batom]
+  #     blocked_keywords: [usado, recondicionado, réplica, seminovo, masculino, infantil]

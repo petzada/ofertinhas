@@ -1,0 +1,44 @@
+💍 *Achadinho pra casa nova!*
+
+{titulo_curto}
+{preco}
+{selos}
+
+🔎 No app, busque: {codigo_busca}
+👉 {link}
+---
+👰 Noiva esperta aproveita!
+
+*{titulo_curto}*
+{preco}
+{selos}
+⭐ {nota} • {vendidos}+ vendidos
+
+Corre que é por tempo limitado 👇
+{link}
+---
+✨ *{titulo_curto}*
+
+💰 {preco}
+{selos}
+
+Pra deixar o lar do casal lindo 👉 {link}
+---
+💐 PROMO PRA NOIVA 💐
+
+{titulo_curto}
+{preco}
+{selos}
+⭐ Nota {nota}
+
+🛒 {link}
+---
+🏡 Montando o enxoval?
+
+*{titulo_curto}*
+{preco}
+{selos}
+⭐ {nota} • {vendidos}+ vendidos
+
+🔎 No app, busque: {codigo_busca}
+🛍️ {link}

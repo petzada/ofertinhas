@@ -246,6 +246,13 @@ def get_offers(conn: sqlite3.Connection, mlb_ids: Iterable[str]) -> list[Offer]:
     return [by_id[i] for i in ids if i in by_id]
 
 
+def offers_seen_since(conn: sqlite3.Connection, since: datetime) -> list[Offer]:
+    """Ofertas que apareceram numa coleta desde `since`, da mais recente para a mais antiga."""
+    rows = conn.execute("SELECT * FROM offers WHERE updated_at >= ? ORDER BY updated_at DESC",
+                        (_ts(since),))
+    return [_offer_from_row(r) for r in rows]
+
+
 def set_shipping(
     conn: sqlite3.Connection, mlb_id: str, *, free_shipping: bool, full: bool, now: datetime
 ) -> None:

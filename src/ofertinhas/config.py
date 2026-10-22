@@ -72,6 +72,9 @@ class Filters(_Strict):
     require_full: bool = False
     exclude_international: bool = False
     blocked_keywords: list[str] = ["usado", "recondicionado", "réplica"]
+    # Com algum termo, o título precisa ter ao menos um (nicho fino dentro de categorias
+    # largas, ex.: enxoval dentro de Casa). `*` no fim pega o começo da palavra: `panela*`.
+    required_keywords: list[str] = []
 
     @model_validator(mode="after")
     def _price_range(self):
