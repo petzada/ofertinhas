@@ -4,6 +4,7 @@ Cada nicho é montado em camadas: `defaults` → `niches.<nome>` → overrides g
 pelo bot no banco. Só o que muda precisa ser declarado em cada camada.
 """
 
+import re
 from collections.abc import Mapping
 from datetime import time
 from pathlib import Path
@@ -15,6 +16,10 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 
 class ConfigError(ValueError):
     pass
+
+
+# O nome do nicho vai no callback_data do Telegram (máx. 64 bytes) e não pode ter ":".
+NICHE_NAME = re.compile(r"[a-z0-9_-]{1,20}")
 
 
 class _Strict(BaseModel):
@@ -134,6 +139,12 @@ class AppConfig(_Strict):
     def _validate_layers(self):
         if not self.niches:
             raise ValueError("defina ao menos um nicho")
+        bad = [n for n in self.niches if not NICHE_NAME.fullmatch(n)]
+        if bad:
+            raise ValueError(
+                f"nome do nicho inválido: {', '.join(bad)} "
+                "(use até 20 letras minúsculas, números, _ ou -)"
+            )
         try:
             Profile(**self.defaults)
         except ValidationError as e:

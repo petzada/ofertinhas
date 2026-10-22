@@ -26,6 +26,11 @@ def _thousands(value: int) -> str:
     return f"{value:,}".replace(",", ".")
 
 
+def badges(offer: Offer) -> list[str]:
+    pairs = (("🚚 Frete grátis", offer.free_shipping), ("⚡ Full", offer.full))
+    return [label for label, on in pairs if on]
+
+
 def caption_values(offer: Offer) -> dict[str, str]:
     if not offer.affiliate_link:
         raise ValueError(f"oferta {offer.mlb_id} sem link de afiliado")
@@ -34,15 +39,13 @@ def caption_values(offer: Offer) -> dict[str, str]:
     de = brl(offer.original_price) if discount > 0 else ""
     desconto = f"{discount:.0f}" if discount > 0 else ""
     preco = f"De ~R$ {de}~ por *R$ {por}* ({desconto}% OFF)" if discount > 0 else f"Por *R$ {por}*"
-    badges = (("🚚 Frete grátis", offer.free_shipping), ("⚡ Full", offer.full))
-    selos = [label for label, on in badges if on]
     return {
         "titulo_curto": short_title(offer.title),
         "preco": preco,
         "preco_por": por,
         "preco_de": de,
         "desconto": desconto,
-        "selos": " • ".join(selos),
+        "selos": " • ".join(badges(offer)),
         "nota": f"{offer.rating:.1f}".replace(".", ",") if offer.rating else "",
         "vendidos": _thousands(offer.sold_count) if offer.sold_count else "",
         "link": offer.affiliate_link,

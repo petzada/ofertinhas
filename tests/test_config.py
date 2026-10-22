@@ -85,6 +85,12 @@ def test_override_is_validated():
         cfg.for_niche("casa", overrides={"manual_review_at": 95})
 
 
+@pytest.mark.parametrize("bad", ["Casa", "casa:2", "nome-de-nicho-muito-comprido", "c a"])
+def test_niche_name_format(bad):
+    with pytest.raises(ConfigError, match="nome do nicho"):
+        load_config_text(MINIMAL.replace("  casa:", f"  {bad!r}:"))
+
+
 def test_unknown_niche():
     with pytest.raises(KeyError):
         load_config_text(MINIMAL).for_niche("pets")
