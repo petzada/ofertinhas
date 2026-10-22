@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Ofertinhas</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>body { width: 300px; padding: 14px; }</style>
+</head>
+<body>
+  <h1>Ofertinhas</h1>
+  <div id="status" class="status">Carregando…</div>
+  <div class="row"><span>Última coleta</span><span id="last-collect">—</span></div>
+  <div class="row"><span>Links hoje</span><span id="links-today">—</span></div>
+  <div id="error" class="error" hidden></div>
+  <div class="actions">
+    <button id="toggle" class="primary" disabled>Pausar</button>
+    <button id="collect" disabled>Coletar agora</button>
+  </div>
+  <p class="hint"><a href="options.html" target="_blank">Opções</a> · pausar também funciona com /pausar coleta no bot</p>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

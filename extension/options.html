@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Ofertinhas — opções</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>body { max-width: 480px; margin: 32px auto; padding: 0 16px; }</style>
+</head>
+<body>
+  <h1>Ofertinhas — opções</h1>
+  <label for="backend">Endereço do backend</label>
+  <input id="backend" placeholder="http://127.0.0.1:8765">
+  <label for="token">Token (EXTENSION_TOKEN do .env)</label>
+  <input id="token" type="password" autocomplete="off">
+  <div class="actions">
+    <button id="save" class="primary">Salvar</button>
+    <button id="test">Testar conexão</button>
+  </div>
+  <div id="result" class="hint"></div>
+  <p class="hint">Gere o token com <code>python -m ofertinhas new-token</code> e cole o mesmo valor aqui e no arquivo .env.</p>
+  <script src="options.js" type="module"></script>
+</body>
+</html>

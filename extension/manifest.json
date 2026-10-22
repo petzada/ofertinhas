@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Ofertinhas",
+  "version": "0.1.0",
+  "description": "Coleta ofertas do portal de afiliados do Mercado Livre e gera links para o backend local do Ofertinhas.",
+  "minimum_chrome_version": "111",
+  "permissions": ["alarms", "storage", "tabs", "scripting"],
+  "host_permissions": [
+    "https://www.mercadolivre.com.br/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.mercadolivre.com.br/*"],
+      "js": ["content-main.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ],
+  "action": {
+    "default_title": "Ofertinhas",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
