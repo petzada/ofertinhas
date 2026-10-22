@@ -41,7 +41,14 @@ def eligible_again(cand: Candidate | None, offer: Offer, rules: Profile, now: da
     return True  # descartada ou expirada: pode ser ranqueada de novo
 
 
-def decide(score: float, niche: NicheConfig) -> CandidateState:
+def decide(score: float, niche: NicheConfig, offer: Offer | None = None) -> CandidateState:
+    """Com `rules` no nicho, decide por desconto e comissão; senão, pelos cortes da nota."""
+    if niche.rules is not None and offer is not None:
+        if niche.rules.auto.passes(offer.discount_pct, offer.commission_pct):
+            return CandidateState.APPROVED
+        if niche.rules.review.passes(offer.discount_pct, offer.commission_pct):
+            return CandidateState.PENDING
+        return CandidateState.DISCARDED
     if score >= niche.auto_approve_at:
         return CandidateState.APPROVED
     if score >= niche.manual_review_at:
@@ -67,10 +74,12 @@ class DailyQuota:
         db.set_setting(conn, self.key, self.used)
 
 
-def decide_with_quota(score: float, niche: NicheConfig, quota: DailyQuota) -> CandidateState:
-    """Corte por nota e depois cota: sem vaga automática, vai para revisão; sem vaga de revisão,
-    fica de fora (e volta a concorrer no dia seguinte, se ainda estiver no portal)."""
-    state = decide(score, niche)
+def decide_with_quota(
+    score: float, niche: NicheConfig, quota: DailyQuota, offer: Offer | None = None
+) -> CandidateState:
+    """Corte (regras ou nota) e depois cota: sem vaga automática, vai para revisão; sem vaga de
+    revisão, fica de fora (e volta a concorrer no dia seguinte, se ainda estiver no portal)."""
+    state = decide(score, niche, offer)
     if state is CandidateState.APPROVED and not quota.take("auto", niche.max_auto_per_day):
         state = CandidateState.PENDING
     if state is CandidateState.PENDING and not quota.take("review", niche.max_review_per_day):
@@ -122,7 +131,7 @@ def score_and_route(
     quotas: dict[str, DailyQuota] = {}
     for s, offer in sorted(routes, key=lambda route: route[0].score, reverse=True):
         quota = quotas.setdefault(s.niche, DailyQuota(conn, s.niche, now))
-        state = decide_with_quota(s.score, all_niches[s.niche], quota)
+        state = decide_with_quota(s.score, all_niches[s.niche], quota, offer)
         db.save_candidate(
             conn,
             Candidate(
@@ -167,7 +176,7 @@ def reapply_cutoffs(
                 quota.take("review", niche.max_review_per_day)
         free = [c for c in cands if c.notified_at is None]
         for cand in sorted(free, key=lambda c: c.score, reverse=True):
-            new = decide_with_quota(cand.score, niche, quota)
+            new = decide_with_quota(cand.score, niche, quota, db.get_offer(conn, cand.mlb_id))
             if new is not cand.state:
                 db.save_candidate(conn, dataclasses.replace(cand, state=new, decided_at=now))
                 changes[f"{cand.state.value}→{new.value}"] += 1

@@ -101,12 +101,34 @@ class Pacing(_Strict):
         return self
 
 
+class Gate(_Strict):
+    """Mínimos de desconto e comissão. `strict`: "mais de" (>) em vez de "a partir de" (≥)."""
+
+    min_discount_pct: float = Field(0, ge=0, le=100)
+    min_commission_pct: float = Field(0, ge=0, le=100)
+    strict: bool = False
+
+    def passes(self, discount_pct: float, commission_pct: float) -> bool:
+        if self.strict:
+            return discount_pct > self.min_discount_pct and commission_pct > self.min_commission_pct
+        return discount_pct >= self.min_discount_pct and commission_pct >= self.min_commission_pct
+
+
+class Rules(_Strict):
+    """Decide pela oferta em vez da nota: passa em `auto` → link automático; senão, passa em
+    `review` → card para o admin; senão, descarte. A nota só ordena quem pega a cota."""
+
+    auto: Gate
+    review: Gate
+
+
 class Profile(_Strict):
     weights: Weights = Weights()
     targets: Targets = Targets()
     filters: Filters = Filters()
     auto_approve_at: float = Field(80, ge=0, le=100)
     manual_review_at: float = Field(60, ge=0, le=100)
+    rules: Rules | None = None  # se definido, decide no lugar dos cortes por nota
     # Cota diária (horário de SP): só as melhores do dia passam, o resto espera o dia seguinte.
     max_auto_per_day: int = Field(10, ge=0)
     max_review_per_day: int = Field(8, ge=0)  # cards de aprovação para você

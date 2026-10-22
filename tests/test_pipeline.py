@@ -235,6 +235,42 @@ def test_reapply_cutoffs_trims_queue_to_quota(conn):
     assert state(conn, "MLB4") is S.DISCARDED
 
 
+RULES = {"rules": {
+    "auto": {"min_discount_pct": 39, "min_commission_pct": 20, "strict": True},
+    "review": {"min_discount_pct": 30, "min_commission_pct": 15},
+}}
+
+
+@pytest.mark.parametrize(
+    ("discount", "commission", "expected"),
+    [
+        (40, 21, S.APPROVED),  # mais de 39% e mais de 20%
+        (39, 25, S.PENDING),  # 39% não é "mais de 39%"
+        (50, 20, S.PENDING),  # 20% não é "mais de 20%"
+        (30, 15, S.PENDING),  # 30% e 15% "pra cima" incluem o próprio valor
+        (29, 30, S.DISCARDED),
+        (60, 14, S.DISCARDED),
+    ],
+)
+def test_rules_decide_instead_of_score(conn, discount, commission, expected):
+    db.set_niche_override(conn, "casa", "rules", RULES["rules"])
+    db.set_niche_override(conn, "tech", "paused", True)
+    add(conn, commission=commission, price=100 - discount, original_price=100)
+    score_and_route(conn, cfg(), ["MLB1"], now=NOW)
+    assert state(conn) is expected
+
+
+def test_reapply_cutoffs_uses_rules(conn):
+    from ofertinhas.pipeline import reapply_cutoffs
+
+    db.set_niche_override(conn, "casa", "rules", RULES["rules"])
+    add(conn, "MLB1", commission=25, price=50, original_price=100)
+    db.save_candidate(conn, Candidate(mlb_id="MLB1", niche="casa", state=S.PENDING, score=60,
+                                      breakdown={}, ref_price=50, decided_at=NOW))
+    reapply_cutoffs(conn, cfg(), now=NOW)
+    assert state(conn) is S.APPROVED
+
+
 def test_multi_niche_mode_checks_cooldown_per_niche(conn):
     add(conn, commission=18.0)
     put(conn, S.POSTED, niche="tech", decided_at=NOW - timedelta(days=1))

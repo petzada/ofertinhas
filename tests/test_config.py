@@ -117,6 +117,29 @@ def test_whatsapp_is_disabled_by_default():
     assert load_config_text(MINIMAL + "whatsapp_enabled: true\n").whatsapp_enabled is True
 
 
+def test_rules_are_optional_and_per_niche():
+    assert load_config_text(MINIMAL).for_niche("casa").rules is None
+    cfg = load_config_text("""
+defaults:
+  rules:
+    auto: {min_discount_pct: 39, min_commission_pct: 20, strict: true}
+    review: {min_discount_pct: 30, min_commission_pct: 15}
+niches:
+  casa:
+    categories: [MLB1574]
+    telegram_chat_id: -1001
+  tech:
+    categories: [MLB1648]
+    telegram_chat_id: -1002
+    rules:
+      auto: {min_commission_pct: 10}
+""")
+    casa, tech = cfg.for_niche("casa"), cfg.for_niche("tech")
+    assert casa.rules.auto.strict is True and casa.rules.review.min_commission_pct == 15
+    assert tech.rules.auto.min_commission_pct == 10  # nicho ajusta só o que muda
+    assert tech.rules.auto.min_discount_pct == 39 and tech.rules.auto.strict is True
+
+
 def test_collector_validation():
     text = MINIMAL + "collector:\n  request_gap_s: [20, 5]\n"
     with pytest.raises(ConfigError, match="request_gap_s"):
