@@ -33,8 +33,9 @@ class Weights(_Strict):
     rating: float = Field(10, ge=0)
     sold_count: float = Field(10, ge=0)
     freshness: float = Field(5, ge=0)
-    free_shipping: float = Field(8, ge=0)
-    full: float = Field(7, ge=0)
+    # Zerados: o portal não informa frete grátis nem Full (ver docs/notes/portal-mapping.md).
+    free_shipping: float = Field(0, ge=0)
+    full: float = Field(0, ge=0)
 
     @model_validator(mode="after")
     def _not_all_zero(self):

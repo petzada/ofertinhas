@@ -146,11 +146,10 @@ O caminho de ancestrais da categoria vem da API pública de categorias do ML (`/
 - Cada resposta vai para o backend em `POST /ext/raw`, junto com o corpo do pedido. A categoria do filtro vira o `category_path` da oferta, então o nicho é exato. Sem filtro, o nicho sai só por palavras-chave.
 - O backend define as categorias, as páginas e os intervalos em `GET /ext/config`. Mudar isso não exige atualizar a extensão.
 
-**Frete grátis e Full (página do produto):**
+**Frete grátis e Full: fora do ranking por enquanto.**
 - A lista do portal não traz esses dados, e a API pública de itens responde 403.
-- Cada oferta recebe primeiro uma nota provisória **supondo frete grátis e Full**, ou seja, a melhor que ela poderia ter. Se nem essa nota alcança `manual_review_at`, a oferta é descartada sem abrir a página do produto.
-- As demais vão para a fila de verificação (`GET /ext/enrich-requests`). A extensão busca a página do produto de dentro da aba do portal (mesma origem e mesma sessão), uma por vez, com 5 a 15 s entre buscas e até `max_product_pages_per_hour` (padrão 60). As de maior nota provisória vêm primeiro.
-- O HTML vai para `POST /ext/product-page`. O backend extrai frete grátis e Full, guarda o resultado (válido por 24 h) e calcula a nota final.
+- A busca da página do produto foi testada e descartada: o ML responde a acessos ao HTML do produto fora da navegação normal com um desafio reCAPTCHA. Insistir acionaria o freio o tempo todo e marcaria a sessão como suspeita.
+- Os pesos `free_shipping` e `full` ficam em 0 e os selos não aparecem. Os campos continuam no modelo; se surgir uma fonte confiável (por exemplo, a API oficial com um app de desenvolvedor), basta preenchê-los e religar os pesos.
 
 **Link de afiliado:**
 - Um alarme a cada ~2 min consulta `GET /ext/link-requests` (ofertas `approved` sem link).
@@ -178,9 +177,7 @@ Não há retentativas automáticas contra o ML.
 | Rota | Uso |
 |---|---|
 | `GET /ext/config` | Categorias, páginas por categoria, intervalos, janela e pausa |
-| `POST /ext/raw` | `{url, request_body, status, body, captured_at}` → parse → upsert → nota provisória |
-| `GET /ext/enrich-requests` | Próxima página de produto a verificar (`mlb_id`, `url`), ou vazio |
-| `POST /ext/product-page` | `{mlb_id, html}` → frete grátis/Full → nota final |
+| `POST /ext/raw` | `{url, request_body, status, body, captured_at}` → parse → upsert → ranking |
 | `GET /ext/link-requests` | Próximo pedido de link com o corpo pronto do `createLink`, ou vazio |
 | `POST /ext/links` | `{mlb_id, link}` ou `{mlb_id, error}` |
 | `POST /ext/alert` | `{reason, url}` → pausa a coleta e avisa o admin |
@@ -251,8 +248,8 @@ VPS e Docker, IA de imagem e de texto, múltiplas contas de afiliado, outras loj
 
 ## 15. Riscos e pontos a verificar
 
-- **Formato dos dados do portal e do Gerador de link:** mapeados em `docs/notes/portal-mapping.md`. Falta mapear onde frete grátis e Full aparecem no HTML da página do produto, o que exige páginas de produto salvas pelo usuário.
-- **Volume de acessos à página do produto:** limitado por `max_product_pages_per_hour`, pela nota provisória e pelo cache de 24 h. Se a fila crescer demais, a verificação fica para as de maior nota.
+- **Formato dos dados do portal e do Gerador de link:** mapeados em `docs/notes/portal-mapping.md`.
+- **Frete grátis e Full:** sem fonte por enquanto (ver a seção 6).
 - **WhatsMiau.dev:** confirmar no primeiro teste o envio para JID de grupo e se `media` aceita base64.
 - **Termos do ML:** mesmo com uma sessão real e ritmo humano, automação pode contrariar os termos. O freio automático e o volume baixo reduzem, mas não eliminam, o risco.
 - **WhatsApp:** risco de restrição do número, que depende do volume e do tamanho dos grupos. Manter o ritmo moderado e aquecer os grupos aos poucos.

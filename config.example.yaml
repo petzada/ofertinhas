@@ -12,8 +12,8 @@ defaults:
     rating: 10           # estrelas
     sold_count: 10       # vendidos (escala log)
     freshness: 5         # oferta vista pela primeira vez há pouco tempo
-    free_shipping: 8     # frete grátis
-    full: 7              # Mercado Envios Full
+    free_shipping: 0     # frete grátis: desligado, o portal não informa
+    full: 0              # Mercado Envios Full: desligado, o portal não informa
   targets:               # valor que vale nota máxima no critério
     commission_pct: 20
     discount_pct: 60

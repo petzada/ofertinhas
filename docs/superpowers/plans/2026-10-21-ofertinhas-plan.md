@@ -98,12 +98,9 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 - Filtro `exclude_international` (padrão `false`).
 - **Testes:** legenda e card com Pix; filtro.
 
-### T2.7 Frete grátis e Full pela página do produto
-- **T2.7a 👤 Páginas de exemplo:** no Brave logado, salve com Ctrl+S ("Página da Web, somente HTML") 3 produtos em `data/har/produto-*.html`: um com frete grátis e Full, um só com frete grátis e um sem nenhum dos dois.
-- **T2.7b Parser:** `collector/product_page.py`. `parse_shipping(html) -> Shipping(free_shipping, full) | None`, testado com as páginas de exemplo limpas de dados pessoais.
-- **T2.7c Nota em duas etapas:** `score_and_route` calcula a nota provisória com frete grátis e Full verdadeiros. Abaixo de `manual_review_at`, descarta. Acima, se `shipping_checked_at` estiver vazio ou tiver mais de 24 h, a oferta fica aguardando verificação (sem candidato ainda); senão, vale a nota final.
-  - Novo setting por nicho: `max_product_pages_per_hour` (padrão 60).
-  - **Testes:** descarte pela nota provisória; espera pela verificação; cache de 24 h; nota final após a verificação.
+### T2.7 Frete grátis e Full: adiada ⏸️
+- As páginas de produto salvas vieram como desafio reCAPTCHA. O ML barra o acesso ao HTML do produto fora da navegação normal.
+- **Decisão do usuário (2026-10-22):** frete grátis e Full saem do ranking por enquanto (pesos 0 em `config.py` e `config.example.yaml`). Os campos `free_shipping`, `full` e `shipping_checked_at` e `db.set_shipping` ficam prontos para uma fonte futura.
 
 ---
 
@@ -137,11 +134,6 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
   3. Se não, soma uma tentativa; na 3ª, marca `link_failed` e avisa o admin.
 - Migração: `offers.link_requested_at` e `offers.link_attempts`.
 - **Testes:** ordem por nota; não repete o pedido em 10 min; link reaproveitado entre nichos; três falhas viram `link_failed` com aviso.
-
-### T3.4b Verificação da página do produto
-- `GET /ext/enrich-requests`: a oferta aguardando verificação de maior nota provisória, não pedida nos últimos 10 min.
-- `POST /ext/product-page {mlb_id, html}`: `parse_shipping`, atualiza a oferta e roda `score_and_route` só para ela. Se `parse_shipping` devolver `None`, salva o HTML em `data/unparsed/` e avisa o admin (no máximo 1 por hora).
-- **Testes:** ordem; fluxo completo até virar candidato; HTML desconhecido.
 
 ### T3.5 Validação de link
 - **Arquivo:** `affiliate/validate.py`.
@@ -186,9 +178,6 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 - O alarme `links` consulta `GET /ext/link-requests` e atende no máximo um pedido, respeitando o `RateLimiter` e 30 a 90 s desde o último.
 - Faz o `POST createLink` de dentro da aba do portal com o corpo que veio do backend e manda `short_url`, `regex` e `total_error` para o `POST /ext/links`. Um 401/403/429 aciona o freio.
 
-### T4.4b Verificação da página do produto
-- O alarme `enrich` consulta `GET /ext/enrich-requests` e faz `fetch(url)` da página do produto de dentro da aba do portal (mesma origem), uma por vez, com 5 a 15 s entre buscas e o seu próprio `RateLimiter` (`max_product_pages_per_hour`).
-- Envia o HTML para o `POST /ext/product-page`. `detectBlock` no HTML (captcha/login) aciona o freio.
 
 ### T4.5 Popup e opções
 - **Opções:** URL do backend e token, salvos em `chrome.storage.local`.

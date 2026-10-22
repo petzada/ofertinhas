@@ -29,7 +29,8 @@ def test_niche_merges_partial_weights_over_defaults():
     casa = load_config_text(MINIMAL).for_niche("casa")
     assert casa.weights.discount_pct == 35
     assert casa.weights.commission_pct == 35
-    assert casa.weights.full == 7  # default do modelo
+    assert casa.weights.rating == 10  # default do modelo
+    assert casa.weights.full == 0  # desligado: o portal não informa Full
 
 
 def test_template_defaults_to_niche_name():
