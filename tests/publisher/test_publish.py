@@ -57,11 +57,20 @@ class FakeWhatsApp:
     async def send_presence(self, jid):
         self.presence.append(jid)
 
-    async def send_image(self, jid, png, caption):
+    async def send_image(self, jid, media_url, caption):
         if self.fail:
             raise self.fail
-        self.sent.append((jid, png, caption))
+        self.sent.append((jid, media_url, caption))
         return f"wa{len(self.sent)}"
+
+
+class FakeCardHost:
+    def __init__(self):
+        self.uploaded = {}
+
+    async def upload(self, key, png):
+        self.uploaded[key] = png
+        return f"https://pub-x.r2.dev/{key}"
 
 
 class Notes:
@@ -99,8 +108,9 @@ def seed(conn, tmp_path, mlb_id="MLB1", niche="casa", score=90.0, seen=NOW, stat
     ))
 
 
-async def run(conn, config, tg, wa=None, dry_run=False, now=NOW, notes=None):
-    return await publish_due(conn, config, telegram=tg, whatsapp=wa, admin_chat_id=ADMIN,
+async def run(conn, config, tg, wa=None, dry_run=False, now=NOW, notes=None, host=None):
+    return await publish_due(conn, config, telegram=tg, whatsapp=wa,
+                             card_host=host or FakeCardHost(), admin_chat_id=ADMIN,
                              dry_run=dry_run, now=now, notify=notes or Notes(), sleep=no_sleep)
 
 
@@ -118,10 +128,11 @@ async def test_real_mode_posts_to_telegram_group(conn, tmp_path):
 
 async def test_whatsapp_follows_telegram_when_enabled(conn, tmp_path):
     seed(conn, tmp_path)
-    tg, wa = FakeTelegram(), FakeWhatsApp()
-    assert await run(conn, cfg(wa=True), tg, wa) == ["MLB1"]
-    jid, png, caption = wa.sent[0]
-    assert jid == JID and png == b"\x89PNG card"
+    tg, wa, host = FakeTelegram(), FakeWhatsApp(), FakeCardHost()
+    assert await run(conn, cfg(wa=True), tg, wa, host=host) == ["MLB1"]
+    jid, media_url, caption = wa.sent[0]
+    assert jid == JID and media_url == "https://pub-x.r2.dev/cards/MLB1-casa.png"
+    assert host.uploaded["cards/MLB1-casa.png"] == b"\x89PNG card"
     assert "*Air Fryer*" in caption and "~R$ 499~" in caption  # formato do WhatsApp
     assert wa.presence == [JID]
     channels = {r[0] for r in conn.execute("SELECT channel FROM posts WHERE status = 'sent'")}

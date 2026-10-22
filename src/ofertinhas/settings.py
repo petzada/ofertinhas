@@ -42,6 +42,11 @@ class Settings:
     whatsmiau_instance: str | None
     ml_affiliate_tag: str | None = None  # etiqueta de afiliado usada no createLink
     whatsmiau_base_url: str = WHATSMIAU_BASE_URL
+    # Cloudflare R2: cards públicos para o WhatsApp (a WhatsMiau só aceita imagem por URL)
+    r2_account_id: str | None = None
+    r2_bucket: str | None = None
+    r2_public_url: str | None = None
+    r2_api_token: str | None = None
 
     _ENV_NAMES = {
         "ML_AFFILIATE_TAG": "ml_affiliate_tag",
@@ -66,6 +71,10 @@ class Settings:
             whatsmiau_instance=env.get("WHATSMIAU_INSTANCE") or None,
             ml_affiliate_tag=env.get("ML_AFFILIATE_TAG") or None,
             whatsmiau_base_url=env.get("WHATSMIAU_BASE_URL") or WHATSMIAU_BASE_URL,
+            r2_account_id=env.get("R2_ACCOUNT_ID") or None,
+            r2_bucket=env.get("R2_BUCKET") or None,
+            r2_public_url=env.get("R2_PUBLIC_URL") or None,
+            r2_api_token=env.get("R2_API_TOKEN") or None,
         )
 
     @classmethod

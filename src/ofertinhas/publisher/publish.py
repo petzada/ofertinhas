@@ -22,6 +22,7 @@ from ..alerts import notify_throttled
 from ..config import AppConfig, NicheConfig
 from ..creative.format import to_telegram_html, to_whatsapp
 from ..models import Candidate, CandidateState
+from .cardhost import CardHostError
 from .pacing import can_post
 from .telegram import TelegramError
 from .whatsapp import WhatsAppError
@@ -63,6 +64,7 @@ async def publish_due(
     *,
     telegram,
     whatsapp=None,
+    card_host=None,
     admin_chat_id: int,
     dry_run: bool,
     now: datetime,
@@ -128,14 +130,22 @@ async def publish_due(
                                price=offer.price)
                 sent_any = True
 
-        if use_whatsapp:
+        if use_whatsapp and card_host is None:
+            await notify_throttled(
+                conn, notify, "whatsapp-no-host",
+                "⚠️ WhatsApp ligado, mas falta R2_API_TOKEN no .env para publicar a imagem.",
+                now, ALERT_EVERY,
+            )
+        elif use_whatsapp:
             # Sem Telegram no grupo, o WhatsApp é quem conta para o ritmo.
             wa_chat = key if tg_chat is None else wa_jid
             try:
+                media_url = await card_host.upload(f"cards/{cand.mlb_id}-{cand.niche}.png", png)
                 await whatsapp.send_presence(wa_jid)
                 await sleep(rng.uniform(*WHATSAPP_TYPING_S))
-                message_id = await whatsapp.send_image(wa_jid, png, to_whatsapp(cand.caption))
-            except WhatsAppError as e:
+                message_id = await whatsapp.send_image(wa_jid, media_url,
+                                                       to_whatsapp(cand.caption))
+            except (WhatsAppError, CardHostError) as e:
                 db.record_post(conn, mlb_id=cand.mlb_id, niche=niche.name, channel="whatsapp",
                                chat=wa_chat, status="failed", sent_at=now, error=str(e))
                 await notify_throttled(

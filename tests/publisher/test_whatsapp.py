@@ -1,4 +1,3 @@
-import base64
 import json
 
 import httpx
@@ -26,17 +25,19 @@ async def sender(sleeps):
 
 
 @respx.mock
-async def test_send_image_with_base64_and_caption(sender):
+async def test_send_image_by_public_url_and_caption(sender):
+    # a WhatsMiau só aceita a imagem por URL pública (base64 e upload são recusados)
     route = respx.post(f"{BASE}/message/sendMedia/Ofertas01").mock(
         return_value=httpx.Response(201, json={"key": {"id": "ABC123"}})
     )
-    assert await sender.send_image(JID, b"\x89PNG", "*Oferta*") == "ABC123"
+    url = "https://pub-x.r2.dev/cards/MLB1-casa.png"
+    assert await sender.send_image(JID, url, "*Oferta*") == "ABC123"
     request = route.calls.last.request
     assert request.headers["apikey"] == "chave"
     body = json.loads(request.content)
     assert body["number"] == JID and body["mediatype"] == "image"
     assert body["mimetype"] == "image/png" and body["caption"] == "*Oferta*"
-    assert base64.b64decode(body["media"]) == b"\x89PNG"
+    assert body["media"] == url
 
 
 @respx.mock
@@ -51,7 +52,7 @@ async def test_client_errors_are_not_retried(sender, sleeps):
     route = respx.post(f"{BASE}/message/sendMedia/Ofertas01").mock(
         return_value=httpx.Response(400, json={"message": "número inválido"}))
     with pytest.raises(WhatsAppError, match="inválido") as exc:
-        await sender.send_image(JID, b"x", "y")
+        await sender.send_image(JID, "https://pub-x.r2.dev/c.png", "y")
     assert exc.value.retryable is False and route.call_count == 1 and sleeps == []
 
 
@@ -60,7 +61,7 @@ async def test_huge_error_messages_are_truncated(sender):
     respx.post(f"{BASE}/message/sendMedia/Ofertas01").mock(return_value=httpx.Response(
         400, json={"error": {"Op": "Get", "URL": "iVBOR" * 10_000}}))
     with pytest.raises(WhatsAppError) as exc:
-        await sender.send_image(JID, b"x", "y")
+        await sender.send_image(JID, "https://pub-x.r2.dev/c.png", "y")
     assert len(str(exc.value)) <= 300
 
 
@@ -70,7 +71,7 @@ async def test_server_errors_retry_with_backoff(sender, sleeps):
     respx.post(f"{BASE}/message/sendMedia/Ofertas01").mock(
         side_effect=[httpx.Response(502), httpx.ConnectError("x"), ok]
     )
-    assert await sender.send_image(JID, b"x", "y") == "Z"
+    assert await sender.send_image(JID, "https://pub-x.r2.dev/c.png", "y") == "Z"
     assert sleeps == [2, 4]
 
 

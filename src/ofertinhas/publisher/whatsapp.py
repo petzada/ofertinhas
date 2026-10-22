@@ -1,10 +1,10 @@
 """Envio aos grupos do WhatsApp pela API da WhatsMiau.dev (padrão Evolution API).
 
-Rotas e formato conforme https://whatsmiau.dev/docs/getting-started; a imagem vai em base64.
+Rotas e formato conforme https://whatsmiau.dev/docs/getting-started; a imagem vai por URL
+pública (os cards ficam no R2, ver cardhost.py).
 """
 
 import asyncio
-import base64
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -103,13 +103,15 @@ class WhatsAppSender:
         except WhatsAppError:
             pass
 
-    async def send_image(self, jid: str, png: bytes, caption: str) -> str:
+    async def send_image(self, jid: str, media_url: str, caption: str) -> str:
+        """`media_url` precisa ser pública: a WhatsMiau baixa a imagem de lá (testado em
+        2026-10-22: base64 e upload multipart são recusados)."""
         data = await self._call("POST", f"/message/sendMedia/{self.instance}", json={
             "number": jid,
             "mediatype": "image",
             "mimetype": "image/png",
             "fileName": "oferta.png",
-            "media": base64.b64encode(png).decode(),
+            "media": media_url,
             "caption": caption,
         })
         key = data.get("key") if isinstance(data, dict) else None

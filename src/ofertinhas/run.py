@@ -18,6 +18,7 @@ from .config import AppConfig
 from .creative.image import fetch_product_image
 from .models import utcnow
 from .pipeline import render_linked
+from .publisher.cardhost import CardHost
 from .publisher.publish import publish_due
 from .publisher.queue import expire_stale
 from .publisher.telegram import TelegramSender
@@ -52,6 +53,14 @@ def whatsapp_sender(settings: Settings, http: httpx.AsyncClient) -> WhatsAppSend
                           settings.whatsmiau_instance)
 
 
+def card_host(settings: Settings, http: httpx.AsyncClient) -> CardHost | None:
+    if not (settings.r2_account_id and settings.r2_bucket and settings.r2_public_url
+            and settings.r2_api_token):
+        return None
+    return CardHost(http, settings.r2_account_id, settings.r2_bucket, settings.r2_api_token,
+                    settings.r2_public_url)
+
+
 def make_jobs(
     *,
     conn: sqlite3.Connection,
@@ -61,6 +70,7 @@ def make_jobs(
     bot,
     telegram,
     whatsapp=None,
+    cards=None,
     fetch_image: Callable[[str | None], Awaitable[object]],
     notify: Callable[[str], Awaitable[None]],
     admin_chat_id: int,
@@ -78,8 +88,8 @@ def make_jobs(
 
     async def publish():
         posted = await publish_due(conn, cfg, telegram=telegram, whatsapp=whatsapp,
-                                   admin_chat_id=admin_chat_id, dry_run=dry_run, now=clock(),
-                                   notify=notify)
+                                   card_host=cards, admin_chat_id=admin_chat_id,
+                                   dry_run=dry_run, now=clock(), notify=notify)
         if posted:
             log.info("postadas: %s", ", ".join(posted))
         return posted
@@ -114,8 +124,8 @@ async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
     application = build_application(settings.telegram_bot_token, bot_deps)
     jobs = make_jobs(
         conn=conn, cfg=cfg, data_dir=settings.data_dir, templates_dir=TEMPLATES_DIR,
-        bot=application.bot, telegram=telegram, whatsapp=whatsapp, fetch_image=fetch_image,
-        notify=notify,
+        bot=application.bot, telegram=telegram, whatsapp=whatsapp,
+        cards=card_host(settings, http), fetch_image=fetch_image, notify=notify,
         admin_chat_id=settings.admin_chat_id, dry_run=dry_run,
     )
     scheduler = build_scheduler(jobs, conn, notify, utcnow)
