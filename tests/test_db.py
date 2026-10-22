@@ -59,12 +59,36 @@ def test_upsert_reports_new_then_existing(conn):
 def test_upsert_updates_price_and_keeps_first_seen(conn):
     db.upsert_offer(conn, offer(), now=T0)
     later = T0 + timedelta(hours=2)
-    db.upsert_offer(conn, offer(price=280.0, full=True, collected_at=later), now=later)
+    db.upsert_offer(conn, offer(price=280.0, pix_only=True, collected_at=later), now=later)
     stored = db.get_offer(conn, "MLB1")
     assert stored.price == 280.0
-    assert stored.full is True
+    assert stored.pix_only is True
     assert stored.collected_at == T0
     assert stored.category_path == ("MLB1574", "MLB5726")
+
+
+def test_new_offer_fields_roundtrip(conn):
+    db.upsert_offer(conn, offer(item_type="user_product", extra_commission=True, pix_only=True,
+                                international=True, highlight="MAIS VENDIDO"), now=T0)
+    stored = db.get_offer(conn, "MLB1")
+    assert (stored.item_type, stored.extra_commission, stored.pix_only, stored.international,
+            stored.highlight) == ("user_product", True, True, True, "MAIS VENDIDO")
+    assert stored.shipping_checked_at is None
+
+
+def test_collection_does_not_overwrite_checked_shipping(conn):
+    db.upsert_offer(conn, offer(), now=T0)
+    db.set_shipping(conn, "MLB1", free_shipping=True, full=True, now=T0)
+    db.upsert_offer(conn, offer(price=250.0), now=T0 + timedelta(minutes=20))  # coleta não sabe
+    stored = db.get_offer(conn, "MLB1")
+    assert stored.free_shipping is True and stored.full is True
+    assert stored.shipping_checked_at == T0
+    assert stored.price == 250.0
+
+
+def test_empty_category_path_is_allowed(conn):
+    db.upsert_offer(conn, offer(category_path=()), now=T0)
+    assert db.get_offer(conn, "MLB1").category_path == ()
 
 
 def test_price_history_only_on_change(conn):

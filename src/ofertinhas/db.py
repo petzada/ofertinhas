@@ -78,6 +78,14 @@ MIGRATIONS = [
         used_at TEXT NOT NULL
     );
     """,
+    """
+    ALTER TABLE offers ADD COLUMN item_type TEXT NOT NULL DEFAULT 'product';
+    ALTER TABLE offers ADD COLUMN extra_commission INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE offers ADD COLUMN pix_only INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE offers ADD COLUMN international INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE offers ADD COLUMN highlight TEXT;
+    ALTER TABLE offers ADD COLUMN shipping_checked_at TEXT;
+    """,
 ]
 
 
@@ -112,7 +120,8 @@ def _dt(value: str | None) -> datetime | None:
 def upsert_offer(conn: sqlite3.Connection, offer: Offer, now: datetime | None = None) -> bool:
     """Grava a oferta e devolve True se ela é nova.
 
-    Na atualização, preserva a data em que foi vista pela primeira vez e o link de afiliado.
+    Na atualização, preserva a data em que foi vista pela primeira vez, o link de afiliado e
+    o frete/Full verificados na página do produto (a coleta não traz esses dados).
     """
     now = now or utcnow()
     previous = conn.execute(
@@ -128,13 +137,24 @@ def upsert_offer(conn: sqlite3.Connection, offer: Offer, now: datetime | None = 
         image_url=offer.image_url,
         rating=offer.rating,
         sold_count=offer.sold_count,
-        free_shipping=int(offer.free_shipping),
-        is_full=int(offer.full),
+        item_type=offer.item_type,
+        extra_commission=int(offer.extra_commission),
+        pix_only=int(offer.pix_only),
+        international=int(offer.international),
+        highlight=offer.highlight,
         updated_at=_ts(now),
     )
     with conn:
         if previous is None:
-            fields |= dict(mlb_id=offer.mlb_id, collected_at=_ts(offer.collected_at))
+            fields |= dict(
+                mlb_id=offer.mlb_id,
+                collected_at=_ts(offer.collected_at),
+                free_shipping=int(offer.free_shipping),
+                is_full=int(offer.full),
+                shipping_checked_at=(
+                    _ts(offer.shipping_checked_at) if offer.shipping_checked_at else None
+                ),
+            )
             cols = ", ".join(fields)
             marks = ", ".join(f":{k}" for k in fields)
             conn.execute(f"INSERT INTO offers ({cols}) VALUES ({marks})", fields)
@@ -164,8 +184,14 @@ def _offer_from_row(row: sqlite3.Row) -> Offer:
         image_url=row["image_url"],
         rating=row["rating"],
         sold_count=row["sold_count"],
+        item_type=row["item_type"],
+        extra_commission=bool(row["extra_commission"]),
+        pix_only=bool(row["pix_only"]),
+        international=bool(row["international"]),
+        highlight=row["highlight"],
         free_shipping=bool(row["free_shipping"]),
         full=bool(row["is_full"]),
+        shipping_checked_at=_dt(row["shipping_checked_at"]),
         collected_at=_dt(row["collected_at"]),
         affiliate_link=row["affiliate_link"],
         last_seen_at=_dt(row["updated_at"]),
@@ -185,6 +211,18 @@ def get_offers(conn: sqlite3.Connection, mlb_ids: Iterable[str]) -> list[Offer]:
     rows = conn.execute(f"SELECT * FROM offers WHERE mlb_id IN ({marks})", ids)
     by_id = {r["mlb_id"]: _offer_from_row(r) for r in rows}
     return [by_id[i] for i in ids if i in by_id]
+
+
+def set_shipping(
+    conn: sqlite3.Connection, mlb_id: str, *, free_shipping: bool, full: bool, now: datetime
+) -> None:
+    """Frete grátis e Full verificados na página do produto."""
+    with conn:
+        conn.execute(
+            "UPDATE offers SET free_shipping = ?, is_full = ?, shipping_checked_at = ? "
+            "WHERE mlb_id = ?",
+            (int(free_shipping), int(full), _ts(now), mlb_id),
+        )
 
 
 def set_affiliate_link(conn: sqlite3.Connection, mlb_id: str, link: str) -> None:
