@@ -38,14 +38,33 @@ class BotDeps:
     awaiting_edit: tuple[str, str] | None = field(default=None)
 
 
+AUTOMATIC_FLOW = (
+    CandidateState.APPROVED, CandidateState.LINKED, CandidateState.RENDERED, CandidateState.QUEUED,
+)
+
+
+def _busy_destinations(deps: BotDeps) -> tuple[set[tuple], dict[str, tuple]]:
+    """(grupos que ainda têm ofertas aprovadas a caminho do post, destino de cada nicho)."""
+    from ..pipeline import niche_configs  # evita import circular
+
+    dest = {name: n.destination() for name, n in niche_configs(deps.conn, deps.cfg).items()}
+    return {
+        dest.get(c.niche)
+        for state in AUTOMATIC_FLOW
+        for c in db.candidates_by_state(deps.conn, state)
+    }, dest
+
+
 async def send_pending_cards(bot, deps: BotDeps, limit: int = 5) -> int:
-    """Manda ao admin os cards das pendentes ainda não notificadas, até `limit` por vez,
-    as de maior nota primeiro (o job roda a cada minuto)."""
+    """Cards de aprovação são bônus: só saem para nichos cujo grupo não tem nenhuma oferta
+    automática na fila. Até `limit` por vez, as de maior nota primeiro (o job roda a cada
+    minuto)."""
+    busy, dest = _busy_destinations(deps)
     sent = 0
     for cand in db.candidates_by_state(deps.conn, CandidateState.PENDING):
         if sent >= limit:
             break
-        if cand.notified_at is not None:
+        if cand.notified_at is not None or dest.get(cand.niche) in busy:
             continue
         offer = db.get_offer(deps.conn, cand.mlb_id)
         caption = approval_caption(offer, cand)

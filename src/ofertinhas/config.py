@@ -153,6 +153,10 @@ class NicheConfig(Profile):
     whatsapp_group_jid: str | None = None
     paused: bool = False
 
+    def destination(self) -> tuple[int | None, str | None]:
+        """Grupo(s) onde o nicho posta; nichos com o mesmo destino dividem a fila e o ritmo."""
+        return self.telegram_chat_id, self.whatsapp_group_jid
+
     @model_validator(mode="after")
     def _routing_and_channels(self):
         if not self.categories and not self.keywords:

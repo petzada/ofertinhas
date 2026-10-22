@@ -30,16 +30,33 @@ def deps():
     conn.close()
 
 
-def seed(conn, mlb_id="MLB1", image_url="https://img/1.webp", state=S.PENDING):
+def seed(conn, mlb_id="MLB1", image_url="https://img/1.webp", state=S.PENDING, niche="casa"):
     db.upsert_offer(conn, Offer(
         mlb_id=mlb_id, title="Air Fryer", price=299.9, original_price=499.9,
         commission_pct=12, category_path=("MLB1574",), permalink="https://x",
         image_url=image_url, collected_at=NOW,
     ), now=NOW)
     db.save_candidate(conn, Candidate(
-        mlb_id=mlb_id, niche="casa", state=state, score=70, breakdown={"commission_pct": 20.0},
+        mlb_id=mlb_id, niche=niche, state=state, score=70, breakdown={"commission_pct": 20.0},
         ref_price=299.9, decided_at=NOW,
     ))
+
+
+@pytest.mark.parametrize("flow_state", [S.APPROVED, S.LINKED, S.RENDERED])
+async def test_cards_wait_while_the_group_has_automatic_offers(deps, flow_state):
+    seed(deps.conn, "MLB1")  # pendente de casa
+    seed(deps.conn, "MLB2", state=flow_state)  # automática de casa ainda no fluxo
+    bot = fake_bot()
+    assert await send_pending_cards(bot, deps) == 0
+    with deps.conn:
+        deps.conn.execute("UPDATE candidates SET state = 'posted' WHERE mlb_id = 'MLB2'")
+    assert await send_pending_cards(bot, deps) == 1  # fila automática vazia: vai o bônus
+
+
+async def test_cards_of_other_groups_are_not_held(deps):
+    seed(deps.conn, "MLB1", niche="tech")  # tech tem outro grupo no exemplo
+    seed(deps.conn, "MLB2", state=S.RENDERED)  # automática de casa
+    assert await send_pending_cards(fake_bot(), deps) == 1
 
 
 def fake_bot():
