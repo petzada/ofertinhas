@@ -86,14 +86,14 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 - Registra qual chamada o Gerador de link faz (endpoint, método e corpo) e como a resposta traz o link.
 - Define os padrões de URL de captura da extensão e a estratégia de link (endpoint ou formulário).
 
-### T2.5 Parser da busca
+### T2.5 Parser da busca ✅ (197/197 ofertas do HAR lidas)
 - **Arquivo:** `collector/parsers.py`. `parse_hub_search(request_body, response_body) -> list[Offer] | None`, onde `None` significa formato desconhecido (o JSON é salvo em `data/unparsed/` e o admin é avisado).
 - Campos conforme o mapeamento: MLB (`metadata.id`), `type`, `extra_commission`, URL, título, comissão (os 2 formatos do chip), preço atual e anterior, `pix_only` ("no Pix" no rótulo), avaliação, vendidos (`+5mil` → 5000), foto (`D_NQ_NP_2X_<id>-F.webp`), `international` (`cbt`) e destaque.
 - A categoria vem do filtro `category` do pedido: `category_path = (id,)`, ou `()` sem filtro.
 - Novos campos no `Offer` e no banco (migração 2): `item_type`, `extra_commission`, `pix_only`, `international`, `highlight`, `shipping_checked_at`.
 - **Testes** com as 4 fixtures de busca: 18 ofertas por página; um item conferido campo a campo em cada formato de chip; Pix; internacional; sem avaliação; payload desconhecido devolve `None`.
 
-### T2.6 Pix e internacional no criativo e nos filtros
+### T2.6 Pix e internacional no criativo e nos filtros ✅ (e o desconto passou a arredondar para baixo, como o ML anuncia)
 - `{preco}` e o card mostram "no Pix" quando `pix_only`.
 - Filtro `exclude_international` (padrão `false`).
 - **Testes:** legenda e card com Pix; filtro.
@@ -116,7 +116,7 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 - Middleware de token. CORS só para a origem `chrome-extension://<id>`, configurável.
 - **Testes** (TestClient): sem token → 401; token errado → 401; `/health` ok.
 
-### T3.3 `/ext/config` e `/ext/raw`
+### T3.3 `/ext/config` e `/ext/raw` ✅ (ritmo da coleta na seção `collector:` do config; nichos só aceitam categorias raiz do portal)
 - `/ext/config` devolve os padrões de URL, as URLs da lista, `collect_every_min`, a janela de horário e o estado de pausa (tabela `settings`).
 - `/ext/raw`:
   1. Faz o parse.
@@ -126,7 +126,7 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
   - Um payload desconhecido é salvo e responde `{parsed: 0, unknown: true}`.
 - **Testes:** com a fixture real, as ofertas e os candidatos são criados; o mesmo payload duas vezes não duplica; payload desconhecido.
 
-### T3.4 Pedidos de link
+### T3.4 Pedidos de link ✅ (lógica em `affiliate/links.py`)
 - `GET /ext/link-requests`: a candidata `approved` de maior nota, cujo produto não tem link e não foi pedido nos últimos 10 min. Marca `link_requested_at`.
 - `POST /ext/links`:
   1. Valida o link (T3.5).
@@ -135,14 +135,15 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 - Migração: `offers.link_requested_at` e `offers.link_attempts`.
 - **Testes:** ordem por nota; não repete o pedido em 10 min; link reaproveitado entre nichos; três falhas viram `link_failed` com aviso.
 
-### T3.5 Validação de link
+### T3.5 Validação de link ✅
+- **Feito diferente do previsto:** o `meli.la` redireciona para o perfil social do afiliado, não para o produto, então seguir o redirect não provaria nada. A validação é feita na própria resposta do `createLink`: `total_error == 0`, `short_url` no formato `https://meli.la/<id>` e `origin_url` igual à URL pedida. Não há nenhuma requisição extra ao ML.
 - **Arquivo:** `affiliate/validate.py`.
 - `is_valid_format`: regex para `https://meli.la/<id>` (formato real visto no mapeamento).
 - `GET /ext/link-requests` devolve o corpo pronto do `createLink` (`itemId`, `type`, `extraCommission`, `itemAddToList`, `tag` de `ML_AFFILIATE_TAG`, `urls`, `buyBoxWinner`). `POST /ext/links` também guarda o código de busca (`regex`), que vira `{codigo_busca}` na legenda.
 - `resolves_to(link, mlb_id)`: httpx segue até 5 redirects e procura o MLB na URL final.
 - **Testes** (respx): cadeia válida; MLB diferente; timeout devolve falso, sem exceção.
 
-### T3.6 `/ext/alert` e pausa
+### T3.6 `/ext/alert` e pausa ✅ (+ `POST /ext/resume` para o botão Retomar)
 - Grava `extension_paused = {reason, url, at}`, avisa o admin (limitado a 1 por motivo a cada 30 min) e passa a responder `paused: true` em `/ext/config`.
 - `/retomar coleta` (Fase 6) limpa a pausa.
 - **Testes:** alerta pausa e notifica; um segundo alerta igual em 30 min não notifica de novo.
