@@ -128,7 +128,7 @@ async function brake(api, reason, url) {
 
 // --- ciclos ------------------------------------------------------------------
 
-function collect() {
+function collect({ manual = false } = {}) {
   return exclusive(async () => {
     let next = RETRY_AFTER_ERROR_MS;
     try {
@@ -144,6 +144,7 @@ function collect() {
         reloadTab: tab.reloadTab,
         sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
         now: () => new Date(),
+        ignoreWindow: manual,
       });
       if (out.status === "blocked") await brake(api, out.reason, out.url);
       await patchState({ lastCollect: { at: Date.now(), ...out } });
@@ -228,7 +229,7 @@ async function handle(message) {
       return { paused: false };
     }
     case "collectNow": {
-      collect();
+      collect({ manual: true });
       return { started: true };
     }
     case "testBackend": {

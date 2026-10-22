@@ -17,6 +17,17 @@ function time(ms) {
   return new Date(ms).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
+function describeCollect(last) {
+  if (!last) return "ainda não houve";
+  const at = time(last.at);
+  switch (last.status) {
+    case "outside": return `${at} · fora do horário, nada coletado`;
+    case "paused": return `${at} · pausada, nada coletado`;
+    case "blocked": return `${at} · parou: ${REASONS[last.reason] || last.reason}`;
+    default: return `${at} · ${last.offers ?? 0} ofertas (${last.newOffers ?? 0} novas)`;
+  }
+}
+
 async function render() {
   const { configured, state = {}, error } = await send("status");
   const status = $("status");
@@ -42,10 +53,7 @@ async function render() {
     $("error").textContent = `Último erro (${time(state.lastErrorAt)}): ${state.lastError}`;
     $("error").hidden = false;
   }
-  const last = state.lastCollect;
-  $("last-collect").textContent = last
-    ? `${time(last.at)} · ${last.offers ?? 0} ofertas (${last.newOffers ?? 0} novas)`
-    : "ainda não houve";
+  $("last-collect").textContent = describeCollect(state.lastCollect);
   const today = state.linksToday;
   $("links-today").textContent = today && today.date === new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" })
     ? `${today.ok} gerados${today.failed ? ` · ${today.failed} falharam` : ""}`

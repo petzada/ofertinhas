@@ -37,14 +37,17 @@ async function callWithRecovery(inTab, reloadTab, state, kind, url, body) {
   return { result, reason };
 }
 
-function gate(cfg, now) {
+function gate(cfg, now, ignoreWindow = false) {
   if (cfg.paused) return "paused";
-  if (!withinWindow(now, cfg.window)) return "outside";
+  if (!ignoreWindow && !withinWindow(now, cfg.window)) return "outside";
   return null;
 }
 
-export async function runCollection({ cfg, backend, inTab, reloadTab, sleep, now, rng = Math.random }) {
-  const closed = gate(cfg, now());
+/** `ignoreWindow`: coleta pedida pelo usuário ("Coletar agora") vale a qualquer hora. */
+export async function runCollection({
+  cfg, backend, inTab, reloadTab, sleep, now, rng = Math.random, ignoreWindow = false,
+}) {
+  const closed = gate(cfg, now(), ignoreWindow);
   if (closed) return { status: closed };
 
   const state = { reloaded: false };

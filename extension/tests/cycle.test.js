@@ -92,6 +92,16 @@ describe("runCollection", () => {
       ...deps({ inTab, now: () => NIGHT }) })).status, "outside");
   });
 
+  it("'Coletar agora' ignora o horário, mas não a pausa", async () => {
+    const inTab = async () => ({ status: 200, json: page(18) });
+    const night = await runCollection({ cfg: config(), backend: fakeBackend(), ignoreWindow: true,
+      ...deps({ inTab, now: () => NIGHT }) });
+    assert.equal(night.status, "ok");
+    const paused = await runCollection({ cfg: config({ paused: true }), backend: fakeBackend(),
+      ignoreWindow: true, ...deps({ inTab, now: () => NIGHT }) });
+    assert.equal(paused.status, "paused");
+  });
+
   it("403 recarrega a aba uma vez e segue se resolver", async () => {
     let reloads = 0;
     const statuses = [403, 200, 200, 200, 200];
