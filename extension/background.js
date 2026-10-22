@@ -8,8 +8,10 @@ import { runCollection, runLinkStep } from "./lib/cycle.js";
 import { postInPage } from "./lib/inpage.js";
 import { RateLimiter } from "./lib/ratelimit.js";
 import { nextDelayMs } from "./lib/schedule.js";
+import { TabGate } from "./lib/tabgate.js";
 
 const DEFAULT_BACKEND = "http://127.0.0.1:8765";
+const MIN_GAP_BETWEEN_CALLS_MS = 3_000;
 const PORTAL_PREFIX = "https://www.mercadolivre.com.br/afiliados/hub";
 const CSRF_WAIT_MS = 15_000;
 const RETRY_AFTER_ERROR_MS = 5 * 60_000;
@@ -56,13 +58,10 @@ async function refreshBadge(state) {
   await chrome.action.setBadgeBackgroundColor({ color });
 }
 
-// Coleta e links usam a mesma aba: um de cada vez.
-let chain = Promise.resolve();
-function exclusive(task) {
-  const run = chain.then(task, task);
-  chain = run.catch(() => {});
-  return run;
-}
+// Coleta e links dividem a aba chamada a chamada (intercalam), com 3 s entre chamadas.
+const tabGate = new TabGate(MIN_GAP_BETWEEN_CALLS_MS);
+let collecting = false;
+let linking = false;
 
 // --- aba do portal -----------------------------------------------------------
 
@@ -97,7 +96,7 @@ function portalTab(portalUrl) {
     return tabId;
   };
   return {
-    inTab: async (kind, url, body) => {
+    inTab: (kind, url, body) => tabGate.run(async () => {
       const [injection] = await chrome.scripting.executeScript({
         target: { tabId: await id() },
         world: "MAIN",
@@ -105,13 +104,13 @@ function portalTab(portalUrl) {
         args: [url, body, kind === "search", CSRF_WAIT_MS],
       });
       return injection?.result ?? { error: "a aba não respondeu" };
-    },
-    reloadTab: async () => {
+    }),
+    reloadTab: () => tabGate.run(async () => {
       const tab = await id();
       await chrome.tabs.reload(tab);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await waitComplete(tab);
-    },
+    }),
   };
 }
 
@@ -128,72 +127,81 @@ async function brake(api, reason, url) {
 
 // --- ciclos ------------------------------------------------------------------
 
-function collect({ manual = false } = {}) {
-  return exclusive(async () => {
-    let next = RETRY_AFTER_ERROR_MS;
-    try {
-      const api = await backend();
-      const cfg = await api.get("/ext/config");
-      next = nextDelayMs(cfg.collect_every_min, cfg.collect_jitter_min);
-      await patchState({ cfg, paused: cfg.paused, pauseReason: cfg.pause_reason, lastError: null });
-      const tab = portalTab(cfg.portal_url);
-      const out = await runCollection({
-        cfg,
-        backend: api,
-        inTab: tab.inTab,
-        reloadTab: tab.reloadTab,
-        sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-        now: () => new Date(),
-        ignoreWindow: manual,
-      });
-      if (out.status === "blocked") await brake(api, out.reason, out.url);
-      await patchState({ lastCollect: { at: Date.now(), ...out } });
-    } catch (error) {
-      await patchState({ lastError: String(error.message || error), lastErrorAt: Date.now() });
-    } finally {
-      await chrome.alarms.create("collect", { when: Date.now() + next });
-    }
-  });
+async function collect({ manual = false } = {}) {
+  if (collecting) return;
+  collecting = true;
+  let next = RETRY_AFTER_ERROR_MS;
+  try {
+    const api = await backend();
+    const cfg = await api.get("/ext/config");
+    next = nextDelayMs(cfg.collect_every_min, cfg.collect_jitter_min);
+    await patchState({ cfg, paused: cfg.paused, pauseReason: cfg.pause_reason, lastError: null });
+    const tab = portalTab(cfg.portal_url);
+    const out = await runCollection({
+      cfg,
+      backend: api,
+      inTab: tab.inTab,
+      reloadTab: tab.reloadTab,
+      sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+      now: () => new Date(),
+      ignoreWindow: manual,
+    });
+    if (out.status === "blocked") await brake(api, out.reason, out.url);
+    await patchState({ lastCollect: { at: Date.now(), ...out } });
+  } catch (error) {
+    await patchState({ lastError: String(error.message || error), lastErrorAt: Date.now() });
+  } finally {
+    collecting = false;
+    await chrome.alarms.create("collect", { when: Date.now() + next });
+  }
 }
 
 function todayKey() {
   return new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
 }
 
-function linkStep() {
-  return exclusive(async () => {
-    try {
-      const { state } = await load();
-      const api = await backend();
-      const cfg = await api.get("/ext/config");
-      const limiter = RateLimiter.fromJSON(state.linkLimiter ?? { stamps: [] });
-      limiter.maxPerHour = cfg.max_links_per_hour;
-      const tab = portalTab(cfg.portal_url);
-      const out = await runLinkStep({
-        cfg,
-        backend: api,
-        inTab: tab.inTab,
-        reloadTab: tab.reloadTab,
-        limiter,
-        nextLinkAt: state.nextLinkAt ?? 0,
-        now: () => new Date(),
-      });
-      const patch = {
-        linkLimiter: limiter.toJSON(),
-        nextLinkAt: out.nextLinkAt,
-        paused: cfg.paused,
-        pauseReason: cfg.pause_reason,
+async function linkStep() {
+  if (linking) return;
+  linking = true;
+  try {
+    const { state } = await load();
+    const api = await backend();
+    const cfg = await api.get("/ext/config");
+    const limiter = RateLimiter.fromJSON(state.linkLimiter ?? { stamps: [] });
+    limiter.maxPerHour = cfg.max_links_per_hour;
+    const tab = portalTab(cfg.portal_url);
+    const out = await runLinkStep({
+      cfg,
+      backend: api,
+      inTab: tab.inTab,
+      reloadTab: tab.reloadTab,
+      limiter,
+      nextLinkAt: state.nextLinkAt ?? 0,
+      now: () => new Date(),
+    });
+    const patch = {
+      linkLimiter: limiter.toJSON(),
+      nextLinkAt: out.nextLinkAt,
+      paused: cfg.paused,
+      pauseReason: cfg.pause_reason,
+    };
+    if (out.status === "done") {
+      const today = state.linksToday?.date === todayKey()
+        ? state.linksToday
+        : { date: todayKey(), ok: 0, failed: 0 };
+      patch.linksToday = {
+        ...today,
+        ok: today.ok + (out.ok ? 1 : 0),
+        failed: today.failed + (out.ok ? 0 : 1),
       };
-      if (out.status === "done") {
-        const today = state.linksToday?.date === todayKey() ? state.linksToday : { date: todayKey(), ok: 0, failed: 0 };
-        patch.linksToday = { ...today, ok: today.ok + (out.ok ? 1 : 0), failed: today.failed + (out.ok ? 0 : 1) };
-      }
-      if (out.status === "blocked") await brake(api, out.reason, out.url);
-      await patchState(patch);
-    } catch (error) {
-      await patchState({ lastError: String(error.message || error), lastErrorAt: Date.now() });
     }
-  });
+    if (out.status === "blocked") await brake(api, out.reason, out.url);
+    await patchState(patch);
+  } catch (error) {
+    await patchState({ lastError: String(error.message || error), lastErrorAt: Date.now() });
+  } finally {
+    linking = false;
+  }
 }
 
 async function ensureAlarms() {
