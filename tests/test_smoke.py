@@ -28,6 +28,16 @@ def test_api_command_explains_missing_config(tmp_path, monkeypatch, capsys):
     assert "config.example.yaml" in capsys.readouterr().err
 
 
+def test_run_command_lists_missing_settings(tmp_path, monkeypatch, capsys):
+    from ofertinhas.__main__ import main
+
+    monkeypatch.chdir(tmp_path)
+    for name in ("EXTENSION_TOKEN", "TELEGRAM_BOT_TOKEN", "ADMIN_CHAT_ID", "ML_AFFILIATE_TAG"):
+        monkeypatch.delenv(name, raising=False)
+    assert main(["run", "--dry-run"]) == 1
+    assert "TELEGRAM_BOT_TOKEN" in capsys.readouterr().err
+
+
 def test_new_token_prints_env_line(capsys):
     from ofertinhas.__main__ import main
 

@@ -46,6 +46,8 @@ def main(argv: list[str] | None = None) -> int:
         return _new_token()
     if args.command == "api":
         return _api()
+    if args.command == "run":
+        return _run(args.dry_run)
     if args.command == "recut":
         return _recut()
     if args.command == "telegram-setup":
@@ -96,6 +98,26 @@ def _api() -> int:
     )
     print(f"API local em http://127.0.0.1:{settings.api_port} (Ctrl+C para parar)")
     uvicorn.run(create_app(state), host="127.0.0.1", port=settings.api_port, log_level="info")
+    return 0
+
+
+def _run(dry_run: bool) -> int:
+    import asyncio
+
+    from .config import ConfigError, load_config
+    from .run import run, setup_logging
+    from .settings import Settings, SettingsError
+
+    try:
+        settings = Settings.load()
+        settings.require("EXTENSION_TOKEN", "TELEGRAM_BOT_TOKEN", "ADMIN_CHAT_ID",
+                         "ML_AFFILIATE_TAG")
+        cfg = load_config(settings.config_path)
+    except (SettingsError, ConfigError, FileNotFoundError) as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        return 1
+    setup_logging(settings.data_dir)
+    asyncio.run(run(settings, cfg, dry_run))
     return 0
 
 
