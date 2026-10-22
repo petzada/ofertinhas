@@ -71,6 +71,8 @@ queued → expired (preço mudou/sem estoque na revalidação)
 A configuração fica num `config.yaml` versionado. Ajustes feitos pelo bot ficam na tabela `settings` e valem por cima do arquivo.
 
 ```yaml
+multi_niche: false       # true: a oferta vai para todos os nichos que casar
+
 defaults:
   weights:               # soma livre; normalizado para 0–100
     commission_pct: 35   # % de comissão do afiliado
@@ -81,9 +83,13 @@ defaults:
     freshness:       5   # oferta mais nova pontua mais
     free_shipping:   8   # booleano
     full:            7   # booleano (Mercado Envios Full)
-  caps:                  # tetos para outliers não achatarem o lote
+  targets:               # valor que vale nota máxima no critério
     commission_pct: 20
-    discount_pct: 70
+    discount_pct: 60
+    commission_brl: 40
+    sold_count: 5000
+    rating_floor: 4.0    # avaliação igual ou abaixo vale 0; 5.0 vale o máximo
+    freshness_hours: 24
   filters:
     min_price: 15
     max_price: 3000
@@ -95,7 +101,6 @@ defaults:
   manual_review_at: 60
   repost_cooldown_days: 7    # o mesmo produto só volta se o preço cair ≥ repost_price_drop_pct
   repost_price_drop_pct: 10
-  multi_niche: false
   pacing:
     min_interval_min: 25
     jitter_min: 5
@@ -119,7 +124,7 @@ niches:
 
 **Cálculo da nota:**
 1. Os filtros eliminam a oferta antes do cálculo.
-2. Os critérios numéricos são normalizados de 0 a 1 contra o lote coletado: `min(valor, cap) / max(lote, limitado ao cap)`. `sold_count` usa escala log. `freshness` decai linearmente em 24 h.
+2. Os critérios numéricos são normalizados de 0 a 1 contra **alvos absolutos** (`targets`): `min(valor, alvo) / alvo`. `sold_count` usa escala log (`log1p(v) / log1p(alvo)`), `rating` vai de `rating_floor` (0) a 5,0 (1) e `freshness` decai linearmente em `freshness_hours`. A normalização é absoluta, e não relativa ao lote, para que a nota de uma oferta não dependa das outras coletadas no mesmo ciclo e as notas de corte signifiquem sempre a mesma coisa.
 3. Os critérios booleanos (`free_shipping`, `full`) valem 0 ou 1.
 4. Nota = Σ(peso × valor normalizado) / Σ pesos × 100.
 5. Nicho: primeiro casa a categoria, depois as keywords. Uma oferta sem nicho é descartada.

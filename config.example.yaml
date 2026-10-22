@@ -1,0 +1,55 @@
+# Copie para config.yaml e ajuste. Cada nicho herda de `defaults` e só declara o que muda.
+# Ids de categoria: https://api.mercadolibre.com/sites/MLB/categories
+# (vale qualquer nível da árvore; a oferta casa se a categoria dela estiver abaixo da listada)
+
+multi_niche: false  # true: a oferta vai para todos os nichos que casar, não só o de maior nota
+
+defaults:
+  weights:               # importância relativa de cada critério (a soma é normalizada para 100)
+    commission_pct: 35   # % de comissão do afiliado
+    discount_pct: 25     # % OFF (de/por)
+    commission_brl: 15   # R$ estimado por venda
+    rating: 10           # estrelas
+    sold_count: 10       # vendidos (escala log)
+    freshness: 5         # oferta vista pela primeira vez há pouco tempo
+    free_shipping: 8     # frete grátis
+    full: 7              # Mercado Envios Full
+  targets:               # valor que vale nota máxima no critério
+    commission_pct: 20
+    discount_pct: 60
+    commission_brl: 40
+    sold_count: 5000
+    rating_floor: 4.0    # avaliação igual ou abaixo vale 0; 5.0 vale o máximo
+    freshness_hours: 24  # depois disso a frescor vale 0
+  filters:
+    min_price: 15
+    max_price: 3000
+    min_rating: 4.0      # ofertas sem avaliação passam
+    require_free_shipping: false
+    require_full: false
+    blocked_keywords: [usado, recondicionado, réplica, seminovo]
+  auto_approve_at: 80    # nota igual ou acima: aprova sozinho
+  manual_review_at: 60   # entre este valor e o de cima: vai para o seu Telegram
+  repost_cooldown_days: 7
+  repost_price_drop_pct: 10  # dentro do cooldown, só reposta se o preço cair isso
+  pacing:
+    min_interval_min: 25
+    jitter_min: 5
+    window: ["08:00", "23:00"]  # com aspas: sem elas o YAML lê 23:00 como número
+    max_posts_per_day: 25
+    whatsapp_between_groups_s: [30, 90]
+
+niches:
+  casa:
+    categories: [MLB1574, MLB5726, MLB263532]  # Casa e Decoração; Eletrodomésticos; Ferramentas
+    keywords: [airfryer, organizador, cozinha]
+    weights: {discount_pct: 35}
+    auto_approve_at: 75
+    telegram_chat_id: -1001234567890
+    whatsapp_group_jid: "120363000000000001@g.us"
+
+  tech:
+    categories: [MLB1648, MLB1051, MLB1000]  # Informática; Celulares; Eletrônicos, Áudio e Vídeo
+    keywords: [fone bluetooth, smartwatch, ssd]
+    telegram_chat_id: -1001234567891
+    whatsapp_group_jid: "120363000000000002@g.us"
