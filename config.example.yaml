@@ -8,6 +8,7 @@ collector:              # ritmo da extensão no portal de afiliados
   every_min: 20         # um ciclo de coleta a cada ~20 min
   jitter_min: 5         # ± variação aleatória
   pages_per_category: 3 # 18 ofertas por página
+  categories_per_cycle: 6  # rodízio: cada ciclo coleta 6 categorias, as próximas no ciclo seguinte
   request_gap_s: [5, 15]
   include_unfiltered: false  # true: também lê a lista geral (nicho só por keywords)
   window: null               # sem trava de horário; para limitar: ["08:00", "23:00"]
@@ -40,6 +41,8 @@ defaults:
     blocked_keywords: [usado, recondicionado, réplica, seminovo]
   auto_approve_at: 80    # nota igual ou acima: aprova sozinho
   manual_review_at: 65   # entre este valor e o de cima: vai para o seu Telegram
+  max_auto_per_day: 10   # cota do dia por nicho: as melhores primeiro; o resto concorre amanhã
+  max_review_per_day: 8  # no máximo 8 cards de aprovação por nicho por dia
   repost_cooldown_days: 7
   repost_price_drop_pct: 10  # dentro do cooldown, só reposta se o preço cair isso
   max_offer_age_hours: 6     # oferta que não reaparece na coleta nesse tempo não é postada
