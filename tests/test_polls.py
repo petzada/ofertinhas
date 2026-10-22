@@ -201,3 +201,41 @@ async def test_other_events_are_ignored(conn, poll):
         == "ignorado"
     assert record_vote(conn, {"event": "connection.update"}, THURSDAY_1930) == "ignorado"
     assert db.get_setting(conn, "wa:unparsed") is None
+
+
+def whatsmiau_vote(poll_id, selected=None, poll_updates=None):
+    """Formato real da WhatsMiau (22/10/2026); `selected`/`poll_updates` só vêm quando ela
+    consegue pôr o nome da opção."""
+    vote = {"encIv": "HxoffuFUnDhka41/", "encPayload": "tr6ZPIKll7+Dt6gRYCUT"}
+    if selected is not None:
+        vote["selectedOptions"] = selected
+    data = {"contextInfo": {}, "instanceId": "ofertinhas_x",
+            "key": {"addressingMode": "jid", "id": "3AED20129274EB6035BB",
+                    "participant": "5511900000000@s.whatsapp.net", "remoteJid": JID},
+            "message": {"pollUpdateMessage": {
+                "pollCreationMessageKey": {"id": poll_id, "participant": "721@lid",
+                                           "remoteJid": JID},
+                "senderTimestampMs": "1792692500256", "vote": vote}},
+            "messageType": "pollUpdateMessage", "pushName": "Marcio", "status": "received"}
+    if poll_updates is not None:
+        data["pollUpdates"] = poll_updates
+    return {"instance": "ofertinhas_x", "event": "messages.upsert", "data": data}
+
+
+async def test_encrypted_vote_counts_as_unreadable(conn, poll, notes):
+    assert record_vote(conn, whatsmiau_vote("MSG1"), THURSDAY_1930) == "voto"
+    result = results(conn, poll)
+    assert result["voters"] == 1 and result["unreadable"] == 1
+    assert sum(result["counts"].values()) == 0
+    assert db.get_setting(conn, "wa:unparsed") is None
+    await send(conn, FakeWhatsApp(), notes, THURSDAY_1930 + timedelta(days=7))
+    assert "1 voto(s) chegaram cifrados" in notes[-1]
+
+
+async def test_whatsmiau_decrypted_vote_uses_the_poll_key_not_the_vote_id(conn, poll):
+    a = poll["options"][1]
+    event = whatsmiau_vote("MSG1", selected=[a],
+                           poll_updates=[{"name": a, "voters": ["5511900000000@s.whatsapp.net"]}])
+    assert record_vote(conn, event, THURSDAY_1930) == "voto"
+    result = results(conn, poll)
+    assert result["counts"][a] == 1 and result["unreadable"] == 0

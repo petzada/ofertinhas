@@ -79,10 +79,11 @@ menos.
 
 - **Enviar enquete:** sim, `POST /message/sendPoll/{instance}` com `number`, `name`, `values`
   (2 a 12) e `selectableCount`.
-- **Receber votos:** a documentação diz que o voto chega pelo webhook, mas não mostra o
-  formato nem lista um evento próprio de enquete. O código lê os formatos mais prováveis e
-  guarda o que não entender para ajuste. Veja "Enquete semanal" em
-  [operacao.md](../../operacao.md).
+- **Receber votos:** o voto chega pelo webhook, mas, em enquete criada pela API, **cifrado e
+  sem a opção**. A WhatsMiau só traduz o voto para o nome da opção em enquete que ela recebeu,
+  não nas que ela mesma envia (testado com voto real em 22/10/2026). O sistema conta quantos
+  votaram ("cifrados") e o placar por opção fica no app ("Ver votos"). Veja "Enquete semanal"
+  em [operacao.md](../../operacao.md).
 - **Fixar mensagem:** não existe rota para isso.
 
 **O que foi implementado** (`src/ofertinhas/polls.py`):

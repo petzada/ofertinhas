@@ -4,10 +4,14 @@ O nicho liga com `polls: {weekday: qua, at: "19:30"}` no config. A enquete sai n
 horário marcados (até `SEND_WINDOW` depois, se o sistema estava fora na hora), uma vez por
 semana e por grupo. Antes de cada nova, o admin recebe no Telegram o resultado da anterior.
 
-Os votos chegam pelo webhook da WhatsMiau (rota `/wa/` da nuvem). Ela não documenta o formato
-do voto, então `record_vote` aceita o nome da opção ou o SHA-256 dele (é assim que o WhatsApp
-guarda o voto) e guarda em `wa:unparsed` os eventos de enquete que não entender, para ajustar.
-Quem votou é gravado só como hash do número.
+Os votos chegam pelo webhook da WhatsMiau (rota `/wa/` da nuvem). `record_vote` aceita o nome
+da opção ou o SHA-256 dele (é assim que o WhatsApp guarda o voto) e guarda em `wa:unparsed` os
+eventos de enquete que não entender, para ajustar. Quem votou é gravado só como hash do número.
+
+A WhatsMiau decifra o voto, mas só preenche `selectedOptions` com o nome da opção se tiver
+guardado as opções ao *receber* a enquete; enquete enviada pelo próprio `sendPoll` não passa
+por lá (conferido no código dela em 22/10/2026). Aí o voto chega só cifrado e conta como
+ilegível: dá para saber quantos votaram, não em quê. O placar fica no app do WhatsApp.
 """
 
 import base64
@@ -29,6 +33,7 @@ SEND_WINDOW = timedelta(hours=2)
 UNPARSED_KEY = "wa:unparsed"
 UNPARSED_KEEP = 5
 UNPARSED_MAX_CHARS = 4000
+UNREADABLE = "?"  # voto que chegou só cifrado (ver acima)
 
 
 @dataclass(frozen=True)
@@ -109,7 +114,8 @@ def results(conn: sqlite3.Connection, poll: dict) -> dict[str, Any]:
     counts = Counter(option for vote in votes for option in vote)
     return {"question": poll["question"], "sent_at": poll["sent_at"],
             "voters": sum(1 for vote in votes if vote),
-            "counts": {option: counts[option] for option in poll["options"]}}
+            "counts": {option: counts[option] for option in poll["options"]},
+            "unreadable": counts[UNREADABLE]}
 
 
 def results_text(result: dict[str, Any]) -> str:
@@ -118,6 +124,9 @@ def results_text(result: dict[str, Any]) -> str:
     total = max(result["voters"], 1)
     for option, n in sorted(result["counts"].items(), key=lambda kv: -kv[1]):
         lines.append(f"• {option}: {n} ({n * 100 // total}%)")
+    if result["unreadable"]:
+        lines.append(f"🔒 {result['unreadable']} voto(s) chegaram cifrados, sem a opção: veja o "
+                     "placar na enquete, no app do WhatsApp")
     return "\n".join(lines)
 
 
@@ -225,18 +234,21 @@ def record_vote(conn: sqlite3.Connection, event: dict, now: datetime) -> str:
     data = event.get("data") if isinstance(event, dict) else None
     if data is None:
         return "ignorado"
-    aggregate = _find(data, "pollUpdates")
-    if isinstance(aggregate, list) and aggregate:
-        return _record_aggregate(conn, event, data, aggregate, now)
     creation = _find(data, "pollCreationMessageKey")
-    if not isinstance(creation, dict):
+    if not isinstance(creation, dict):  # sem a chave da enquete: só o placar da Evolution API
+        aggregate = _find(data, "pollUpdates")
+        if isinstance(aggregate, list) and aggregate:
+            return _record_aggregate(conn, event, data, aggregate, now)
         return "ignorado"
     poll = db.get_poll(conn, str(creation.get("id", "")))
     if poll is None:
         return "ignorado"
     voter = _voter(data)
     selected = _find(data, "selectedOptions")
-    names = _option_names(selected, poll["options"]) if isinstance(selected, list) else None
+    if selected is None and _find(data, "encPayload"):
+        names = [UNREADABLE]  # a WhatsMiau não abriu o voto (ver o topo do arquivo)
+    else:
+        names = _option_names(selected, poll["options"]) if isinstance(selected, list) else None
     if voter is None or names is None:
         _keep_unparsed(conn, event, "voto sem quem votou ou opção desconhecida", now)
         return "não entendi"

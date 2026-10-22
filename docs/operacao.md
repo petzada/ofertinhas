@@ -66,9 +66,14 @@ python push_secrets.py           # cria o WHATSMIAU_WEBHOOK_SECRET no .env e env
 python set_webhook.py --whatsapp # aponta a WhatsMiau para /wa/ (com outro webhook lá, pede --force)
 ```
 
-A WhatsMiau não documenta o formato do voto. O código aceita o nome da opção ou o SHA-256
-dele, e também o placar no formato da Evolution API (`pollUpdates`). Evento de enquete que ele
-não entender fica em `wa:unparsed`. Para conferir os resultados e esses eventos:
+**Limite da WhatsMiau (conferido em 22/10/2026):** ela decifra o voto, mas só põe o nome da
+opção (`selectedOptions`) quando guardou as opções ao *receber* a enquete. Enquete enviada pelo
+`sendPoll` não passa por esse caminho, então o voto chega só cifrado (`encPayload`). O sistema
+conta esse voto como `unreadable`: dá para saber quantos votaram, mas não em quê. O placar de
+cada opção fica no app do WhatsApp ("Ver votos"). Se a WhatsMiau passar a guardar as opções no
+`sendPoll`, os nomes chegam e são contados sem mudar nada aqui. O código também aceita o SHA-256
+da opção e o placar `pollUpdates`. Evento de enquete que ele não entender fica em `wa:unparsed`.
+Para conferir os resultados e esses eventos:
 
 ```powershell
 Invoke-RestMethod https://ofertinhas.marciopetigrosso.workers.dev/admin/polls -Headers $h
