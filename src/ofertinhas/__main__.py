@@ -241,6 +241,7 @@ def _recut() -> int:
 def _render_sample(niche: str) -> int:
     from PIL import Image, ImageDraw
 
+    from .config import AppConfig, load_config
     from .creative.image import render_card
     from .creative.themes import theme_for
     from .models import Offer
@@ -260,11 +261,14 @@ def _render_sample(niche: str) -> int:
         permalink="https://produto.mercadolivre.com.br/MLB-000000000",
         free_shipping=True,
         full=True,
-        affiliate_link="https://mercadolivre.com/sec/1AbC2dE",
+        affiliate_link="https://meli.la/1AbC2dE",
     )
-    out = Settings.load().data_dir / "samples" / f"{niche}.png"
+    settings = Settings.load()
+    brand = (load_config(settings.config_path).brand if settings.config_path.exists()
+             else AppConfig.model_fields["brand"].default)
+    out = settings.data_dir / "samples" / f"{niche}.png"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_bytes(render_card(offer, theme_for(niche), product))
+    out.write_bytes(render_card(offer, theme_for(niche, brand), product))
     print(f"Exemplo gravado em {out}")
     return 0
 

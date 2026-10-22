@@ -41,19 +41,25 @@ def open_png(data: bytes) -> Image.Image:
     return Image.open(io.BytesIO(data))
 
 
+def test_top_label_is_the_brand_without_category():
+    assert theme_for("casa", "Ofertas 2KAI").label == "OFERTAS 2KAI"
+    assert theme_for("nicho-novo", "Ofertas 2KAI").label == "OFERTAS 2KAI"
+    assert theme_for("casa", "x").bg != theme_for("tech", "x").bg  # cores seguem por nicho
+
+
 def test_card_is_square_png():
-    img = open_png(render_card(offer(), theme_for("casa"), product_image()))
+    img = open_png(render_card(offer(), theme_for("casa", "Ofertas 2KAI"), product_image()))
     assert img.format == "PNG"
     assert img.size == CARD_SIZE
 
 
 def test_qr_decodes_to_exact_link():
-    img = open_png(render_card(offer(), theme_for("tech"), product_image()))
+    img = open_png(render_card(offer(), theme_for("tech", "Ofertas 2KAI"), product_image()))
     assert [d.data.decode() for d in decode(img)] == [LINK]
 
 
 def test_discount_badge_only_with_discount():
-    theme = theme_for("casa")
+    theme = theme_for("casa", "Ofertas 2KAI")
     with_discount = open_png(render_card(offer(), theme, product_image())).convert("RGB")
     no_discount = offer(original_price=None)
     without = open_png(render_card(no_discount, theme, product_image())).convert("RGB")
@@ -64,7 +70,7 @@ def test_discount_badge_only_with_discount():
 
 
 def test_pix_only_changes_the_card():
-    theme = theme_for("casa")
+    theme = theme_for("casa", "Ofertas 2KAI")
     normal = render_card(offer(), theme, product_image())
     pix = render_card(offer(pix_only=True), theme, product_image())
     assert normal != pix
@@ -72,12 +78,12 @@ def test_pix_only_changes_the_card():
 
 
 def test_renders_without_product_image():
-    assert open_png(render_card(offer(), theme_for("x"), None)).size == CARD_SIZE
+    assert open_png(render_card(offer(), theme_for("x", "Ofertas 2KAI"), None)).size == CARD_SIZE
 
 
 def test_card_requires_link():
     with pytest.raises(ValueError, match="link"):
-        render_card(offer(affiliate_link=None), theme_for("casa"), None)
+        render_card(offer(affiliate_link=None), theme_for("casa", "Ofertas 2KAI"), None)
 
 
 def test_wrap_text_limits_lines_and_width():

@@ -210,7 +210,9 @@ async def render_linked(
                 caption = fill(custom, caption_values(offer))
             else:
                 caption = render_caption(conn, offer, template, cand.niche, templates_dir, now=now)
-            png = render_card(offer, theme_for(cand.niche), await fetch_image(offer.image_url))
+            png = render_card(
+                offer, theme_for(cand.niche, cfg.brand), await fetch_image(offer.image_url)
+            )
             path = cards_dir / f"{cand.mlb_id}-{cand.niche}.png"
             path.write_bytes(png)
         except Exception:

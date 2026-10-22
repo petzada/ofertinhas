@@ -207,6 +207,7 @@ class AppConfig(_Strict):
     multi_niche: bool = False  # oferta vai para todos os nichos que casar, não só o de maior nota
     collector: CollectorConfig = CollectorConfig()
     whatsapp_enabled: bool = False  # trava: nada é enviado ao WhatsApp enquanto for false
+    brand: str = Field("Ofertas 2KAI", min_length=1, max_length=30)  # topo do card
 
     @model_validator(mode="after")
     def _validate_layers(self):

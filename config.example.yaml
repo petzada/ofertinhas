@@ -3,6 +3,7 @@
 
 multi_niche: false  # true: a oferta vai para todos os nichos que casar, não só o de maior nota
 whatsapp_enabled: false  # trava: nada vai para o WhatsApp enquanto estiver false
+brand: "Ofertas 2KAI"    # texto do topo do card (o mesmo para todos os nichos)
 
 collector:              # ritmo da extensão no portal de afiliados
   every_min: 20         # um ciclo de coleta a cada ~20 min
