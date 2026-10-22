@@ -12,6 +12,7 @@ from PIL import Image
 
 from . import db
 from .approval.actions import custom_caption
+from .cardstore import CardStore, DiskCards
 from .config import AppConfig, NicheConfig, Profile
 from .creative.image import render_card
 from .creative.text import caption_values, fill, render_caption
@@ -187,7 +188,7 @@ def reapply_cutoffs(
 async def render_linked(
     conn: sqlite3.Connection,
     cfg: AppConfig,
-    cards_dir: Path,
+    cards: Path | CardStore,
     templates_dir: Path,
     fetch_image: Callable[[str | None], Awaitable[Image.Image | None]],
     now: datetime | None = None,
@@ -196,8 +197,9 @@ async def render_linked(
 
     A legenda é uma só para Telegram e WhatsApp (formato neutro) e o rodízio de modelos é
     por nicho. Uma candidata com problema é registrada no log e não trava as outras.
+    `cards` é a pasta dos PNG ou um `CardStore` (o R2, na nuvem).
     """
-    cards_dir.mkdir(parents=True, exist_ok=True)
+    store = DiskCards(cards) if isinstance(cards, Path) else cards
     rendered = 0
     for cand in db.candidates_by_state(conn, CandidateState.LINKED):
         try:
@@ -213,15 +215,14 @@ async def render_linked(
             png = render_card(
                 offer, theme_for(cand.niche, cfg.brand), await fetch_image(offer.image_url)
             )
-            path = cards_dir / f"{cand.mlb_id}-{cand.niche}.png"
-            path.write_bytes(png)
+            ref = await store.save(f"{cand.mlb_id}-{cand.niche}.png", png)
         except Exception:
             log.exception("falha ao gerar criativo de %s/%s", cand.mlb_id, cand.niche)
             continue
         db.save_candidate(
             conn,
             dataclasses.replace(
-                cand, state=CandidateState.RENDERED, caption=caption, card_path=str(path)
+                cand, state=CandidateState.RENDERED, caption=caption, card_path=ref
             ),
         )
         rendered += 1

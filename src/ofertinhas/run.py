@@ -1,9 +1,6 @@
 """Processo principal: API da extensão + bot do Telegram + jobs, no mesmo loop asyncio."""
 
 import logging
-import sqlite3
-from collections.abc import Awaitable, Callable
-from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -12,15 +9,12 @@ import uvicorn
 
 from . import db
 from .api.app import ApiState, create_app
-from .approval.bot import BotDeps, build_application, send_pending_cards
-from .backup import backup_database
+from .approval.bot import BotDeps, build_application
 from .config import AppConfig
 from .creative.image import fetch_product_image
+from .jobs import make_jobs
 from .models import utcnow
-from .pipeline import render_linked
 from .publisher.cardhost import CardHost
-from .publisher.publish import publish_due
-from .publisher.queue import expire_stale
 from .publisher.telegram import TelegramSender
 from .publisher.whatsapp import WhatsAppSender
 from .scheduler import build_scheduler
@@ -59,49 +53,6 @@ def card_host(settings: Settings, http: httpx.AsyncClient) -> CardHost | None:
         return None
     return CardHost(http, settings.r2_account_id, settings.r2_bucket, settings.r2_api_token,
                     settings.r2_public_url)
-
-
-def make_jobs(
-    *,
-    conn: sqlite3.Connection,
-    cfg: AppConfig,
-    data_dir: Path,
-    templates_dir: Path,
-    bot,
-    telegram,
-    whatsapp=None,
-    cards=None,
-    fetch_image: Callable[[str | None], Awaitable[object]],
-    notify: Callable[[str], Awaitable[None]],
-    admin_chat_id: int,
-    dry_run: bool,
-    clock: Callable[[], datetime] = utcnow,
-) -> dict[str, Callable[[], Awaitable[object]]]:
-    deps = BotDeps(conn=conn, cfg=cfg, admin_chat_id=admin_chat_id, clock=clock)
-
-    async def notify_pending():
-        return await send_pending_cards(bot, deps)
-
-    async def render():
-        return await render_linked(conn, cfg, data_dir / "cards", templates_dir, fetch_image,
-                                   now=clock())
-
-    async def publish():
-        posted = await publish_due(conn, cfg, telegram=telegram, whatsapp=whatsapp,
-                                   card_host=cards, admin_chat_id=admin_chat_id,
-                                   dry_run=dry_run, now=clock(), notify=notify)
-        if posted:
-            log.info("postadas: %s", ", ".join(posted))
-        return posted
-
-    async def expire():
-        return expire_stale(conn, cfg, clock())
-
-    async def backup():
-        return backup_database(conn, data_dir / "backups", clock())
-
-    return {"notify_pending": notify_pending, "render": render, "publish": publish,
-            "expire": expire, "backup": backup}
 
 
 async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:

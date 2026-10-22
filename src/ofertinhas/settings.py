@@ -6,8 +6,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 
-from dotenv import dotenv_values
-
 WHATSMIAU_BASE_URL = "https://api.whatsmiau.dev/v2"
 
 
@@ -80,6 +78,8 @@ class Settings:
     @classmethod
     def load(cls, dotenv_path: str | Path = ".env") -> "Settings":
         """`.env` primeiro; variáveis de ambiente do sistema têm precedência."""
+        from dotenv import dotenv_values  # só no PC; na nuvem os segredos vêm do Worker
+
         values = {k: v for k, v in dotenv_values(dotenv_path).items() if v is not None}
         return cls.from_env(values | dict(os.environ))
 

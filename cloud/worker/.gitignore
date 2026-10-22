@@ -1,0 +1,6 @@
+# gerados pelo build.py
+src/ofertinhas/
+src/bundle/
+.venv-workers/
+.wrangler/
+python_modules/

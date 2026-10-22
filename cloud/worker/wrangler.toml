@@ -1,0 +1,35 @@
+name = "ofertinhas"
+main = "src/entry.py"
+compatibility_date = "2026-10-15"
+compatibility_flags = ["python_workers"]
+
+[[durable_objects.bindings]]
+name = "STATE"
+class_name = "Ofertinhas"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Ofertinhas"]
+
+# Teste por padrão: os posts vão para o chat do admin. Na virada, mude para "false".
+[vars]
+DRY_RUN = "true"
+
+# Jobs de minuto em minuto (render, publish, cards de aprovação; expiração a cada 15 min).
+[triggers]
+crons = ["* * * * *"]
+
+[[r2_buckets]]
+binding = "CARDS"
+bucket_name = "ofertinhas-cards"
+
+# Fontes e config vão no bundle como arquivos (por padrão só .txt/.html entram).
+[[rules]]
+type = "Data"
+globs = ["**/*.ttf"]
+fallthrough = true
+
+[[rules]]
+type = "Text"
+globs = ["**/*.yaml"]
+fallthrough = true

@@ -1,0 +1,10 @@
+﻿# gerados pelo build_spike.py
+src/fonts.py
+src/card.py
+src/models.py
+src/themes.py
+src/title.py
+src/textfmt.py
+.venv-workers/
+.wrangler/
+python_modules/

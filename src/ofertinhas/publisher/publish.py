@@ -19,6 +19,7 @@ from pathlib import Path
 
 from .. import db
 from ..alerts import notify_throttled
+from ..cardstore import CardStore, DiskCards
 from ..config import AppConfig, NicheConfig
 from ..creative.format import to_telegram_html, to_whatsapp
 from ..models import Candidate, CandidateState
@@ -32,6 +33,7 @@ S = CandidateState
 RETRY_AFTER_FAILURE = timedelta(minutes=10)
 ALERT_EVERY = timedelta(minutes=30)
 WHATSAPP_TYPING_S = (3, 8)
+_DISK = DiskCards(Path())
 
 
 def _next_in_group(
@@ -71,8 +73,11 @@ async def publish_due(
     notify: Callable[[str], Awaitable[None]],
     rng: random.Random | None = None,
     sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    card_store: CardStore | None = None,
 ) -> list[str]:
-    """Posta no máximo uma oferta por grupo e devolve os MLB postados."""
+    """Posta no máximo uma oferta por grupo e devolve os MLB postados.
+
+    Sem `card_store`, o `card_path` da candidata é um arquivo em disco."""
     from ..pipeline import niche_configs  # evita import circular
 
     rng = rng or random.Random()
@@ -106,7 +111,7 @@ async def publish_due(
             continue
         cand, niche = found
         offer = db.get_offer(conn, cand.mlb_id)
-        png = Path(cand.card_path).read_bytes()
+        png = await (card_store or _DISK).load(cand.card_path)
 
         sent_any = False
         if tg_chat is not None or dry_run:

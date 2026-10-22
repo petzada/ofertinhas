@@ -45,6 +45,8 @@ class ApiState:
     cfg: AppConfig
     notify: Callable[[str], Awaitable[None]]  # mensagem para o admin no Telegram
     clock: Callable[[], datetime] = field(default=utcnow)
+    # (nome, json) → onde ficou; sem isso, grava em data_dir/unparsed (na nuvem, vai ao R2)
+    save_unparsed: Callable[[str, str], Awaitable[str]] | None = None
 
 
 class RawCapture(BaseModel):
@@ -84,6 +86,14 @@ def create_app(state: ApiState) -> FastAPI:
 
     router = APIRouter(dependencies=[Depends(require_token)])
     conn = state.conn
+
+    async def save_unparsed(name: str, text: str) -> str:
+        if state.save_unparsed is not None:
+            return await state.save_unparsed(name, text)
+        folder = state.settings.data_dir / "unparsed"
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / name).write_text(text, encoding="utf-8")
+        return name
 
     @router.get("/health")
     async def health() -> dict:
@@ -131,13 +141,11 @@ def create_app(state: ApiState) -> FastAPI:
         now = state.clock()
         offers = parse_hub_search(capture.request_body, capture.body, now=now)
         if offers is None:
-            folder = state.settings.data_dir / "unparsed"
-            folder.mkdir(parents=True, exist_ok=True)
-            path = folder / f"{now.strftime('%Y%m%d-%H%M%S-%f')}.json"
-            path.write_text(json.dumps(capture.model_dump(), ensure_ascii=False), encoding="utf-8")
+            saved = await save_unparsed(f"{now.strftime('%Y%m%d-%H%M%S-%f')}.json",
+                                        json.dumps(capture.model_dump(), ensure_ascii=False))
             await notify_throttled(
                 conn, state.notify, "unknown-format",
-                f"⚠️ O portal mudou o formato da busca. Resposta salva em {path.name}; "
+                f"⚠️ O portal mudou o formato da busca. Resposta salva em {saved}; "
                 "grave um HAR novo para eu atualizar o leitor.",
                 now, UNKNOWN_FORMAT_EVERY,
             )
@@ -197,4 +205,5 @@ def create_app(state: ApiState) -> FastAPI:
 
     app.include_router(router)
     app.state.ofertinhas = state
+    app.state.require_token = require_token  # para rotas extras da nuvem
     return app

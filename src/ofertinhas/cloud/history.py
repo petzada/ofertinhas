@@ -1,0 +1,50 @@
+"""Importação do histórico do banco local para a nuvem, na virada.
+
+Vão só as ofertas postadas ou rejeitadas ainda em cooldown (para não repostar), os posts
+recentes e as cotas (para o ritmo e os limites do dia continuarem de onde pararam) e os
+ajustes feitos pelo bot (`/pausar`, `/peso`, `/corte`). Reimportar não duplica.
+"""
+
+import re
+import sqlite3
+from datetime import datetime, timedelta
+from typing import Any
+
+TABLES = ("offers", "candidates", "posts", "settings")  # ofertas antes, pelas chaves estrangeiras
+SETTINGS_PREFIXES = ("override:", "quota:")
+IDENT = re.compile(r"[a-z_][a-z0-9_]*")
+
+
+def export_rows(conn: sqlite3.Connection, now: datetime, days: int = 8) -> dict[str, list[dict]]:
+    since = (now - timedelta(days=days)).isoformat()
+    candidates = conn.execute(
+        "SELECT * FROM candidates WHERE state IN ('posted', 'rejected') AND decided_at >= ?",
+        (since,),
+    ).fetchall()
+    ids = sorted({c["mlb_id"] for c in candidates})
+    marks = ", ".join("?" for _ in ids)
+    offers = conn.execute(f"SELECT * FROM offers WHERE mlb_id IN ({marks})", ids).fetchall()
+    posts = conn.execute("SELECT * FROM posts WHERE sent_at >= ?", (since,)).fetchall()
+    settings = [r for r in conn.execute("SELECT * FROM settings")
+                if r["key"].startswith(SETTINGS_PREFIXES)]
+    return {name: [dict(r) for r in rows]
+            for name, rows in zip(TABLES, (offers, candidates, posts, settings), strict=True)}
+
+
+def import_rows(conn, data: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
+    counts = {}
+    for table in TABLES:
+        inserted = 0
+        for row in data.get(table) or []:
+            cols = list(row)
+            if not cols or not all(IDENT.fullmatch(c) for c in cols):
+                raise ValueError(f"coluna inválida em {table}: {cols}")
+            before = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            conn.execute(
+                f"INSERT OR IGNORE INTO {table} ({', '.join(cols)}) "
+                f"VALUES ({', '.join('?' for _ in cols)})",
+                [row[c] for c in cols],
+            )
+            inserted += conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] - before
+        counts[table] = inserted
+    return counts
