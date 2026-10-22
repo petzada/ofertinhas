@@ -194,6 +194,47 @@ def test_reapply_cutoffs_moves_queue_to_new_thresholds(conn):
     assert counts == {"approved→pending": 1, "pending→discarded": 1}
 
 
+def test_daily_quota_keeps_only_the_best_of_the_batch(conn):
+    db.set_niche_override(conn, "casa", "max_auto_per_day", 2)
+    db.set_niche_override(conn, "casa", "max_review_per_day", 1)
+    db.set_niche_override(conn, "tech", "paused", True)
+    # comissões 17 a 20 → notas 85 a 100: todas passariam no corte automático
+    ids = [add(conn, f"MLB{i}", commission=c) for i, c in enumerate([17, 20, 19, 18])]
+    counts = score_and_route(conn, cfg(), ids, now=NOW)
+    assert state(conn, "MLB1") is S.APPROVED  # 100
+    assert state(conn, "MLB2") is S.APPROVED  # 95
+    assert state(conn, "MLB3") is S.PENDING  # 90: cota automática cheia, vai para você
+    assert state(conn, "MLB0") is S.DISCARDED  # 85: as duas cotas cheias
+    assert counts == {S.APPROVED: 2, S.PENDING: 1, S.DISCARDED: 1}
+
+
+def test_daily_quota_resets_next_day(conn):
+    db.set_niche_override(conn, "casa", "max_auto_per_day", 1)
+    db.set_niche_override(conn, "casa", "max_review_per_day", 0)
+    db.set_niche_override(conn, "tech", "paused", True)
+    score_and_route(conn, cfg(), [add(conn, "MLB1", commission=20)], now=NOW)
+    score_and_route(conn, cfg(), [add(conn, "MLB2", commission=20)], now=NOW)
+    assert state(conn, "MLB2") is S.DISCARDED
+    tomorrow = NOW + timedelta(days=1)
+    score_and_route(conn, cfg(), ["MLB2"], now=tomorrow)
+    assert state(conn, "MLB2") is S.APPROVED
+
+
+def test_reapply_cutoffs_trims_queue_to_quota(conn):
+    from ofertinhas.pipeline import reapply_cutoffs
+
+    db.set_niche_override(conn, "casa", "max_review_per_day", 2)
+    put_scored(conn, "MLB1", S.PENDING, 75, notified=True)  # já mostrada: fica e conta
+    put_scored(conn, "MLB2", S.PENDING, 70)
+    put_scored(conn, "MLB3", S.PENDING, 78)
+    put_scored(conn, "MLB4", S.PENDING, 65)
+    reapply_cutoffs(conn, cfg(), now=NOW)
+    assert state(conn, "MLB1") is S.PENDING
+    assert state(conn, "MLB3") is S.PENDING
+    assert state(conn, "MLB2") is S.DISCARDED
+    assert state(conn, "MLB4") is S.DISCARDED
+
+
 def test_multi_niche_mode_checks_cooldown_per_niche(conn):
     add(conn, commission=18.0)
     put(conn, S.POSTED, niche="tech", decided_at=NOW - timedelta(days=1))

@@ -16,7 +16,7 @@ from .config import AppConfig, NicheConfig, Profile
 from .creative.image import render_card
 from .creative.text import caption_values, fill, render_caption
 from .creative.themes import theme_for
-from .models import ACTIVE_STATES, COOLDOWN_STATES, Candidate, CandidateState, Offer, utcnow
+from .models import ACTIVE_STATES, COOLDOWN_STATES, TZ, Candidate, CandidateState, Offer, utcnow
 from .ranking.filters import passes
 from .ranking.niches import match_niches
 from .ranking.scoring import Score, score_offer
@@ -49,6 +49,35 @@ def decide(score: float, niche: NicheConfig) -> CandidateState:
     return CandidateState.DISCARDED
 
 
+class DailyQuota:
+    """Aprovações automáticas e cards de revisão já usados pelo nicho no dia (horário de SP)."""
+
+    def __init__(self, conn: sqlite3.Connection, niche: str, now: datetime, fresh: bool = False):
+        self.key = f"quota:{niche}:{now.astimezone(TZ).date().isoformat()}"
+        stored = None if fresh else db.get_setting(conn, self.key)
+        self.used = stored or {"auto": 0, "review": 0}
+
+    def take(self, kind: str, limit: int) -> bool:
+        if self.used[kind] >= limit:
+            return False
+        self.used[kind] += 1
+        return True
+
+    def save(self, conn: sqlite3.Connection) -> None:
+        db.set_setting(conn, self.key, self.used)
+
+
+def decide_with_quota(score: float, niche: NicheConfig, quota: DailyQuota) -> CandidateState:
+    """Corte por nota e depois cota: sem vaga automática, vai para revisão; sem vaga de revisão,
+    fica de fora (e volta a concorrer no dia seguinte, se ainda estiver no portal)."""
+    state = decide(score, niche)
+    if state is CandidateState.APPROVED and not quota.take("auto", niche.max_auto_per_day):
+        state = CandidateState.PENDING
+    if state is CandidateState.PENDING and not quota.take("review", niche.max_review_per_day):
+        state = CandidateState.DISCARDED
+    return state
+
+
 def score_and_route(
     conn: sqlite3.Connection,
     cfg: AppConfig,
@@ -64,7 +93,7 @@ def score_and_route(
     all_niches = niche_configs(conn, cfg)
     active = [n for n in all_niches.values() if not n.paused]
     fallback_rules = Profile(**cfg.defaults)  # para candidatos de nichos removidos da config
-    counts: Counter[CandidateState] = Counter()
+    routes: list[tuple[Score, Offer]] = []
 
     for offer in db.get_offers(conn, mlb_ids):
         existing = {c.niche: c for c in db.candidates_for_offer(conn, offer.mlb_id)}
@@ -86,47 +115,63 @@ def score_and_route(
             continue
         if not cfg.multi_niche:
             scores = [max(scores, key=lambda s: s.score)]
+        routes.extend((s, offer) for s in scores)
 
-        for s in scores:
-            state = decide(s.score, all_niches[s.niche])
-            db.save_candidate(
-                conn,
-                Candidate(
-                    mlb_id=offer.mlb_id,
-                    niche=s.niche,
-                    state=state,
-                    score=s.score,
-                    breakdown=s.breakdown,
-                    ref_price=offer.price,
-                    decided_at=now,
-                ),
-            )
-            counts[state] += 1
+    # As melhores do lote ocupam as vagas da cota primeiro.
+    counts: Counter[CandidateState] = Counter()
+    quotas: dict[str, DailyQuota] = {}
+    for s, offer in sorted(routes, key=lambda route: route[0].score, reverse=True):
+        quota = quotas.setdefault(s.niche, DailyQuota(conn, s.niche, now))
+        state = decide_with_quota(s.score, all_niches[s.niche], quota)
+        db.save_candidate(
+            conn,
+            Candidate(
+                mlb_id=offer.mlb_id,
+                niche=s.niche,
+                state=state,
+                score=s.score,
+                breakdown=s.breakdown,
+                ref_price=offer.price,
+                decided_at=now,
+            ),
+        )
+        counts[state] += 1
+    for quota in quotas.values():
+        quota.save(conn)
     return counts
 
 
 def reapply_cutoffs(
     conn: sqlite3.Connection, cfg: AppConfig, now: datetime | None = None
 ) -> Counter[str]:
-    """Reaplica as notas de corte atuais à fila que ainda não tem link.
+    """Reaplica as notas de corte e a cota de hoje à fila que ainda não tem link.
 
-    Não mexe no que já tem link nem em aprovadas cujo card já foi mostrado ao admin (podem
-    ter sido aprovadas à mão). Devolve as mudanças como "antes→depois".
+    A cota do dia é recontada do zero: pendentes já mostradas ao admin ficam e ocupam vaga de
+    revisão; as demais concorrem pela nota. Não mexe no que já tem link nem em aprovadas cujo
+    card já foi mostrado (podem ter sido aprovadas à mão). Devolve as mudanças "antes→depois".
     """
     now = now or utcnow()
     niches = niche_configs(conn, cfg)
-    changes: Counter[str] = Counter()
+    queue: dict[str, list[Candidate]] = {}
     for state in (CandidateState.APPROVED, CandidateState.PENDING):
         for cand in db.candidates_by_state(conn, state):
-            niche = niches.get(cand.niche)
-            if niche is None or db.get_offer(conn, cand.mlb_id).affiliate_link:
-                continue
-            if state is CandidateState.APPROVED and cand.notified_at is not None:
-                continue
-            new = decide(cand.score, niche)
-            if new is not state:
+            if cand.niche in niches and not db.get_offer(conn, cand.mlb_id).affiliate_link:
+                queue.setdefault(cand.niche, []).append(cand)
+
+    changes: Counter[str] = Counter()
+    for name, cands in queue.items():
+        niche = niches[name]
+        quota = DailyQuota(conn, name, now, fresh=True)
+        for cand in cands:
+            if cand.notified_at is not None and cand.state is CandidateState.PENDING:
+                quota.take("review", niche.max_review_per_day)
+        free = [c for c in cands if c.notified_at is None]
+        for cand in sorted(free, key=lambda c: c.score, reverse=True):
+            new = decide_with_quota(cand.score, niche, quota)
+            if new is not cand.state:
                 db.save_candidate(conn, dataclasses.replace(cand, state=new, decided_at=now))
-                changes[f"{state.value}→{new.value}"] += 1
+                changes[f"{cand.state.value}→{new.value}"] += 1
+        quota.save(conn)
     return changes
 
 

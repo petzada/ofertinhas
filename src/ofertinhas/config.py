@@ -107,6 +107,9 @@ class Profile(_Strict):
     filters: Filters = Filters()
     auto_approve_at: float = Field(80, ge=0, le=100)
     manual_review_at: float = Field(60, ge=0, le=100)
+    # Cota diária (horário de SP): só as melhores do dia passam, o resto espera o dia seguinte.
+    max_auto_per_day: int = Field(10, ge=0)
+    max_review_per_day: int = Field(8, ge=0)  # cards de aprovação para você
     repost_cooldown_days: int = Field(7, ge=0)
     repost_price_drop_pct: float = Field(10, ge=0, le=100)
     max_offer_age_hours: float = Field(6, gt=0)  # sem reaparecer na coleta, expira
