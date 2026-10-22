@@ -38,10 +38,13 @@ class BotDeps:
     awaiting_edit: tuple[str, str] | None = field(default=None)
 
 
-async def send_pending_cards(bot, deps: BotDeps) -> int:
-    """Manda ao admin um card por oferta pendente ainda não notificada."""
+async def send_pending_cards(bot, deps: BotDeps, limit: int = 5) -> int:
+    """Manda ao admin os cards das pendentes ainda não notificadas, até `limit` por vez,
+    as de maior nota primeiro (o job roda a cada minuto)."""
     sent = 0
     for cand in db.candidates_by_state(deps.conn, CandidateState.PENDING):
+        if sent >= limit:
+            break
         if cand.notified_at is not None:
             continue
         offer = db.get_offer(deps.conn, cand.mlb_id)

@@ -77,6 +77,14 @@ async def test_send_pending_cards_once(deps):
     assert await send_pending_cards(bot, deps) == 0  # já notificadas
 
 
+async def test_pending_cards_are_sent_in_small_batches(deps):
+    for i in range(7):
+        seed(deps.conn, f"MLB{i}")
+    bot = fake_bot()
+    assert await send_pending_cards(bot, deps, limit=5) == 5
+    assert await send_pending_cards(bot, deps, limit=5) == 2
+
+
 async def test_photo_failure_falls_back_to_text(deps):
     seed(deps.conn)
     bot = fake_bot()
