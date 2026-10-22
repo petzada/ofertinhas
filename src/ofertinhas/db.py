@@ -97,6 +97,16 @@ MIGRATIONS = [
     """
     ALTER TABLE price_history ADD COLUMN original_price REAL;
     """,
+    """
+    CREATE TABLE group_clicks (
+        niche TEXT NOT NULL,
+        day TEXT NOT NULL,
+        source TEXT NOT NULL,
+        campaign TEXT NOT NULL,
+        clicks INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (niche, day, source, campaign)
+    );
+    """,
 ]
 
 

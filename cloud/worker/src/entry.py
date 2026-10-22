@@ -18,7 +18,7 @@ from workers import DurableObject, Response, WorkerEntrypoint, asgi
 # inicialização, e httpx/PTB/FastAPI a usam ao serem importados.
 
 BUNDLE = Path(__file__).parent / "bundle"
-PUBLIC_PREFIXES = ("/health", "/ext/", "/tg/", "/admin/")
+PUBLIC_PREFIXES = ("/health", "/ext/", "/tg/", "/admin/", "/g/")
 CRON_URL = "https://ofertinhas.internal/_cron"
 RENDER_TASKS_URL = "https://ofertinhas.internal/_render/tasks"
 RENDER_DONE_URL = "https://ofertinhas.internal/_render/done"

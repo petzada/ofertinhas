@@ -237,3 +237,83 @@ def db_offer(mlb_id, title):
 
     return Offer(mlb_id=mlb_id, title=title, price=50, original_price=100, commission_pct=25,
                  category_path=("MLB1574",), permalink="https://x")
+
+
+INVITE_1 = "https://chat.whatsapp.com/AbCdEfGhIjKlMn01"
+INVITE_2 = "https://chat.whatsapp.com/AbCdEfGhIjKlMn02"
+NOIVAS = {"groups": [{"invite": INVITE_1, "jid": "1@g.us"}, {"invite": INVITE_2, "jid": "2@g.us"}]}
+
+
+def test_group_link_redirects_and_counts_clicks_by_source(backend):
+    client = TestClient(backend.app, follow_redirects=False)
+    assert client.get("/g/noivas").status_code == 404  # ainda sem grupo cadastrado
+    client.put("/admin/groups/noivas", json=NOIVAS, headers=ADMIN)
+    response = client.get("/g/noivas?utm_source=TikTok&utm_campaign=bf26")
+    assert response.status_code == 302 and response.headers["location"] == INVITE_1
+    assert response.headers["cache-control"] == "no-store"
+    client.get("/g/noivas?utm_source=tiktok&utm_campaign=bf26")
+    client.get("/g/noivas")
+    client.get("/g/noivas?utm_source=maria%40gmail.com")  # texto livre não entra
+    client.get("/g/noivas?utm_source=11999998888")
+    client.head("/g/noivas?utm_source=tiktok")  # pré-visualização: redireciona sem contar
+    client.get("/g/noivas?utm_source=pinterest", headers={"User-Agent": "Pinterestbot/1.0"})
+    client.get("/g/noivas?utm_source=pinterest",
+               headers={"User-Agent": "Mozilla/5.0 [Pinterest/Android]"})
+    assert client.get("/admin/clicks").status_code == 401
+    report = client.get("/admin/clicks", headers=ADMIN).json()
+    assert report["since"] == "2026-09-23"
+    assert {(r["source"], r["campaign"], r["clicks"]) for r in report["by_day"]} == {
+        ("tiktok", "bf26", 2), ("direto", "-", 1), ("outro", "-", 2), ("pinterest", "-", 1)}
+    assert {r["day"] for r in report["by_day"]} == {"2026-10-22"}
+    assert report["by_source"][0] == {"niche": "noivas", "source": "tiktok", "clicks": 2}
+    assert client.get("/admin/clicks?niche=casa", headers=ADMIN).json()["by_day"] == []
+
+
+def test_admin_groups_validates_and_switches_by_hand(backend):
+    client = TestClient(backend.app, follow_redirects=False)
+    assert client.put("/admin/groups/noivas", json=NOIVAS).status_code == 401
+    bad = {"groups": [{"invite": "https://golpe.com/x"}]}
+    assert client.put("/admin/groups/noivas", json=bad, headers=ADMIN).status_code == 422
+    assert client.put("/admin/groups/Noivas!", json=NOIVAS, headers=ADMIN).status_code == 422
+    assert client.put("/admin/groups/noivas", json=NOIVAS, headers=ADMIN).json()["active"] == 0
+    assert client.post("/admin/groups/noivas/next", headers=ADMIN).json()["active"] == 1
+    assert client.get("/g/noivas").headers["location"] == INVITE_2
+    client.post("/admin/groups/noivas/next", headers=ADMIN)  # todos lotados: fica no último
+    assert client.get("/g/noivas").headers["location"] == INVITE_2
+    listed = client.get("/admin/groups", headers=ADMIN).json()
+    assert listed["noivas"]["active"] == 1 and listed["noivas"]["groups"][0]["full"] is True
+    reopened = {"groups": [{"invite": INVITE_1, "full": False}, {"invite": INVITE_2}]}
+    assert client.put("/admin/groups/noivas", json=reopened, headers=ADMIN).json()["active"] == 0
+    assert client.post("/admin/groups/casa/next", headers=ADMIN).status_code == 404
+
+
+async def test_group_members_moves_to_the_next_group_when_full(backend):
+    from unittest.mock import AsyncMock, MagicMock
+
+    TestClient(backend.app).put("/admin/groups/noivas", json=NOIVAS, headers=ADMIN)
+    backend.notify = AsyncMock()
+    backend.whatsapp = MagicMock()
+    backend.whatsapp.list_groups = AsyncMock(return_value=[
+        {"id": "1@g.us", "participants": [{"id": str(i)} for i in range(1000)]},
+        {"id": "2@g.us", "size": 12}, {"id": "outro@g.us", "size": 5}])
+    assert await backend._group_members() == {"1@g.us": 1000, "2@g.us": 12}
+    backend.whatsapp.list_groups.assert_awaited_once_with(participants=True)
+    assert "agora leva ao grupo 2 de 2" in backend.notify.await_args.args[0]
+    groups = TestClient(backend.app).get("/admin/groups", headers=ADMIN).json()["noivas"]
+    assert groups["active"] == 1 and groups["groups"][1]["members"] == 12
+    backend.whatsapp.list_groups.return_value[1]["size"] = 1010
+    await backend._group_members()
+    assert "Todos os grupos" in backend.notify.await_args.args[0]
+    backend.notify.reset_mock()
+    await backend._group_members()  # o aviso de "todos lotados" sai no máximo a cada 12 h
+    backend.notify.assert_not_awaited()
+
+
+async def test_tick_checks_group_members_only_with_whatsapp(bundle):
+    env = {"EXTENSION_TOKEN": TOKEN, "TELEGRAM_BOT_TOKEN": "1:x", "ADMIN_CHAT_ID": "777",
+           "WHATSMIAU_API_KEY": "k", "WHATSMIAU_INSTANCE": "i"}
+    conn = db.connect(":memory:")
+    b = CloudBackend(env, conn, FakeBucket(), bundle, httpx.AsyncClient(), bot=FakeBot(),
+                     clock=lambda: datetime(2026, 10, 22, 15, 0, tzinfo=UTC))
+    assert (await b.tick())[-1] == "group_members"  # sem grupo com jid, nem chama a API
+    conn.close()

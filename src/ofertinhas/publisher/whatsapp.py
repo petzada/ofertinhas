@@ -89,9 +89,11 @@ class WhatsAppSender:
             raise WhatsAppError("a API não devolveu código de pareamento", retryable=False)
         return str(code)
 
-    async def list_groups(self) -> list[dict]:
+    async def list_groups(self, participants: bool = False) -> list[dict]:
+        """Com `participants`, cada grupo vem com a lista de membros (para contar a lotação)."""
         return await self._call(
-            "GET", f"/group/fetchAllGroups/{self.instance}", params={"getParticipants": "false"}
+            "GET", f"/group/fetchAllGroups/{self.instance}",
+            params={"getParticipants": "true" if participants else "false"},
         )
 
     async def send_presence(self, jid: str, delay_ms: int = 3000) -> None:

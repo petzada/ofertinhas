@@ -14,6 +14,7 @@ from pathlib import Path
 
 import httpx
 from fastapi import Depends, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from pydantic import ValidationError
 from telegram import Bot
 
@@ -23,7 +24,7 @@ from ..approval.bot import BotDeps
 from ..buildinfo import describe, load_build
 from ..config import NicheConfig, deep_merge, load_config
 from ..creative.image import fetch_product_image
-from ..jobs import SCHEDULE, guarded, is_due, make_jobs
+from ..jobs import SCHEDULE, Every, guarded, is_due, make_jobs
 from ..models import TZ, utcnow
 from ..pipeline import INFLATED_KEY, niche_configs
 from ..preview import niche_preview
@@ -32,6 +33,7 @@ from ..publisher.telegram import TelegramSender
 from ..publisher.whatsapp import WhatsAppSender
 from ..publisher.x import XSender
 from ..settings import Settings
+from . import invites
 from .cards import Bucket, R2CardHost, R2Cards
 from .history import import_rows
 from .render import apply_rendered, render_tasks
@@ -42,6 +44,8 @@ WEBHOOK_HEADER = "X-Telegram-Bot-Api-Secret-Token"
 # Jobs que o tick não roda: o card é desenhado no Worker de entrada (ver cloud/draw.py e
 # cloud/render.py) e o banco conta com a recuperação do Durable Object em vez de backup.
 OUTSIDE_TICK = {"render", "backup"}
+# Jobs só da nuvem, depois dos do `SCHEDULE` no mesmo minuto.
+CLOUD_SCHEDULE = {"group_members": Every(15)}
 LAST_TICK_KEY = "cron:last_tick"
 
 
@@ -97,6 +101,8 @@ class CloudBackend:
             whatsapp_test_jid=settings.whatsapp_test_jid, x=self.x,
             version=describe(self.build),
         )
+        if self.whatsapp is not None:
+            self.jobs["group_members"] = self._group_members
         self._running: set[str] = set()
         self.app = self._build_app()
 
@@ -111,6 +117,11 @@ class CloudBackend:
             await self.telegram.send_message(self.settings.admin_chat_id, text)
         except Exception:
             log.exception("não consegui avisar o admin: %s", text)
+
+    async def _group_members(self) -> dict[str, int]:
+        return await invites.refresh_members(
+            self.conn, lambda: self.whatsapp.list_groups(participants=True), self.notify,
+            self.clock())
 
     async def _ready_bot(self) -> Bot:
         if not self._bot_ready:
@@ -275,6 +286,58 @@ class CloudBackend:
             return niche_preview(self.conn, niche, self.clock(), float(body.get("days", 3)),
                                  int(body.get("sample", 40)))
 
+        @app.api_route("/g/{niche}", methods=["GET", "HEAD"])
+        async def group_link(niche: str, request: Request,
+                             utm_source: str | None = None, utm_campaign: str | None = None):
+            """Link fixo do grupo: 302 para o convite do grupo ativo e um clique contado. Só
+            o nicho e os `utm_*` são guardados; o User-Agent só separa os robôs de
+            pré-visualização, que não contam."""
+            niche = niche.lower()
+            known = invites.NICHE.fullmatch(niche)
+            groups = invites.get_groups(self.conn, niche) if known else []
+            index = invites.active_index(groups)
+            if index is None:
+                raise HTTPException(status_code=404, detail="grupo não encontrado")
+            if invites.counts_as_click(request.method, request.headers.get("user-agent")):
+                invites.record_click(
+                    self.conn, niche, invites.clean_utm(utm_source, invites.NO_SOURCE),
+                    invites.clean_utm(utm_campaign, "-"), self.clock())
+            return RedirectResponse(groups[index]["invite"], status_code=302,
+                                    headers={"Cache-Control": "no-store",
+                                             "Referrer-Policy": "no-referrer"})
+
+        @app.get("/admin/groups", dependencies=[Depends(app.state.require_admin)])
+        async def admin_groups() -> dict:
+            """As listas de grupos por nicho, com o ativo de cada uma."""
+            return {niche: {"active": invites.active_index(groups), "groups": groups}
+                    for niche, groups in invites.all_groups(self.conn).items()}
+
+        @app.put("/admin/groups/{niche}", dependencies=[Depends(app.state.require_admin)])
+        async def admin_set_groups(niche: str, request: Request) -> dict:
+            """Troca a lista ordenada de grupos do nicho: `{"groups": [{"invite": ...,
+            "jid": ..., "full": false}, ...]}`."""
+            body = await request.json()
+            try:
+                groups = invites.set_groups(self.conn, niche, body.get("groups") or [])
+            except ValueError as e:
+                raise HTTPException(status_code=422, detail=str(e)) from None
+            return {"active": invites.active_index(groups), "groups": groups}
+
+        @app.post("/admin/groups/{niche}/next", dependencies=[Depends(app.state.require_admin)])
+        async def admin_next_group(niche: str) -> dict:
+            """Troca manual: marca o grupo ativo como lotado e passa ao próximo da lista."""
+            if not invites.get_groups(self.conn, niche):
+                raise HTTPException(status_code=404, detail="nicho sem grupos")
+            groups = invites.mark_full(self.conn, niche)
+            return {"active": invites.active_index(groups), "groups": groups}
+
+        @app.get("/admin/clicks", dependencies=[Depends(app.state.require_admin)])
+        async def admin_clicks(days: int = 30, niche: str | None = None) -> dict:
+            """Cliques no link fixo por nicho, dia (horário de SP), origem e campanha."""
+            today = self.clock().astimezone(TZ).date()
+            since = (today - timedelta(days=max(days, 1) - 1)).isoformat()
+            return {"since": since, **invites.clicks_report(self.conn, since, niche)}
+
         @app.post("/admin/import", dependencies=[Depends(app.state.require_admin)])
         async def admin_import(request: Request) -> dict:
             return {"imported": import_rows(self.conn, await request.json())}
@@ -287,7 +350,7 @@ class CloudBackend:
         now = self.clock()
         db.set_setting(self.conn, LAST_TICK_KEY, {"at": now.isoformat(), "ran": [],
                                                    "skipped": sorted(self._running)})
-        due = [n for n, spec in SCHEDULE.items()
+        due = [n for n, spec in {**SCHEDULE, **CLOUD_SCHEDULE}.items()
                if n in self.jobs and n not in OUTSIDE_TICK and is_due(spec, now)]
         ran = []
         for name in due:

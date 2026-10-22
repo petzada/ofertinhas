@@ -18,6 +18,7 @@ O PC e a nuvem rodam os mesmos jobs no mesmo calendário (`jobs.SCHEDULE`):
 | `publish`, `notify_pending`, `render` | todo minuto |
 | `stock_alert` | a cada 5 min |
 | `expire` | a cada 15 min |
+| `group_members` (só na nuvem, com a WhatsMiau configurada): conta os membros dos grupos do link fixo `/g/` | a cada 15 min |
 | `prune`: limpa ofertas, decisões e preços com mais de `retention_days` (60) | 04:30 |
 | `status`: edita a mensagem fixada no chat do admin | 08:00, 13:00 e 20:00 |
 | `backup` (só no PC; a nuvem usa a recuperação de 30 dias do Durable Object) | 04:00 |
@@ -48,6 +49,59 @@ Sem `config`, o teste usa o nicho como está no ar. A resposta traz quantas ofer
 entrariam, quantas sairiam automáticas ou para aprovar, e o que ficou de fora e por quê,
 com exemplos de títulos.
 
+### Link fixo dos grupos (`/g/<nicho>`)
+
+O link que vai na bio, nos Pins e nos anúncios é sempre o mesmo, por exemplo
+`https://ofertinhas.marciopetigrosso.workers.dev/g/noivas?utm_source=tiktok`. A nuvem
+responde 302 para o convite do grupo ativo e conta o clique. Assim:
+
+- **Mede a origem:** cada clique conta por nicho, dia (horário de SP), `utm_source` e
+  `utm_campaign`. Sem `utm_source`, a origem é `direto`. Valores com algo além de letras,
+  números e `_.-`, ou com 8 dígitos seguidos, viram `outro`.
+- **Troca de grupo sem mexer nos links publicados:** quando um grupo lota, o link passa para
+  o próximo grupo da lista.
+- **Esconde o convite:** o `chat.whatsapp.com/...` não aparece em nada que foi publicado.
+
+Use na URL só o nicho e os `utm_*`. Nunca ponha nome, telefone ou e-mail da pessoa. Os
+robôs que montam a pré-visualização do link (WhatsApp, Facebook, Pinterest etc.) e os
+pedidos HEAD recebem o redirecionamento, mas não contam. O navegador interno dos apps
+conta normalmente.
+
+**Lista de grupos.** Cada nicho tem uma lista ordenada de grupos no banco da nuvem (setting
+`groups:<nicho>`). A lista fica no banco, e não no `config.yaml`, para que a troca valha na
+hora, sem deploy, inclusive quando a troca é automática. O `config.yaml` só muda com
+`deploy.py`. Para cadastrar ou trocar a lista, que é sempre substituída inteira:
+
+```powershell
+$body = @{ groups = @(
+  @{ invite = "https://chat.whatsapp.com/XXXX"; jid = "120363000000000009@g.us" },
+  @{ invite = "https://chat.whatsapp.com/YYYY"; jid = "120363000000000010@g.us" }
+) } | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Method Put https://ofertinhas.marciopetigrosso.workers.dev/admin/groups/noivas -Headers $h -Body $body -ContentType "application/json"
+```
+
+O ativo é o primeiro grupo da lista que não está lotado. Se todos lotarem, o link continua
+no último e o admin recebe um aviso no Telegram, repetido no máximo a cada 12 h.
+`GET /admin/groups` mostra as listas, o ativo, os membros e a hora da última contagem.
+
+**Troca automática:** a cada 15 min, a nuvem consulta a WhatsMiau
+(`/group/fetchAllGroups?getParticipants=true`) e conta os membros dos grupos que têm `jid`.
+O número do bot precisa estar no grupo. Com 1.000 membros, o grupo vira lotado, antes do
+limite de 1.024 do WhatsApp, porque entre uma checagem e outra ainda entra gente. O admin
+recebe um aviso quando o link muda de grupo. Um grupo lotado não volta sozinho a ficar
+livre: para reabrir, mande a lista de novo com `full = $false` no item.
+
+**Troca manual:** para grupos sem `jid`, ou se a WhatsMiau falhar,
+`POST /admin/groups/<nicho>/next` marca o ativo como lotado e passa ao próximo.
+
+**Cliques:** `GET /admin/clicks` mostra os últimos 30 dias. Use `?days=7` para mudar o
+período e `&niche=noivas` para filtrar um nicho. `by_day` traz o detalhe por dia, origem e
+campanha, e `by_source` traz o total por origem no período.
+
+```powershell
+Invoke-RestMethod "https://ofertinhas.marciopetigrosso.workers.dev/admin/clicks?days=7&niche=noivas" -Headers $h
+```
+
 ### Coleta pedida pela nuvem (`collect_now`)
 
 Um grupo está "curto" quando nem todas as aprovadas, com link ou esperando, cobrem os posts
@@ -73,7 +127,9 @@ barradas no dia aparece no status fixado e em `/admin/stats` (`inflated_today`).
 - `EXTENSION_TOKEN` (header `X-Ofertinhas-Token`): usado pela extensão nas rotas `/ext/*` e
   `/health`.
 - `ADMIN_TOKEN` (header `X-Ofertinhas-Admin`): usado só nas rotas `/admin/*` (`status`,
-  `stats`, `post-now`, `post-x` e `import`). Sem ele configurado, essas rotas recusam tudo.
+  `stats`, `post-now`, `post-x`, `niche-preview`, `groups`, `clicks` e `import`). Sem ele
+  configurado, essas rotas recusam tudo.
+- `/g/<nicho>` é a única rota pública sem token: só redireciona ao convite do grupo.
   O `cloud/worker/push_secrets.py` cria o token no `.env` se faltar e o envia ao Worker.
 
 ```powershell
