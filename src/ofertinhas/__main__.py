@@ -18,6 +18,9 @@ def build_parser() -> argparse.ArgumentParser:
     setup.add_argument("--tag", help="sua etiqueta de afiliado do Mercado Livre")
     sub.add_parser("api", help="roda só a API local da extensão (avisos saem no terminal)")
     sub.add_parser("recut", help="reaplica as notas de corte do config à fila sem link")
+    sub.add_parser(
+        "telegram-setup", help="descobre seu chat com o bot (mande /start antes) e grava no .env"
+    )
     sub.add_parser("new-token", help="gera o token que a extensão usa para falar com o backend")
     sub.add_parser("whatsapp-groups", help="lista os grupos e JIDs da instância da WhatsMiau.dev")
     sample = sub.add_parser("render-sample", help="gera uma imagem de exemplo do nicho")
@@ -45,6 +48,8 @@ def main(argv: list[str] | None = None) -> int:
         return _api()
     if args.command == "recut":
         return _recut()
+    if args.command == "telegram-setup":
+        return _telegram_setup()
     if args.command == "setup":
         from .setup import run_setup
 
@@ -91,6 +96,30 @@ def _api() -> int:
     )
     print(f"API local em http://127.0.0.1:{settings.api_port} (Ctrl+C para parar)")
     uvicorn.run(create_app(state), host="127.0.0.1", port=settings.api_port, log_level="info")
+    return 0
+
+
+def _telegram_setup() -> int:
+    import asyncio
+
+    import httpx
+
+    from .settings import Settings, SettingsError
+    from .telegram_setup import TelegramSetupError, find_admin_chat, save_admin_chat
+
+    async def discover(token: str) -> tuple[int, str]:
+        async with httpx.AsyncClient() as client:
+            return await find_admin_chat(client, token)
+
+    try:
+        settings = Settings.load()
+        settings.require("TELEGRAM_BOT_TOKEN")
+        chat_id, name = asyncio.run(discover(settings.telegram_bot_token))
+    except (SettingsError, TelegramSetupError) as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        return 1
+    save_admin_chat(Path(".env"), chat_id)
+    print(f"Chat de {name or 'admin'} gravado como ADMIN_CHAT_ID no .env.")
     return 0
 
 
