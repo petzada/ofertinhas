@@ -165,6 +165,35 @@ def test_multi_niche_mode_routes_to_every_niche(conn):
     assert state(conn, niche="tech") is S.PENDING
 
 
+def put_scored(conn, mlb_id, state_, score, notified=False, link=None):
+    add(conn, mlb_id)
+    if link:
+        db.set_affiliate_link(conn, mlb_id, link)
+    db.save_candidate(conn, Candidate(
+        mlb_id=mlb_id, niche="casa", state=state_, score=score, breakdown={},
+        ref_price=100.0, decided_at=NOW, notified_at=NOW if notified else None,
+    ))
+
+
+def test_reapply_cutoffs_moves_queue_to_new_thresholds(conn):
+    from ofertinhas.pipeline import reapply_cutoffs
+
+    db.set_niche_override(conn, "casa", "auto_approve_at", 85)
+    db.set_niche_override(conn, "casa", "manual_review_at", 70)
+    put_scored(conn, "MLB1", S.APPROVED, 80)  # vira pendente
+    put_scored(conn, "MLB2", S.PENDING, 66)  # vira descartada
+    put_scored(conn, "MLB3", S.APPROVED, 90)  # continua aprovada
+    put_scored(conn, "MLB4", S.APPROVED, 72, link="https://meli.la/x")  # já tem link: intocada
+    put_scored(conn, "MLB5", S.APPROVED, 71, notified=True)  # aprovada por você: intocada
+    counts = reapply_cutoffs(conn, cfg(), now=NOW)
+    assert state(conn, "MLB1") is S.PENDING
+    assert state(conn, "MLB2") is S.DISCARDED
+    assert state(conn, "MLB3") is S.APPROVED
+    assert state(conn, "MLB4") is S.APPROVED
+    assert state(conn, "MLB5") is S.APPROVED
+    assert counts == {"approved→pending": 1, "pending→discarded": 1}
+
+
 def test_multi_niche_mode_checks_cooldown_per_niche(conn):
     add(conn, commission=18.0)
     put(conn, S.POSTED, niche="tech", decided_at=NOW - timedelta(days=1))

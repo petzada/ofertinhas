@@ -1,6 +1,5 @@
 # Copie para config.yaml e ajuste. Cada nicho herda de `defaults` e só declara o que muda.
-# Ids de categoria: https://api.mercadolibre.com/sites/MLB/categories
-# (vale qualquer nível da árvore; a oferta casa se a categoria dela estiver abaixo da listada)
+# Categorias: só as 24 raiz do portal de afiliados (lista em src/ofertinhas/collector/categories.py)
 
 multi_niche: false  # true: a oferta vai para todos os nichos que casar, não só o de maior nota
 whatsapp_enabled: false  # trava: nada vai para o WhatsApp enquanto estiver false

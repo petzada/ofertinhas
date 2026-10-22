@@ -17,6 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     setup = sub.add_parser("setup", help="cria config.yaml, .env e a config da extensão")
     setup.add_argument("--tag", help="sua etiqueta de afiliado do Mercado Livre")
     sub.add_parser("api", help="roda só a API local da extensão (avisos saem no terminal)")
+    sub.add_parser("recut", help="reaplica as notas de corte do config à fila sem link")
     sub.add_parser("new-token", help="gera o token que a extensão usa para falar com o backend")
     sub.add_parser("whatsapp-groups", help="lista os grupos e JIDs da instância da WhatsMiau.dev")
     sample = sub.add_parser("render-sample", help="gera uma imagem de exemplo do nicho")
@@ -42,6 +43,8 @@ def main(argv: list[str] | None = None) -> int:
         return _new_token()
     if args.command == "api":
         return _api()
+    if args.command == "recut":
+        return _recut()
     if args.command == "setup":
         from .setup import run_setup
 
@@ -88,6 +91,22 @@ def _api() -> int:
     )
     print(f"API local em http://127.0.0.1:{settings.api_port} (Ctrl+C para parar)")
     uvicorn.run(create_app(state), host="127.0.0.1", port=settings.api_port, log_level="info")
+    return 0
+
+
+def _recut() -> int:
+    from . import db
+    from .config import load_config
+    from .pipeline import reapply_cutoffs
+    from .settings import Settings
+
+    settings = Settings.load()
+    conn = db.connect(settings.data_dir / "ofertinhas.db")
+    changes = reapply_cutoffs(conn, load_config(settings.config_path))
+    if not changes:
+        print("Nada mudou: a fila já respeita os cortes atuais.")
+    for change, n in sorted(changes.items()):
+        print(f"- {change}: {n}")
     return 0
 
 

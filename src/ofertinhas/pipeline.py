@@ -105,6 +105,31 @@ def score_and_route(
     return counts
 
 
+def reapply_cutoffs(
+    conn: sqlite3.Connection, cfg: AppConfig, now: datetime | None = None
+) -> Counter[str]:
+    """Reaplica as notas de corte atuais à fila que ainda não tem link.
+
+    Não mexe no que já tem link nem em aprovadas cujo card já foi mostrado ao admin (podem
+    ter sido aprovadas à mão). Devolve as mudanças como "antes→depois".
+    """
+    now = now or utcnow()
+    niches = niche_configs(conn, cfg)
+    changes: Counter[str] = Counter()
+    for state in (CandidateState.APPROVED, CandidateState.PENDING):
+        for cand in db.candidates_by_state(conn, state):
+            niche = niches.get(cand.niche)
+            if niche is None or db.get_offer(conn, cand.mlb_id).affiliate_link:
+                continue
+            if state is CandidateState.APPROVED and cand.notified_at is not None:
+                continue
+            new = decide(cand.score, niche)
+            if new is not state:
+                db.save_candidate(conn, dataclasses.replace(cand, state=new, decided_at=now))
+                changes[f"{state.value}→{new.value}"] += 1
+    return changes
+
+
 async def render_linked(
     conn: sqlite3.Connection,
     cfg: AppConfig,
