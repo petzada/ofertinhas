@@ -198,3 +198,13 @@ def test_alert_pauses_and_resume_clears(env):
     assert len(env.sent) == 2
     assert env.client.post("/ext/resume", headers=H).json() == {"paused": False}
     assert env.client.get("/ext/config", headers=H).json()["paused"] is False
+
+
+def test_stock_reports_ready_waiting_and_until_when(env):
+    response = env.client.get("/ext/stock", headers=H)
+    assert response.status_code == 200
+    data = response.json()
+    assert (data["ready"], data["waiting_links"]) == (0, 0)
+    assert data["groups"] and set(data["groups"][0]) == {
+        "ready", "waiting_links", "posts_today", "max_posts", "ends_at", "ends_at_with_links"}
+    assert env.client.get("/ext/stock").status_code == 401

@@ -85,9 +85,9 @@ def test_import_needs_token_and_skips_duplicates(backend):
 
 
 async def test_tick_runs_minute_jobs_and_expire_every_15_min(backend):
-    assert await backend.tick() == ["expire", "render", "publish", "notify_pending"]
+    assert await backend.tick() == ["expire", "publish", "stock_alert", "notify_pending"]
     backend.clock_state["now"] = datetime(2026, 10, 22, 15, 7, tzinfo=UTC)
-    assert await backend.tick() == ["render", "publish", "notify_pending"]
+    assert await backend.tick() == ["publish", "notify_pending"]
 
 
 async def test_status_shows_the_last_tick(backend):
@@ -95,7 +95,8 @@ async def test_status_shows_the_last_tick(backend):
     status = TestClient(backend.app).get("/admin/status", headers=H).json()
     assert status["dry_run"] is True
     assert status["last_tick"]["at"] == "2026-10-22T15:00:00+00:00"
-    assert status["last_tick"]["ran"] == ["expire", "render", "publish", "notify_pending"]
+    assert status["last_tick"]["ran"] == ["expire", "publish", "stock_alert",
+                                          "notify_pending"]
 
 
 def test_post_now_needs_token_and_waits_for_a_running_publish(backend):

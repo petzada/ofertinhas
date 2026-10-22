@@ -14,6 +14,7 @@ TRIGGERS = {
     "render": {"trigger": "interval", "minutes": 1},
     "publish": {"trigger": "interval", "minutes": 1},
     "expire": {"trigger": "interval", "minutes": 15},
+    "stock_alert": {"trigger": "interval", "minutes": 5},
     "backup": {"trigger": "cron", "hour": 4, "minute": 0},
 }
 

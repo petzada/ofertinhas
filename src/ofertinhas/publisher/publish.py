@@ -38,6 +38,25 @@ WHATSAPP_TYPING_S = (3, 8)
 _DISK = DiskCards(Path())
 
 
+def destination_groups(
+    conn: sqlite3.Connection, cfg: AppConfig
+) -> dict[tuple[int | None, str | None], list[NicheConfig]]:
+    """Nichos ativos agrupados por destino (Telegram, WhatsApp): cada grupo é uma fila."""
+    from ..pipeline import niche_configs  # evita import circular
+
+    groups: dict[tuple, list[NicheConfig]] = {}
+    for niche in niche_configs(conn, cfg).values():
+        if not niche.paused:
+            groups.setdefault(niche.destination(), []).append(niche)
+    return groups
+
+
+def pacing_key(tg_chat: int | None, wa_jid: str | None, dry_run: bool) -> str:
+    """Chave do ritmo do grupo nos posts: o Telegram, ou o WhatsApp quando não há Telegram."""
+    primary = str(tg_chat) if tg_chat is not None else wa_jid
+    return f"dry-run:{primary}" if dry_run else primary
+
+
 def _next_in_group(
     conn: sqlite3.Connection, niches: list[NicheConfig], now: datetime
 ) -> tuple[Candidate, NicheConfig] | None:
@@ -85,18 +104,10 @@ async def publish_due(
     só desta vez (o post conta no ritmo e no limite do dia como qualquer outro).
 
     Sem `card_store`, o `card_path` da candidata é um arquivo em disco."""
-    from ..pipeline import niche_configs  # evita import circular
-
     rng = rng or random.Random()
-    groups: dict[tuple, list[NicheConfig]] = {}
-    for niche in niche_configs(conn, cfg).values():
-        if not niche.paused:
-            groups.setdefault(niche.destination(), []).append(niche)
-
     posted = []
-    for (tg_chat, wa_jid), members in groups.items():
-        primary = str(tg_chat) if tg_chat is not None else wa_jid
-        key = f"dry-run:{primary}" if dry_run else primary
+    for (tg_chat, wa_jid), members in destination_groups(conn, cfg).items():
+        key = pacing_key(tg_chat, wa_jid, dry_run)
         wa_target = whatsapp_test_jid if dry_run else wa_jid
         use_whatsapp = bool(cfg.whatsapp_enabled and wa_jid and whatsapp and wa_target)
         if tg_chat is None and not use_whatsapp and not dry_run:

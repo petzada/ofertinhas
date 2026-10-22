@@ -38,7 +38,8 @@ def jobs(ctx, dry_run=True):
 
 
 def test_every_scheduled_job_exists(ctx):
-    assert set(jobs(ctx)) == {"notify_pending", "render", "publish", "expire", "backup"}
+    assert set(jobs(ctx)) == {"notify_pending", "render", "publish", "expire", "stock_alert",
+                              "backup"}
 
 
 async def test_jobs_run_on_an_empty_database(ctx):

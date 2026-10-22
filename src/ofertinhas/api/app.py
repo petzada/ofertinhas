@@ -25,6 +25,7 @@ from ..config import AppConfig
 from ..models import utcnow
 from ..pipeline import niche_configs, score_and_route
 from ..settings import Settings
+from ..stock import group_stock
 
 TOKEN_HEADER = "X-Ofertinhas-Token"
 PORTAL_URL = "https://www.mercadolivre.com.br/afiliados/hub?is_affiliate=true"
@@ -47,6 +48,7 @@ class ApiState:
     clock: Callable[[], datetime] = field(default=utcnow)
     # (nome, json) → onde ficou; sem isso, grava em data_dir/unparsed (na nuvem, vai ao R2)
     save_unparsed: Callable[[str, str], Awaitable[str]] | None = None
+    dry_run: bool = False  # o estoque é contado no ritmo do modo em que os posts saem
 
 
 class RawCapture(BaseModel):
@@ -197,6 +199,16 @@ def create_app(state: ApiState) -> FastAPI:
             now, ALERT_EVERY,
         )
         return {"paused": True}
+
+    @router.get("/ext/stock")
+    async def ext_stock() -> dict:
+        """Estoque de cada grupo e até quando ele dura, para o popup da extensão."""
+        groups = group_stock(conn, state.cfg, state.clock(), state.dry_run)
+        return {
+            "ready": sum(g.ready for g in groups),
+            "waiting_links": sum(g.waiting_links for g in groups),
+            "groups": [g.as_dict() for g in groups],
+        }
 
     @router.post("/ext/resume")
     async def ext_resume() -> dict:

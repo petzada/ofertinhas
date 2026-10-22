@@ -5,6 +5,7 @@ minuto, o Cron. Toda a lógica e o banco ficam no Durable Object, que atende uma
 entre um `await` e outro.
 """
 
+import json
 import logging
 from pathlib import Path
 from urllib.parse import urlparse
@@ -19,6 +20,8 @@ from workers import DurableObject, Response, WorkerEntrypoint, asgi
 BUNDLE = Path(__file__).parent / "bundle"
 PUBLIC_PREFIXES = ("/health", "/ext/", "/tg/", "/admin/")
 CRON_URL = "https://ofertinhas.internal/_cron"
+RENDER_TASKS_URL = "https://ofertinhas.internal/_render/tasks"
+RENDER_DONE_URL = "https://ofertinhas.internal/_render/done"
 ENV_NAMES = (
     "EXTENSION_TOKEN", "EXTENSION_ORIGIN", "TELEGRAM_BOT_TOKEN", "ADMIN_CHAT_ID",
     "ML_AFFILIATE_TAG", "WHATSMIAU_API_KEY", "WHATSMIAU_INSTANCE", "WHATSMIAU_BASE_URL",
@@ -95,8 +98,14 @@ class Ofertinhas(DurableObject):
 
     async def fetch(self, request):
         backend = self._backend()
-        if urlparse(request.url).path == "/_cron":
+        path = urlparse(request.url).path
+        if path == "/_cron":
             return Response.json({"ran": await backend.tick()})
+        if path == "/_render/tasks":
+            return Response.json(backend.render_tasks())
+        if path == "/_render/done":
+            results = json.loads(await request.text())
+            return Response.json({"rendered": backend.render_done(results)})
         return await asgi.fetch(backend.app, request, self.env)
 
 
@@ -110,4 +119,29 @@ class Default(WorkerEntrypoint):
         return await self._stub().fetch(request)
 
     async def scheduled(self, controller, env, ctx):
-        await self._stub().fetch(CRON_URL)
+        stub = self._stub()
+        try:
+            await self._draw_cards(stub)
+        except Exception:  # sem card novo neste minuto; os outros jobs seguem
+            logging.exception("falha ao desenhar os cards")
+        await stub.fetch(CRON_URL)
+
+    async def _draw_cards(self, stub):
+        """Desenha aqui, fora do Durable Object, os cards que ele pedir (ver cloud/draw.py)."""
+        import httpx
+
+        from ofertinhas.cloud.cards import R2Cards
+        from ofertinhas.cloud.draw import draw_cards
+        from ofertinhas.creative import image
+
+        tasks = json.loads(await (await stub.fetch(RENDER_TASKS_URL)).text())
+        if not tasks:
+            return
+        image.FONTS_DIR = BUNDLE / "fonts"
+        async with httpx.AsyncClient() as http:
+            results = await draw_cards(
+                tasks, lambda url: image.fetch_product_image(http, url),
+                R2Cards(JsBucket(self.env.CARDS)).save,
+            )
+        if results:  # o SDK só aceita as opções do fetch como argumentos nomeados
+            await stub.fetch(RENDER_DONE_URL, method="POST", body=json.dumps(results))

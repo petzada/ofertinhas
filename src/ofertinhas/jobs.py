@@ -17,6 +17,7 @@ from .models import utcnow
 from .pipeline import render_linked
 from .publisher.publish import publish_due
 from .publisher.queue import expire_stale
+from .stock import alert_low_stock
 
 log = logging.getLogger("ofertinhas")
 ERROR_ALERT_EVERY = timedelta(minutes=30)
@@ -63,8 +64,11 @@ def make_jobs(
     async def expire():
         return expire_stale(conn, cfg, clock())
 
+    async def stock_alert():
+        return await alert_low_stock(conn, cfg, notify, clock(), dry_run)
+
     jobs = {"notify_pending": notify_pending, "render": render, "publish": publish,
-            "expire": expire}
+            "expire": expire, "stock_alert": stock_alert}
     if data_dir is not None:
         async def backup():
             from .backup import backup_database  # cópia de arquivo: só no PC

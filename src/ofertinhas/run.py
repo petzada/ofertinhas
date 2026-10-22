@@ -82,7 +82,8 @@ async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
     )
     scheduler = build_scheduler(jobs, conn, notify, utcnow)
     server = uvicorn.Server(uvicorn.Config(
-        create_app(ApiState(settings=settings, conn=conn, cfg=cfg, notify=notify)),
+        create_app(ApiState(settings=settings, conn=conn, cfg=cfg, notify=notify,
+                            dry_run=dry_run)),
         host="127.0.0.1", port=settings.api_port, log_level="warning",
     ))
 

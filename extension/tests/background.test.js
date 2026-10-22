@@ -92,6 +92,25 @@ describe("background.js", () => {
     localConfig = null;
   });
 
+  it("estoque vem do backend junto com o estado da extensão", async () => {
+    localConfig = { backendUrl: "https://nuvem.example", token: "tok" };
+    const realFetch = globalThis.fetch;
+    const calls = [];
+    globalThis.fetch = async (url, init) => {
+      if (url.startsWith("https://nuvem.example")) {
+        calls.push([url, init.headers["X-Ofertinhas-Token"]]);
+        return { ok: true, json: async () => ({ ready: 2, waiting_links: 5, groups: [] }) };
+      }
+      return realFetch(url, init);
+    };
+    const reply = await message("stock");
+    assert.deepEqual(calls, [["https://nuvem.example/ext/stock", "tok"]]);
+    assert.equal(reply.stock.waiting_links, 5);
+    assert.equal(reply.collecting, false);
+    globalThis.fetch = realFetch;
+    localConfig = null;
+  });
+
   it("mensagem desconhecida", async () => {
     assert.match((await message("xyz")).error, /desconhecida/);
   });

@@ -1,4 +1,5 @@
 import { withinWindow } from "./lib/schedule.js";
+import { describeStock } from "./lib/stock.js";
 
 const $ = (id) => document.getElementById(id);
 const REASONS = {
@@ -64,6 +65,21 @@ async function render() {
   $("collect").disabled = Boolean(state.paused);
 }
 
+async function renderStock() {
+  const reply = await send("stock");
+  if (!reply || reply.error) {
+    $("stock-note").textContent = reply?.error ? `Estoque indisponível: ${reply.error}` : "";
+    $("stock-note").className = "status bad";
+    return;
+  }
+  const text = describeStock(reply.stock, reply);
+  $("stock-ready").textContent = text.ready;
+  $("stock-waiting").textContent = text.waiting;
+  $("stock-until").textContent = text.until;
+  $("stock-note").textContent = text.note;
+  $("stock-note").className = `status ${text.tone}`;
+}
+
 $("toggle").addEventListener("click", async () => {
   const { state = {} } = await send("status");
   const result = await send(state.paused ? "resume" : "pause");
@@ -72,6 +88,8 @@ $("toggle").addEventListener("click", async () => {
     $("error").hidden = false;
   }
   await render();
+renderStock();
+setInterval(renderStock, 5_000); // acompanha os links enquanto o popup está aberto
 });
 
 $("collect").addEventListener("click", async () => {
@@ -81,7 +99,11 @@ $("collect").addEventListener("click", async () => {
   setTimeout(() => {
     $("collect").textContent = "Coletar agora";
     render();
+renderStock();
+setInterval(renderStock, 5_000); // acompanha os links enquanto o popup está aberto
   }, 1500);
 });
 
 render();
+renderStock();
+setInterval(renderStock, 5_000); // acompanha os links enquanto o popup está aberto

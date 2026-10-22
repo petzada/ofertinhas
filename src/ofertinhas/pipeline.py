@@ -185,6 +185,31 @@ def reapply_cutoffs(
     return changes
 
 
+def linked_caption(
+    conn: sqlite3.Connection, cfg: AppConfig, cand: Candidate, offer: Offer, templates_dir: Path,
+    now: datetime | None = None,
+) -> str:
+    """Legenda da candidata com link: o texto editado no bot ou o próximo modelo do nicho."""
+    template = cfg.for_niche(cand.niche).template if cand.niche in cfg.niches else cand.niche
+    custom = custom_caption(conn, cand.mlb_id, cand.niche)
+    if custom:
+        return fill(custom, caption_values(offer))
+    return render_caption(conn, offer, template, cand.niche, templates_dir, now=now)
+
+
+def mark_rendered(
+    conn: sqlite3.Connection, mlb_id: str, niche: str, caption: str, card_ref: str
+) -> bool:
+    """`linked` → `rendered`; False se a candidata mudou de estado no meio do caminho."""
+    cand = db.get_candidate(conn, mlb_id, niche)
+    if cand is None or cand.state is not CandidateState.LINKED:
+        return False
+    db.save_candidate(conn, dataclasses.replace(
+        cand, state=CandidateState.RENDERED, caption=caption, card_path=card_ref,
+    ))
+    return True
+
+
 async def render_linked(
     conn: sqlite3.Connection,
     cfg: AppConfig,
@@ -204,14 +229,7 @@ async def render_linked(
     for cand in db.candidates_by_state(conn, CandidateState.LINKED):
         try:
             offer = db.get_offer(conn, cand.mlb_id)
-            template = (
-                cfg.for_niche(cand.niche).template if cand.niche in cfg.niches else cand.niche
-            )
-            custom = custom_caption(conn, cand.mlb_id, cand.niche)
-            if custom:
-                caption = fill(custom, caption_values(offer))
-            else:
-                caption = render_caption(conn, offer, template, cand.niche, templates_dir, now=now)
+            caption = linked_caption(conn, cfg, cand, offer, templates_dir, now)
             png = render_card(
                 offer, theme_for(cand.niche, cfg.brand), await fetch_image(offer.image_url)
             )
@@ -219,11 +237,5 @@ async def render_linked(
         except Exception:
             log.exception("falha ao gerar criativo de %s/%s", cand.mlb_id, cand.niche)
             continue
-        db.save_candidate(
-            conn,
-            dataclasses.replace(
-                cand, state=CandidateState.RENDERED, caption=caption, card_path=ref
-            ),
-        )
-        rendered += 1
+        rendered += mark_rendered(conn, cand.mlb_id, cand.niche, caption, ref)
     return rendered

@@ -237,6 +237,12 @@ async function handle(message) {
       await chrome.alarms.create("collect", { when: Date.now() + 5_000 });
       return { paused: false };
     }
+    case "stock": {
+      // Estoque na nuvem + o que a extensão está fazendo agora, para o popup.
+      const { state } = await load();
+      const stock = await (await backend()).get("/ext/stock");
+      return { stock, collecting, linking, paused: Boolean(state.paused) };
+    }
     case "collectNow": {
       collect({ manual: true });
       return { started: true };

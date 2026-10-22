@@ -28,12 +28,14 @@ from ..publisher.whatsapp import WhatsAppSender
 from ..settings import Settings
 from .cards import Bucket, R2CardHost, R2Cards
 from .history import import_rows
+from .render import apply_rendered, render_tasks
 from .webhook import handle_update
 
 log = logging.getLogger("ofertinhas")
 WEBHOOK_HEADER = "X-Telegram-Bot-Api-Secret-Token"
-EVERY_MINUTE = ("expire", "render", "publish", "notify_pending")
-EXPIRE_EVERY_MIN = 15
+# job → de quantos em quantos minutos roda (o Cron chama o tick a cada minuto). O "render"
+# fica de fora: o card é desenhado no Worker de entrada (ver cloud/draw.py e cloud/render.py).
+JOB_EVERY_MIN = {"expire": 15, "publish": 1, "stock_alert": 5, "notify_pending": 1}
 LAST_TICK_KEY = "cron:last_tick"
 
 
@@ -61,6 +63,7 @@ class CloudBackend:
         self.dry_run = is_dry_run(env)
         self.webhook_secret = env.get("TELEGRAM_WEBHOOK_SECRET") or None
         self.bucket = bucket
+        self.templates_dir = bundle_dir / "templates"
         self.telegram = TelegramSender(http, settings.telegram_bot_token)
         self.whatsapp = None
         if settings.whatsmiau_api_key and settings.whatsmiau_instance:
@@ -88,6 +91,12 @@ class CloudBackend:
         self._running: set[str] = set()
         self.app = self._build_app()
 
+    def render_tasks(self) -> list[dict]:
+        return render_tasks(self.conn, self.cfg, self.templates_dir, self.clock())
+
+    def render_done(self, results: list[dict]) -> int:
+        return apply_rendered(self.conn, results)
+
     async def notify(self, text: str) -> None:
         try:
             await self.telegram.send_message(self.settings.admin_chat_id, text)
@@ -108,7 +117,7 @@ class CloudBackend:
     def _build_app(self):
         app = create_app(ApiState(settings=self.settings, conn=self.conn, cfg=self.cfg,
                                   notify=self.notify, clock=self.clock,
-                                  save_unparsed=self._save_unparsed))
+                                  save_unparsed=self._save_unparsed, dry_run=self.dry_run))
 
         @app.post("/tg/{secret}")
         async def telegram_webhook(secret: str, request: Request) -> dict:
@@ -164,7 +173,7 @@ class CloudBackend:
         now = self.clock()
         db.set_setting(self.conn, LAST_TICK_KEY, {"at": now.isoformat(), "ran": [],
                                                    "skipped": sorted(self._running)})
-        due = [n for n in EVERY_MINUTE if n != "expire" or now.minute % EXPIRE_EVERY_MIN == 0]
+        due = [n for n, every in JOB_EVERY_MIN.items() if now.minute % every == 0]
         ran = []
         for name in due:
             if name in self._running:
