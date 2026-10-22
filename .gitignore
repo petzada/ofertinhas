@@ -1,5 +1,7 @@
 .venv/
 .env
+config.yaml
+extension/config.local.json
 data/
 __pycache__/
 *.egg-info/

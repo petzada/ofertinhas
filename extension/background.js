@@ -16,9 +16,20 @@ const RETRY_AFTER_ERROR_MS = 5 * 60_000;
 
 // --- armazenamento ----------------------------------------------------------
 
+/** config.local.json, gerado por `python -m ofertinhas setup` (fica fora do Git). */
+async function localConfig() {
+  try {
+    const response = await fetch(chrome.runtime.getURL("config.local.json"));
+    return response.ok ? await response.json() : {};
+  } catch {
+    return {};
+  }
+}
+
 async function load() {
   const { settings = {}, state = {} } = await chrome.storage.local.get(["settings", "state"]);
-  return { settings, state };
+  // O que foi salvo nas Opções vale mais que o arquivo do setup.
+  return { settings: settings.token ? settings : { ...(await localConfig()), ...settings }, state };
 }
 
 async function patchState(patch) {

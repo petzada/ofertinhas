@@ -24,8 +24,22 @@ globalThis.chrome = {
     get: async (name) => alarms[name],
     onAlarm: event("alarm"),
   },
-  runtime: { onInstalled: event("installed"), onStartup: event("startup"), onMessage: event("message") },
+  runtime: {
+    onInstalled: event("installed"),
+    onStartup: event("startup"),
+    onMessage: event("message"),
+    getURL: (path) => `chrome-extension://teste/${path}`,
+  },
   tabs: { onUpdated: event("tabUpdated") },
+};
+
+// config.local.json (gerado por `python -m ofertinhas setup`): ausente até o teste criar
+let localConfig = null;
+globalThis.fetch = async (url) => {
+  if (url === "chrome-extension://teste/config.local.json" && localConfig) {
+    return { ok: true, json: async () => localConfig };
+  }
+  return { ok: false, json: async () => ({}) };
 };
 
 function message(type) {
@@ -60,6 +74,22 @@ describe("background.js", () => {
   it("ações que precisam do backend explicam a falta do token", async () => {
     const reply = await message("pause");
     assert.match(reply.error, /token/);
+  });
+
+  it("usa o config.local.json gerado pelo setup quando não há opções salvas", async () => {
+    localConfig = { backendUrl: "http://127.0.0.1:8765", token: "tok-do-setup" };
+    const reply = await message("status");
+    assert.equal(reply.configured, true);
+    localConfig = null;
+  });
+
+  it("opções salvas têm prioridade sobre o config.local.json", async () => {
+    storage.settings = { backendUrl: "http://127.0.0.1:9000", token: "tok-das-opcoes" };
+    localConfig = { backendUrl: "http://127.0.0.1:8765", token: "outro" };
+    const reply = await message("status");
+    assert.equal(reply.configured, true);
+    delete storage.settings;
+    localConfig = null;
   });
 
   it("mensagem desconhecida", async () => {

@@ -14,6 +14,8 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--dry-run", action="store_true", help="envia tudo só para os destinos de teste"
     )
+    setup = sub.add_parser("setup", help="cria config.yaml, .env e a config da extensão")
+    setup.add_argument("--tag", help="sua etiqueta de afiliado do Mercado Livre")
     sub.add_parser("api", help="roda só a API local da extensão (avisos saem no terminal)")
     sub.add_parser("new-token", help="gera o token que a extensão usa para falar com o backend")
     sub.add_parser("whatsapp-groups", help="lista os grupos e JIDs da instância da WhatsMiau.dev")
@@ -40,6 +42,12 @@ def main(argv: list[str] | None = None) -> int:
         return _new_token()
     if args.command == "api":
         return _api()
+    if args.command == "setup":
+        from .setup import run_setup
+
+        for line in run_setup(Path.cwd(), args.tag):
+            print(f"- {line}")
+        return 0
     if args.command == "render-sample":
         return _render_sample(args.niche)
     print(f"Comando '{args.command}' ainda não implementado.", file=sys.stderr)
