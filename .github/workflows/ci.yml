@@ -29,3 +29,13 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y libzbar0
       - run: pip install -e ".[dev]"
       - run: pytest
+
+  extension:
+    needs: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test "extension/tests/**/*.test.js"
