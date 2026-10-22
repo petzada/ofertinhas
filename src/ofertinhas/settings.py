@@ -55,6 +55,17 @@ class Settings:
     r2_api_token: str | None = None
     # Em dry-run, o WhatsApp vai só para cá (número com DDI e DDD ou JID), nunca para o grupo.
     whatsapp_test_jid: str | None = None
+    # X (OAuth 1.0a de usuário): as 4 chaves do app no developer.x.com, com Read and Write
+    x_api_key: str | None = None
+    x_api_secret: str | None = None
+    x_access_token: str | None = None
+    x_access_token_secret: str | None = None
+
+    @property
+    def x_keys(self) -> tuple[str, str, str, str] | None:
+        keys = (self.x_api_key, self.x_api_secret, self.x_access_token,
+                self.x_access_token_secret)
+        return keys if all(keys) else None
 
     _ENV_NAMES = {
         "ML_AFFILIATE_TAG": "ml_affiliate_tag",
@@ -84,6 +95,10 @@ class Settings:
             r2_public_url=env.get("R2_PUBLIC_URL") or None,
             r2_api_token=env.get("R2_API_TOKEN") or None,
             whatsapp_test_jid=_whatsapp_target(env.get("WHATSAPP_TEST_JID")),
+            x_api_key=env.get("X_API_KEY") or None,
+            x_api_secret=env.get("X_API_SECRET") or None,
+            x_access_token=env.get("X_ACCESS_TOKEN") or None,
+            x_access_token_secret=env.get("X_ACCESS_TOKEN_SECRET") or None,
         )
 
     @classmethod

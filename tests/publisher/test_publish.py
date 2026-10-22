@@ -357,3 +357,59 @@ async def test_telegram_sends_an_offer_back_to_render_when_its_card_is_missing(c
     assert await run(conn, cfg(), tg) == []
     cand = db.get_candidate(conn, "MLB1", "casa")
     assert cand.state is S.LINKED and cand.card_path is None and tg.sent == []
+
+
+class FakeX:
+    def __init__(self, fail=None):
+        self.threads = []
+        self.fail = fail
+
+    async def post_thread(self, png, text, link):
+        if self.fail:
+            raise self.fail
+        self.threads.append((png, text, link))
+        return "x1", "x2"
+
+
+def x_cfg(enabled=True):
+    return load_config_text(CONFIG.format(wa="false", group=GROUP, jid=JID)
+                            + f"\nx_enabled: {str(enabled).lower()}\n")
+
+
+async def x_run(conn, config, tg, x, dry_run=False):
+    for (mlb,) in conn.execute("SELECT mlb_id FROM offers").fetchall():
+        db.set_affiliate_link(conn, mlb, "https://meli.la/abc")  # o upsert não grava o link
+    return await publish_due(conn, config, telegram=tg, card_host=FakeCardHost(),
+                             admin_chat_id=ADMIN, dry_run=dry_run, now=NOW, notify=Notes(),
+                             sleep=no_sleep, x=x)
+
+
+async def test_x_thread_follows_each_telegram_post(conn, tmp_path):
+    seed(conn, tmp_path)
+    x = FakeX()
+    assert await x_run(conn, x_cfg(), FakeTelegram(), x) == ["MLB1"]
+    png, text, link = x.threads[0]
+    assert png == b"\x89PNG card" and link == "https://meli.la/abc"
+    assert link not in text and text.startswith("🔥 Air Fryer")
+    row = conn.execute("SELECT status, message_id FROM posts WHERE channel = 'x'").fetchone()
+    assert tuple(row) == ("sent", "x1")
+
+
+async def test_x_failure_keeps_the_telegram_post_and_warns(conn, tmp_path):
+    from ofertinhas.publisher.x import XError
+
+    seed(conn, tmp_path)
+    x = FakeX(fail=XError("X 403: sem permissão de escrita"))
+    assert await x_run(conn, x_cfg(), FakeTelegram(), x) == ["MLB1"]
+    assert db.get_candidate(conn, "MLB1", "casa").state is S.POSTED
+    row = conn.execute("SELECT status, error FROM posts WHERE channel = 'x'").fetchone()
+    assert row[0] == "failed" and "403" in row[1]
+
+
+async def test_x_off_or_dry_run_posts_nothing_there(conn, tmp_path):
+    seed(conn, tmp_path, "MLB1")
+    seed(conn, tmp_path, "MLB2", niche="pets")
+    x = FakeX()
+    await x_run(conn, x_cfg(enabled=False), FakeTelegram(), x)
+    await x_run(conn, x_cfg(), FakeTelegram(), x, dry_run=True)
+    assert x.threads == []

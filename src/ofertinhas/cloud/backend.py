@@ -26,6 +26,7 @@ from ..models import utcnow
 from ..publisher.publish import publish_due
 from ..publisher.telegram import TelegramSender
 from ..publisher.whatsapp import WhatsAppSender
+from ..publisher.x import XSender
 from ..settings import Settings
 from .cards import Bucket, R2CardHost, R2Cards
 from .history import import_rows
@@ -74,6 +75,7 @@ class CloudBackend:
             R2CardHost(bucket, settings.r2_public_url) if settings.r2_public_url else None
         )
         self.card_store = R2Cards(bucket)
+        self.x = XSender(http, *settings.x_keys) if settings.x_keys else None
         self.bot = bot or Bot(settings.telegram_bot_token)
         self._bot_ready = bot is not None
         self.bot_deps = BotDeps(conn=conn, cfg=cfg, admin_chat_id=settings.admin_chat_id,
@@ -87,7 +89,7 @@ class CloudBackend:
             telegram=self.telegram, whatsapp=self.whatsapp, cards=card_host,
             card_store=self.card_store, fetch_image=fetch_image, notify=self.notify,
             admin_chat_id=settings.admin_chat_id, dry_run=self.dry_run, clock=clock,
-            whatsapp_test_jid=settings.whatsapp_test_jid,
+            whatsapp_test_jid=settings.whatsapp_test_jid, x=self.x,
         )
         self._running: set[str] = set()
         self.app = self._build_app()
@@ -171,7 +173,7 @@ class CloudBackend:
                     dry_run=self.dry_run, now=self.clock(), notify=self.notify,
                     card_store=self.card_store,
                     whatsapp_test_jid=self.settings.whatsapp_test_jid, force=True,
-                    only_mlb=mlb_id,
+                    only_mlb=mlb_id, x=self.x,
                 )
             finally:
                 self._running.discard("publish")

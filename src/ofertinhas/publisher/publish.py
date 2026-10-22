@@ -7,6 +7,9 @@ o mesmo `pacing`, se não houver) e posta a melhor oferta fresca do período que
 a ele, mesmo que já tenha saído no Telegram. Assim o WhatsApp recebe menos posts, só os
 melhores. Com `whatsapp_enabled` desligado, nada vai ao WhatsApp.
 
+O X acompanha o Telegram: cada post que sai no Telegram sai em seguida no X (com
+`x_enabled`), em thread, com o card e o texto no primeiro post e o link sozinho na resposta.
+
 Em modo de teste (`dry_run`), o Telegram vai para o chat do admin com o selo de teste e o
 ritmo é contado à parte (`dry-run:<grupo>`). O WhatsApp só é usado no teste se houver um
 destino de teste (`whatsapp_test_jid`, por exemplo a conversa com o próprio número); nunca
@@ -26,12 +29,13 @@ from .. import db
 from ..alerts import notify_throttled
 from ..cardstore import CardStore, DiskCards
 from ..config import AppConfig, NicheConfig, Pacing
-from ..creative.format import to_telegram_html, to_whatsapp
+from ..creative.format import to_telegram_html, to_whatsapp, to_x
 from ..models import Candidate, CandidateState
 from .cardhost import CardHostError
 from .pacing import can_post
 from .telegram import TelegramError
 from .whatsapp import WhatsAppError
+from .x import XError
 
 log = logging.getLogger(__name__)
 S = CandidateState
@@ -149,6 +153,7 @@ async def publish_due(
     whatsapp_test_jid: str | None = None,
     force: bool = False,
     only_mlb: str | None = None,
+    x=None,
 ) -> list[str]:
     """Posta no máximo uma oferta por canal de cada grupo e devolve os MLB postados.
 
@@ -166,6 +171,7 @@ async def publish_due(
                 conn, members, tg_chat, wa_jid, telegram=telegram, store=store,
                 admin_chat_id=admin_chat_id, dry_run=dry_run, now=now, notify=notify, rng=rng,
                 force=force, only_mlb=only_mlb,
+                x=x if cfg.x_enabled and not dry_run else None,
             )
             if mlb:
                 posted.append(mlb)
@@ -190,7 +196,7 @@ async def publish_due(
 
 
 async def _telegram_turn(conn, members, tg_chat, wa_jid, *, telegram, store, admin_chat_id,
-                         dry_run, now, notify, rng, force, only_mlb) -> str | None:
+                         dry_run, now, notify, rng, force, only_mlb, x=None) -> str | None:
     key = pacing_key(tg_chat, wa_jid, dry_run)
     pacing = members[0].pacing
     if not _due(conn, key, pacing, now, dry_run, force):
@@ -228,7 +234,27 @@ async def _telegram_turn(conn, members, tg_chat, wa_jid, *, telegram, store, adm
         cand, state=S.POSTED, decided_at=now, ref_price=offer.price,
     ))
     _next_jitter(conn, key, pacing, rng)
+    if x is not None:
+        await _x_thread(conn, x, cand, niche.name, offer, png, now, notify)
     return cand.mlb_id
+
+
+async def _x_thread(conn, x, cand: Candidate, niche: str, offer, png: bytes, now: datetime,
+                    notify) -> None:
+    """Thread no X logo depois do Telegram; uma falha aqui não desfaz o post do Telegram."""
+    if not offer.affiliate_link:  # sem link, a resposta da thread ficaria vazia
+        return
+    try:
+        first, _ = await x.post_thread(png, to_x(cand.caption, offer.affiliate_link),
+                                       offer.affiliate_link)
+    except XError as e:
+        db.record_post(conn, mlb_id=cand.mlb_id, niche=niche, channel="x", chat="x",
+                       status="failed", sent_at=now, error=str(e))
+        await notify_throttled(conn, notify, "publish-fail-x",
+                               f"⚠️ Não consegui postar no X ({niche}): {e}.", now, ALERT_EVERY)
+        return
+    db.record_post(conn, mlb_id=cand.mlb_id, niche=niche, channel="x", chat="x",
+                   status="sent", sent_at=now, message_id=first, price=offer.price)
 
 
 async def _whatsapp_turn(conn, members, wa_target, *, whatsapp, card_host, store, dry_run, now,

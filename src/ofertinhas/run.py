@@ -17,6 +17,7 @@ from .models import utcnow
 from .publisher.cardhost import CardHost
 from .publisher.telegram import TelegramSender
 from .publisher.whatsapp import WhatsAppSender
+from .publisher.x import XSender
 from .scheduler import build_scheduler
 from .settings import Settings
 from .winops import keep_awake
@@ -79,6 +80,7 @@ async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
         cards=card_host(settings, http), fetch_image=fetch_image, notify=notify,
         admin_chat_id=settings.admin_chat_id, dry_run=dry_run,
         whatsapp_test_jid=settings.whatsapp_test_jid,
+        x=XSender(http, *settings.x_keys) if settings.x_keys else None,
     )
     scheduler = build_scheduler(jobs, conn, notify, utcnow)
     server = uvicorn.Server(uvicorn.Config(
