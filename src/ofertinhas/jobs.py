@@ -19,6 +19,7 @@ from .cardstore import CardStore, DiskCards
 from .config import AppConfig
 from .models import TZ, utcnow
 from .pipeline import render_linked
+from .polls import send_weekly_polls
 from .publisher.publish import publish_due
 from .publisher.queue import expire_stale
 from .publisher.whatsapp import WhatsAppError
@@ -44,6 +45,7 @@ SCHEDULE: dict[str, Every | At] = {
     "expire": Every(15),
     "publish": Every(1),
     "stock_alert": Every(5),
+    "polls": Every(5),  # enquete semanal: o dia e o horário ficam no `polls` de cada nicho
     "notify_pending": Every(1),
     "render": Every(1),
     "backup": At(("04:00",)),
@@ -110,6 +112,10 @@ def make_jobs(
     async def stock_alert():
         return await alert_low_stock(conn, cfg, notify, clock(), dry_run)
 
+    async def polls():
+        return await send_weekly_polls(conn, cfg, whatsapp, clock(), notify, dry_run=dry_run,
+                                       test_jid=whatsapp_test_jid)
+
     async def prune():
         removed = db.prune(conn, clock(), cfg.retention_days)
         log.info("limpeza: %s", removed)
@@ -130,7 +136,8 @@ def make_jobs(
             return f"erro ao consultar: {e}"
 
     jobs = {"notify_pending": notify_pending, "render": render, "publish": publish,
-            "expire": expire, "stock_alert": stock_alert, "prune": prune, "status": status}
+            "expire": expire, "stock_alert": stock_alert, "polls": polls, "prune": prune,
+            "status": status}
     if data_dir is not None:
         async def backup():
             from .backup import backup_database  # cópia de arquivo: só no PC

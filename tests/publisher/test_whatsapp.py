@@ -102,3 +102,16 @@ async def test_connection_state(sender):
 async def test_presence_errors_are_ignored(sender):
     respx.post(f"{BASE}/chat/sendPresence/Ofertas01").mock(return_value=httpx.Response(500))
     await sender.send_presence(JID)  # não levanta
+
+
+@respx.mock
+async def test_send_poll_single_and_multiple_choice(sender):
+    route = respx.post(f"{BASE}/message/sendPoll/Ofertas01").mock(
+        return_value=httpx.Response(201, json={"key": {"id": "POLL1"}})
+    )
+    assert await sender.send_poll(JID, "Quando?", ["2026", "2027"], multi=False) == "POLL1"
+    body = json.loads(route.calls.last.request.content)
+    assert body == {"number": JID, "name": "Quando?", "values": ["2026", "2027"],
+                    "selectableCount": 1}
+    await sender.send_poll(JID, "Quais?", ["a", "b", "c"], multi=True)
+    assert json.loads(route.calls.last.request.content)["selectableCount"] == 0

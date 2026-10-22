@@ -125,3 +125,4 @@ niches:
   #   filters:
   #     required_keywords: [jogo de cama, edredom, toalha*, panela*, faqueiro, maquiagem, batom]
   #     blocked_keywords: [usado, recondicionado, réplica, seminovo, masculino, infantil]
+  #   polls: {weekday: qui, at: "19:30"}  # enquete semanal no grupo (perguntas em polls.py)

@@ -8,7 +8,7 @@ import re
 from collections.abc import Mapping
 from datetime import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
@@ -112,6 +112,23 @@ class Pacing(_Strict):
         return self
 
 
+WEEKDAYS = ("seg", "ter", "qua", "qui", "sex", "sab", "dom")  # índice = date.weekday()
+
+
+class PollSchedule(_Strict):
+    """Enquete semanal no grupo de WhatsApp do nicho; as perguntas ficam em `polls.BANK`."""
+
+    weekday: Literal["seg", "ter", "qua", "qui", "sex", "sab", "dom"]
+    at: time  # horário de SP; fora do sistema na hora, a enquete ainda sai até 2 h depois
+
+    @field_validator("at", mode="before")
+    @classmethod
+    def _at_needs_quotes(cls, v):
+        if isinstance(v, int):  # YAML 1.1 lê 19:30 sem aspas como número
+            raise ValueError('o horário precisa de aspas no YAML: at: "19:30"')
+        return v
+
+
 class Gate(_Strict):
     """Mínimos de desconto e comissão. `strict`: "mais de" (>) em vez de "a partir de" (≥)."""
 
@@ -165,6 +182,7 @@ class NicheConfig(Profile):
     telegram_chat_id: int | None = None
     whatsapp_group_jid: str | None = None
     paused: bool = False
+    polls: PollSchedule | None = None  # só para nicho com whatsapp_group_jid
 
     def destination(self) -> tuple[int | None, str | None]:
         """Grupo(s) onde o nicho posta; nichos com o mesmo destino dividem a fila e o ritmo."""
@@ -182,6 +200,8 @@ class NicheConfig(Profile):
             )
         if self.telegram_chat_id is None and not self.whatsapp_group_jid:
             raise ValueError("defina ao menos um canal (telegram_chat_id ou whatsapp_group_jid)")
+        if self.polls and not self.whatsapp_group_jid:
+            raise ValueError("polls precisa de whatsapp_group_jid (a enquete só sai no WhatsApp)")
         return self
 
 

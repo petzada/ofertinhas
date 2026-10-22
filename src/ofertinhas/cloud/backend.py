@@ -26,6 +26,7 @@ from ..creative.image import fetch_product_image
 from ..jobs import SCHEDULE, guarded, is_due, make_jobs
 from ..models import TZ, utcnow
 from ..pipeline import INFLATED_KEY, niche_configs
+from ..polls import record_vote, results, send_weekly_polls
 from ..preview import niche_preview
 from ..publisher.publish import publish_due, x_thread
 from ..publisher.telegram import TelegramSender
@@ -69,6 +70,7 @@ class CloudBackend:
         self.clock = clock
         self.dry_run = is_dry_run(env)
         self.webhook_secret = env.get("TELEGRAM_WEBHOOK_SECRET") or None
+        self.wa_webhook_secret = env.get("WHATSMIAU_WEBHOOK_SECRET") or None
         self.bucket = bucket
         self.templates_dir = bundle_dir / "templates"
         self.telegram = TelegramSender(http, settings.telegram_bot_token)
@@ -142,6 +144,38 @@ class CloudBackend:
             except Exception:  # o Telegram reenviaria o mesmo update sem parar
                 log.exception("falha ao tratar o update %s", update.get("update_id"))
             return {"ok": True}
+
+        @app.post("/wa/{secret}")
+        async def whatsapp_webhook(secret: str, request: Request) -> dict:
+            """Eventos da WhatsMiau; só os votos das enquetes interessam (ver polls.py)."""
+            expected = self.wa_webhook_secret
+            if not expected or not secrets.compare_digest(secret, expected):
+                raise HTTPException(status_code=404)
+            try:
+                result = record_vote(self.conn, await request.json(), self.clock())
+            except Exception:  # um evento estranho não pode virar erro em loop na WhatsMiau
+                log.exception("falha ao tratar evento da WhatsMiau")
+                result = "erro"
+            return {"ok": True, "result": result}
+
+        @app.get("/admin/polls", dependencies=[Depends(app.state.require_admin)])
+        async def admin_polls(limit: int = 8, niche: str | None = None) -> dict:
+            polls = db.recent_polls(self.conn, min(limit, 50), niche)
+            return {"polls": [results(self.conn, p) | {"niche": p["niche"], "chat": p["chat"]}
+                              for p in polls],
+                    "unparsed": db.get_setting(self.conn, "wa:unparsed", default=[])}
+
+        @app.post("/admin/poll-now", dependencies=[Depends(app.state.require_admin)])
+        async def admin_poll_now(niche: str) -> dict:
+            """A próxima enquete do nicho agora, fora do dia e do horário (em dry-run, para o
+            WHATSAPP_TEST_JID)."""
+            if niche not in self.cfg.niches:
+                raise HTTPException(status_code=404, detail=f"nicho desconhecido: {niche}")
+            sent = await send_weekly_polls(
+                self.conn, self.cfg, self.whatsapp, self.clock(), self.notify,
+                dry_run=self.dry_run, test_jid=self.settings.whatsapp_test_jid,
+                force_niche=niche)
+            return {"dry_run": self.dry_run, "sent": sent}
 
         @app.get("/admin/status", dependencies=[Depends(app.state.require_admin)])
         async def admin_status(posts: int = 6) -> dict:

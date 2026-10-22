@@ -88,7 +88,8 @@ def test_import_needs_token_and_skips_duplicates(backend):
 
 
 async def test_tick_runs_minute_jobs_and_expire_every_15_min(backend):
-    assert await backend.tick() == ["expire", "publish", "stock_alert", "notify_pending"]
+    assert await backend.tick() == ["expire", "publish", "stock_alert", "polls",
+                                    "notify_pending"]
     backend.clock_state["now"] = datetime(2026, 10, 22, 15, 7, tzinfo=UTC)
     assert await backend.tick() == ["publish", "notify_pending"]
 
@@ -98,7 +99,7 @@ async def test_status_shows_the_last_tick(backend):
     status = TestClient(backend.app).get("/admin/status", headers=ADMIN).json()
     assert status["dry_run"] is True
     assert status["last_tick"]["at"] == "2026-10-22T15:00:00+00:00"
-    assert status["last_tick"]["ran"] == ["expire", "publish", "stock_alert",
+    assert status["last_tick"]["ran"] == ["expire", "publish", "stock_alert", "polls",
                                           "notify_pending"]
 
 
@@ -237,3 +238,29 @@ def db_offer(mlb_id, title):
 
     return Offer(mlb_id=mlb_id, title=title, price=50, original_price=100, commission_pct=25,
                  category_path=("MLB1574",), permalink="https://x")
+
+
+def test_whatsapp_webhook_needs_the_secret_and_records_votes(bundle):
+    env = {"EXTENSION_TOKEN": TOKEN, "ADMIN_TOKEN": "adm", "TELEGRAM_BOT_TOKEN": "1:x",
+           "ADMIN_CHAT_ID": "777", "WHATSMIAU_WEBHOOK_SECRET": "wa-segredo"}
+    conn = db.connect(":memory:")
+    b = CloudBackend(env, conn, FakeBucket(), bundle, httpx.AsyncClient(),
+                     clock=lambda: datetime(2026, 10, 22, 22, 30, tzinfo=UTC), bot=FakeBot())
+    db.record_poll(conn, message_id="MSG1", niche="noivas", poll_key="data", chat="g@g.us",
+                   week="2026-W43", question="Quando?", options=["2026", "2027"],
+                   sent_at=datetime(2026, 10, 22, 22, 30, tzinfo=UTC))
+    event = {"event": "messages.upsert", "data": {
+        "key": {"id": "V1", "participant": "5511@s.whatsapp.net"},
+        "message": {"pollUpdateMessage": {"pollCreationMessageKey": {"id": "MSG1"},
+                                          "vote": {"selectedOptions": ["2027"]}}}}}
+    client = TestClient(b.app)
+    assert client.post("/wa/errado", json=event).status_code == 404
+    assert client.post("/wa/wa-segredo", json=event).json() == {"ok": True, "result": "voto"}
+    assert client.get("/admin/polls").status_code == 401
+    polls = client.get("/admin/polls", headers=ADMIN).json()["polls"]
+    assert polls[0]["counts"] == {"2026": 0, "2027": 1} and polls[0]["niche"] == "noivas"
+    conn.close()
+
+
+def test_whatsapp_webhook_is_off_without_a_secret(backend):
+    assert TestClient(backend.app).post("/wa/qualquer", json={}).status_code == 404

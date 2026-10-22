@@ -16,8 +16,8 @@ ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 NAMES = (
     "EXTENSION_TOKEN", "ADMIN_TOKEN", "EXTENSION_ORIGIN", "TELEGRAM_BOT_TOKEN", "ADMIN_CHAT_ID",
     "ML_AFFILIATE_TAG", "WHATSMIAU_API_KEY", "WHATSMIAU_INSTANCE", "R2_PUBLIC_URL",
-    "TELEGRAM_WEBHOOK_SECRET", "WHATSAPP_TEST_JID", "X_API_KEY", "X_API_SECRET",
-    "X_ACCESS_TOKEN", "X_ACCESS_TOKEN_SECRET",
+    "TELEGRAM_WEBHOOK_SECRET", "WHATSMIAU_WEBHOOK_SECRET", "WHATSAPP_TEST_JID", "X_API_KEY",
+    "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_TOKEN_SECRET",
 )
 
 
@@ -25,6 +25,7 @@ NAMES = (
 GENERATED = {
     "TELEGRAM_WEBHOOK_SECRET": "Segredo do webhook do bot na nuvem",
     "ADMIN_TOKEN": "Token das rotas /admin/* da nuvem (header X-Ofertinhas-Admin)",
+    "WHATSMIAU_WEBHOOK_SECRET": "Segredo do webhook da WhatsMiau (votos das enquetes)",
 }
 
 

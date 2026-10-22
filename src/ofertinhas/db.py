@@ -97,6 +97,26 @@ MIGRATIONS = [
     """
     ALTER TABLE price_history ADD COLUMN original_price REAL;
     """,
+    """
+    CREATE TABLE polls (
+        message_id TEXT PRIMARY KEY,
+        niche TEXT NOT NULL,
+        poll_key TEXT NOT NULL,
+        chat TEXT NOT NULL,
+        week TEXT NOT NULL,
+        question TEXT NOT NULL,
+        options_json TEXT NOT NULL,
+        sent_at TEXT NOT NULL
+    );
+    CREATE INDEX polls_by_niche ON polls (niche, sent_at);
+    CREATE TABLE poll_votes (
+        message_id TEXT NOT NULL,
+        voter TEXT NOT NULL,
+        options_json TEXT NOT NULL,
+        voted_at TEXT NOT NULL,
+        PRIMARY KEY (message_id, voter)
+    );
+    """,
 ]
 
 
@@ -462,6 +482,65 @@ def record_template_use(conn: sqlite3.Connection, key: str, idx: int, now: datet
             "INSERT OR REPLACE INTO template_usage (chat, template_idx, used_at) VALUES (?, ?, ?)",
             (key, idx, _ts(now)),
         )
+
+
+# --- enquetes --------------------------------------------------------------
+
+
+def record_poll(conn: sqlite3.Connection, *, message_id: str, niche: str, poll_key: str,
+                chat: str, week: str, question: str, options: list[str],
+                sent_at: datetime) -> None:
+    with conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO polls (message_id, niche, poll_key, chat, week, question, "
+            "options_json, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (message_id, niche, poll_key, chat, week, question, json.dumps(options),
+             _ts(sent_at)),
+        )
+
+
+def poll_sent(conn: sqlite3.Connection, niche: str, chat: str, week: str) -> bool:
+    return conn.execute("SELECT 1 FROM polls WHERE niche = ? AND chat = ? AND week = ?",
+                        (niche, chat, week)).fetchone() is not None
+
+
+def poll_history(conn: sqlite3.Connection, niche: str) -> list[str]:
+    """`poll_key` das enquetes do nicho, da mais antiga para a mais nova."""
+    return [r["poll_key"] for r in conn.execute(
+        "SELECT poll_key FROM polls WHERE niche = ? ORDER BY sent_at", (niche,))]
+
+
+def get_poll(conn: sqlite3.Connection, message_id: str) -> dict | None:
+    row = conn.execute("SELECT * FROM polls WHERE message_id = ?", (message_id,)).fetchone()
+    if row is None:
+        return None
+    poll = dict(zip(row.keys(), row, strict=True))
+    poll["options"] = json.loads(poll.pop("options_json"))
+    return poll
+
+
+def recent_polls(conn: sqlite3.Connection, limit: int, niche: str | None = None) -> list[dict]:
+    sql, params = "SELECT message_id FROM polls", []
+    if niche:
+        sql, params = sql + " WHERE niche = ?", [niche]
+    rows = conn.execute(sql + " ORDER BY sent_at DESC LIMIT ?", (*params, limit))
+    return [get_poll(conn, r["message_id"]) for r in rows]
+
+
+def set_poll_vote(conn: sqlite3.Connection, message_id: str, voter: str, options: list[str],
+                  voted_at: datetime) -> None:
+    """O voto mais recente de cada pessoa vale (no WhatsApp dá para trocar o voto); lista
+    vazia é voto retirado."""
+    with conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO poll_votes (message_id, voter, options_json, voted_at) "
+            "VALUES (?, ?, ?, ?)", (message_id, voter, json.dumps(options), _ts(voted_at)),
+        )
+
+
+def poll_votes(conn: sqlite3.Connection, message_id: str) -> list[list[str]]:
+    return [json.loads(r["options_json"]) for r in conn.execute(
+        "SELECT options_json FROM poll_votes WHERE message_id = ?", (message_id,))]
 
 
 # --- configurações em tempo de execução ------------------------------------

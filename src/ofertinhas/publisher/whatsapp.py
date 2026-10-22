@@ -116,3 +116,15 @@ class WhatsAppSender:
         })
         key = data.get("key") if isinstance(data, dict) else None
         return str(key.get("id", "")) if isinstance(key, dict) else ""
+
+    async def send_poll(self, jid: str, question: str, options: list[str], multi: bool) -> str:
+        """Enquete nativa do WhatsApp (2 a 12 opções). `selectableCount` segue o WhatsApp:
+        1 = uma opção só, 0 = quantas quiser."""
+        data = await self._call("POST", f"/message/sendPoll/{self.instance}", json={
+            "number": jid,
+            "name": question,
+            "values": options,
+            "selectableCount": 0 if multi else 1,
+        })
+        key = data.get("key") if isinstance(data, dict) else None
+        return str(key.get("id", "")) if isinstance(key, dict) else ""

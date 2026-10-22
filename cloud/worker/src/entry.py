@@ -18,14 +18,14 @@ from workers import DurableObject, Response, WorkerEntrypoint, asgi
 # inicialização, e httpx/PTB/FastAPI a usam ao serem importados.
 
 BUNDLE = Path(__file__).parent / "bundle"
-PUBLIC_PREFIXES = ("/health", "/ext/", "/tg/", "/admin/")
+PUBLIC_PREFIXES = ("/health", "/ext/", "/tg/", "/wa/", "/admin/")
 CRON_URL = "https://ofertinhas.internal/_cron"
 RENDER_TASKS_URL = "https://ofertinhas.internal/_render/tasks"
 RENDER_DONE_URL = "https://ofertinhas.internal/_render/done"
 ENV_NAMES = (
     "EXTENSION_TOKEN", "ADMIN_TOKEN", "EXTENSION_ORIGIN", "TELEGRAM_BOT_TOKEN", "ADMIN_CHAT_ID",
     "ML_AFFILIATE_TAG", "WHATSMIAU_API_KEY", "WHATSMIAU_INSTANCE", "WHATSMIAU_BASE_URL",
-    "R2_PUBLIC_URL", "TELEGRAM_WEBHOOK_SECRET", "DRY_RUN",
+    "R2_PUBLIC_URL", "TELEGRAM_WEBHOOK_SECRET", "WHATSMIAU_WEBHOOK_SECRET", "DRY_RUN",
     "WHATSAPP_TEST_JID", "X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN",
     "X_ACCESS_TOKEN_SECRET",
 )

@@ -17,6 +17,7 @@ O PC e a nuvem rodam os mesmos jobs no mesmo calendário (`jobs.SCHEDULE`):
 |---|---|
 | `publish`, `notify_pending`, `render` | todo minuto |
 | `stock_alert` | a cada 5 min |
+| `polls`: enquete semanal dos nichos com `polls` | confere a cada 5 min |
 | `expire` | a cada 15 min |
 | `prune`: limpa ofertas, decisões e preços com mais de `retention_days` (60) | 04:30 |
 | `status`: edita a mensagem fixada no chat do admin | 08:00, 13:00 e 20:00 |
@@ -47,6 +48,33 @@ Invoke-RestMethod -Method Post https://ofertinhas.marciopetigrosso.workers.dev/a
 Sem `config`, o teste usa o nicho como está no ar. A resposta traz quantas ofertas
 entrariam, quantas sairiam automáticas ou para aprovar, e o que ficou de fora e por quê,
 com exemplos de títulos.
+
+### Enquete semanal (`polls`)
+
+Um nicho com grupo de WhatsApp pode ter uma enquete por semana:
+`polls: {weekday: qui, at: "19:30"}`. As perguntas ficam em `src/ofertinhas/polls.py`
+(`BANK`, por nicho) e saem em rodízio: primeiro as que nunca saíram, depois a mais antiga. O
+job `polls` confere a cada 5 min. Se a nuvem estava fora na hora, a enquete ainda sai em até
+2 h. Respeita a trava `whatsapp_enabled` e, em dry-run, vai só para o `WHATSAPP_TEST_JID`.
+Antes de cada enquete nova, o resultado da anterior chega no chat do admin.
+
+Os votos chegam pelo webhook da WhatsMiau na rota `/wa/<WHATSMIAU_WEBHOOK_SECRET>`. Quem
+votou fica gravado só como hash do número. Para ligar:
+
+```powershell
+python push_secrets.py           # cria o WHATSMIAU_WEBHOOK_SECRET no .env e envia ao Worker
+python set_webhook.py --whatsapp # aponta a WhatsMiau para /wa/ (com outro webhook lá, pede --force)
+```
+
+A WhatsMiau não documenta o formato do voto. O código aceita o nome da opção ou o SHA-256
+dele, e também o placar no formato da Evolution API (`pollUpdates`). Evento de enquete que ele
+não entender fica em `wa:unparsed`. Para conferir os resultados e esses eventos:
+
+```powershell
+Invoke-RestMethod https://ofertinhas.marciopetigrosso.workers.dev/admin/polls -Headers $h
+# a próxima enquete do nicho agora, fora do dia e do horário (em dry-run, só para o teste):
+Invoke-RestMethod -Method Post "https://ofertinhas.marciopetigrosso.workers.dev/admin/poll-now?niche=noivas" -Headers $h
+```
 
 ### Coleta pedida pela nuvem (`collect_now`)
 
