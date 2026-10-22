@@ -3,6 +3,7 @@
 # (vale qualquer nível da árvore; a oferta casa se a categoria dela estiver abaixo da listada)
 
 multi_niche: false  # true: a oferta vai para todos os nichos que casar, não só o de maior nota
+whatsapp_enabled: false  # trava: nada vai para o WhatsApp enquanto estiver false
 
 collector:              # ritmo da extensão no portal de afiliados
   every_min: 20         # um ciclo de coleta a cada ~20 min
@@ -10,7 +11,7 @@ collector:              # ritmo da extensão no portal de afiliados
   pages_per_category: 3 # 18 ofertas por página
   request_gap_s: [5, 15]
   include_unfiltered: false  # true: também lê a lista geral (nicho só por keywords)
-  window: ["08:00", "23:00"]
+  window: null               # sem trava de horário; para limitar: ["08:00", "23:00"]
   max_links_per_hour: 30
   link_gap_s: [30, 90]
 
@@ -39,7 +40,7 @@ defaults:
     require_full: false
     blocked_keywords: [usado, recondicionado, réplica, seminovo]
   auto_approve_at: 80    # nota igual ou acima: aprova sozinho
-  manual_review_at: 60   # entre este valor e o de cima: vai para o seu Telegram
+  manual_review_at: 65   # entre este valor e o de cima: vai para o seu Telegram
   repost_cooldown_days: 7
   repost_price_drop_pct: 10  # dentro do cooldown, só reposta se o preço cair isso
   max_offer_age_hours: 6     # oferta que não reaparece na coleta nesse tempo não é postada
@@ -55,7 +56,8 @@ niches:
     categories: [MLB1574, MLB5726, MLB263532]  # Casa e Decoração; Eletrodomésticos; Ferramentas
     keywords: [airfryer, organizador, cozinha]
     weights: {discount_pct: 35}
-    auto_approve_at: 75
+    auto_approve_at: 82
+    manual_review_at: 68
     telegram_chat_id: -1001234567890
     whatsapp_group_jid: "120363000000000001@g.us"
 

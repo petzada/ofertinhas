@@ -102,7 +102,7 @@ def create_app(state: ApiState) -> FastAPI:
         return {
             "paused": pause is not None,
             "pause_reason": pause["reason"] if pause else None,
-            "window": [t.strftime("%H:%M") for t in col.window],
+            "window": [t.strftime("%H:%M") for t in col.window] if col.window else None,
             "collect_every_min": col.every_min,
             "collect_jitter_min": col.jitter_min,
             "pages_per_category": col.pages_per_category,

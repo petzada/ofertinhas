@@ -151,7 +151,7 @@ class CollectorConfig(_Strict):
     pages_per_category: int = Field(3, ge=1, le=10)
     request_gap_s: tuple[int, int] = (5, 15)  # entre chamadas de busca
     include_unfiltered: bool = False  # também busca a lista geral (nicho só por keywords)
-    window: tuple[time, time] = (time(8, 0), time(23, 0))
+    window: tuple[time, time] | None = None  # None: coleta e links a qualquer hora
     max_links_per_hour: int = Field(30, ge=1)
     link_gap_s: tuple[int, int] = (30, 90)  # entre links gerados
 
@@ -163,7 +163,7 @@ class CollectorConfig(_Strict):
             low, high = getattr(self, name)
             if not 0 <= low <= high:
                 raise ValueError(f"{name} deve ser [mínimo, máximo]")
-        if self.window[0] >= self.window[1]:
+        if self.window and self.window[0] >= self.window[1]:
             raise ValueError("window: o início deve ser antes do fim")
         if self.jitter_min >= self.every_min:
             raise ValueError("jitter_min deve ser menor que every_min")
@@ -175,6 +175,7 @@ class AppConfig(_Strict):
     niches: dict[str, dict[str, Any]]
     multi_niche: bool = False  # oferta vai para todos os nichos que casar, não só o de maior nota
     collector: CollectorConfig = CollectorConfig()
+    whatsapp_enabled: bool = False  # trava: nada é enviado ao WhatsApp enquanto for false
 
     @model_validator(mode="after")
     def _validate_layers(self):

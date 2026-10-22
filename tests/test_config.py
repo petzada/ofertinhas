@@ -106,6 +106,17 @@ def test_collector_defaults_and_categories_from_active_niches():
     assert "MLB1574" not in cfg.collector_categories(paused={"casa"})
 
 
+def test_collector_window_is_optional():
+    assert load_config_text(MINIMAL).collector.window is None  # roda a qualquer hora
+    text = MINIMAL + 'collector:\n  window: ["08:00", "23:00"]\n'
+    assert load_config_text(text).collector.window == (time(8, 0), time(23, 0))
+
+
+def test_whatsapp_is_disabled_by_default():
+    assert load_config_text(MINIMAL).whatsapp_enabled is False
+    assert load_config_text(MINIMAL + "whatsapp_enabled: true\n").whatsapp_enabled is True
+
+
 def test_collector_validation():
     text = MINIMAL + "collector:\n  request_gap_s: [20, 5]\n"
     with pytest.raises(ConfigError, match="request_gap_s"):

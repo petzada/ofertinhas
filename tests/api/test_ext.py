@@ -66,7 +66,7 @@ def test_routes_require_token(env):
 def test_config_lists_niche_categories_and_rhythm(env):
     cfg = env.client.get("/ext/config", headers=H).json()
     assert cfg["paused"] is False
-    assert cfg["window"] == ["08:00", "23:00"]
+    assert cfg["window"] is None  # sem trava de horário
     assert cfg["collect_every_min"] == 20 and cfg["pages_per_category"] == 3
     assert cfg["categories"][0] == {"id": "MLB1574", "name": "Casa, Móveis e Decoração"}
     assert cfg["portal_url"].startswith("https://www.mercadolivre.com.br/afiliados/hub")

@@ -36,6 +36,12 @@ describe("withinWindow (horário de São Paulo)", () => {
   });
 });
 
+describe("withinWindow sem janela", () => {
+  it("janela nula vale a qualquer hora", () => {
+    assert.equal(withinWindow(new Date("2026-10-22T05:00:00Z"), null), true);
+  });
+});
+
 describe("nextDelayMs", () => {
   it("fica dentro de base ± variação", () => {
     for (const r of [0, 0.25, 0.5, 0.999]) {

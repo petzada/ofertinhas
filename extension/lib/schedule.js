@@ -12,8 +12,9 @@ function minutesOf(hhmm) {
   return h * 60 + m;
 }
 
-/** `window` é ["HH:MM", "HH:MM"]; início inclusivo, fim exclusivo. */
+/** `window` é ["HH:MM", "HH:MM"] (início inclusivo, fim exclusivo) ou null: sem trava. */
 export function withinWindow(date, window) {
+  if (!window) return true;
   const now = minutesOf(spClock.format(date));
   return now >= minutesOf(window[0]) && now < minutesOf(window[1]);
 }
