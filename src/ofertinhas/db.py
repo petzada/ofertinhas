@@ -12,6 +12,9 @@ from typing import Any
 
 from .models import TZ, Candidate, CandidateState, Offer, utcnow
 
+# Setting com {reason, url, at} enquanto a extensão estiver pausada; ausente = ativa.
+EXTENSION_PAUSED_KEY = "extension_paused"
+
 MIGRATIONS = [
     """
     CREATE TABLE offers (
@@ -247,6 +250,15 @@ def candidates_for_offer(conn: sqlite3.Connection, mlb_id: str) -> list[Candidat
     return [_candidate_from_row(r) for r in rows]
 
 
+def count_candidates(conn: sqlite3.Connection, niche: str | None = None) -> dict[str, int]:
+    sql = "SELECT state, COUNT(*) FROM candidates"
+    params: list[Any] = []
+    if niche is not None:
+        sql += " WHERE niche = ?"
+        params.append(niche)
+    return {r[0]: r[1] for r in conn.execute(sql + " GROUP BY state", params)}
+
+
 def candidates_by_state(
     conn: sqlite3.Connection, state: CandidateState, niche: str | None = None
 ) -> list[Candidate]:
@@ -288,6 +300,20 @@ def record_post(
                 message_id, price, attempts, error,
             ),
         )
+
+
+def posts_today_summary(conn: sqlite3.Connection, now: datetime) -> list[tuple[str, str, int]]:
+    """(nicho, canal, enviados) no dia corrente de São Paulo."""
+    start = now.astimezone(TZ).replace(hour=0, minute=0, second=0, microsecond=0)
+    rows = conn.execute(
+        """
+        SELECT niche, channel, COUNT(*) FROM posts
+        WHERE status = 'sent' AND sent_at >= ? AND sent_at < ?
+        GROUP BY niche, channel ORDER BY niche, channel
+        """,
+        (_ts(start), _ts(start + timedelta(days=1))),
+    )
+    return [(r[0], r[1], r[2]) for r in rows]
 
 
 def last_post_at(conn: sqlite3.Connection, chat: str) -> datetime | None:
