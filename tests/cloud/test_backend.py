@@ -161,3 +161,9 @@ def test_history_export_brings_cooldown_offers_and_recent_posts(backend):
     assert db.niche_overrides(backend.conn, "casa") == {"paused": True}
     assert db.get_candidate(backend.conn, "MLB1", "casa").state is CandidateState.POSTED
     local.close()
+
+
+def test_post_x_needs_the_keys(backend):
+    client = TestClient(backend.app)
+    assert client.post("/admin/post-x").status_code == 401
+    assert client.post("/admin/post-x", headers=H).status_code == 409

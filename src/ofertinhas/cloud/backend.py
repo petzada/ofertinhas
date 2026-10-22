@@ -23,7 +23,7 @@ from ..config import load_config
 from ..creative.image import fetch_product_image
 from ..jobs import guarded, make_jobs
 from ..models import utcnow
-from ..publisher.publish import publish_due
+from ..publisher.publish import publish_due, x_thread
 from ..publisher.telegram import TelegramSender
 from ..publisher.whatsapp import WhatsAppSender
 from ..publisher.x import XSender
@@ -178,6 +178,32 @@ class CloudBackend:
             finally:
                 self._running.discard("publish")
             return {"dry_run": self.dry_run, "posted": posted}
+
+        @app.post("/admin/post-x", dependencies=[Depends(app.state.require_token)])
+        async def admin_post_x(mlb_id: str | None = None) -> dict:
+            """Thread só no X com a última oferta que saiu no Telegram (ou `mlb_id`): valida o X
+            sem post extra nos grupos."""
+            if self.x is None:
+                raise HTTPException(status_code=409, detail="faltam as chaves do X")
+            sql = ("SELECT mlb_id, niche FROM posts WHERE channel = 'telegram' "
+                   "AND status = 'sent' AND chat NOT LIKE 'dry-run:%' AND chat <> 'manual-test'")
+            params: list = []
+            if mlb_id:
+                sql += " AND mlb_id = ?"
+                params.append(mlb_id)
+            row = self.conn.execute(sql + " ORDER BY sent_at DESC LIMIT 1", params).fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail="nenhum post do Telegram para repetir")
+            cand = db.get_candidate(self.conn, row["mlb_id"], row["niche"])
+            offer = db.get_offer(self.conn, row["mlb_id"])
+            png = await self.card_store.load(cand.card_path)
+            await x_thread(self.conn, self.x, cand, row["niche"], offer, png, self.clock(),
+                           self.notify)
+            last = self.conn.execute(
+                "SELECT mlb_id, status, message_id, error FROM posts WHERE channel = 'x' "
+                "ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+            return dict(zip(last.keys(), last, strict=True))
 
         @app.post("/admin/import", dependencies=[Depends(app.state.require_token)])
         async def admin_import(request: Request) -> dict:

@@ -235,11 +235,11 @@ async def _telegram_turn(conn, members, tg_chat, wa_jid, *, telegram, store, adm
     ))
     _next_jitter(conn, key, pacing, rng)
     if x is not None:
-        await _x_thread(conn, x, cand, niche.name, offer, png, now, notify)
+        await x_thread(conn, x, cand, niche.name, offer, png, now, notify)
     return cand.mlb_id
 
 
-async def _x_thread(conn, x, cand: Candidate, niche: str, offer, png: bytes, now: datetime,
+async def x_thread(conn, x, cand: Candidate, niche: str, offer, png: bytes, now: datetime,
                     notify) -> None:
     """Thread no X logo depois do Telegram; uma falha aqui não desfaz o post do Telegram."""
     if not offer.affiliate_link:  # sem link, a resposta da thread ficaria vazia

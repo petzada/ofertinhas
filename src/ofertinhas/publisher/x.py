@@ -75,8 +75,8 @@ class XSender:
         clock: Callable[[], float] = time.time,
     ):
         self.client = client
-        self.keys = dict(api_key=api_key, api_secret=api_secret, token=access_token,
-                         token_secret=access_token_secret)
+        self.keys = dict(api_key=api_key.strip(), api_secret=api_secret.strip(),
+                         token=access_token.strip(), token_secret=access_token_secret.strip())
         self.nonce = nonce
         self.clock = clock
 
