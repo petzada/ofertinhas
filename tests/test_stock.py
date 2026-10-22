@@ -117,3 +117,22 @@ async def test_no_alert_with_enough_stock_or_at_night(conn, cfg):
     assert await alert_low_stock(conn, cfg, notes, sp(8), dry_run=False) == 0
     assert await alert_low_stock(conn, cfg, Notes(), sp(23, 30) + timedelta(minutes=1),
                                  dry_run=False) == 0
+
+
+def test_links_only_up_to_the_target_the_rest_waits_in_reserve(conn, cfg):
+    stock(conn, 20, seen=sp(7), state=S.APPROVED)
+    [g] = group_stock(conn, cfg, sp(7), dry_run=False)
+    # 8:00 a 12:35 a cada 25 min = 12 posts nas próximas 6 h, + 2 de folga
+    assert (g.target, g.waiting_links, g.reserve) == (14, 14, 6)
+
+
+def test_full_stock_needs_no_links(conn, cfg):
+    from ofertinhas.stock import niches_needing_links
+
+    stock(conn, 14, seen=sp(7))
+    stock(conn, 5, seen=sp(7), state=S.APPROVED, start=50)
+    [g] = group_stock(conn, cfg, sp(7), dry_run=False)
+    assert (g.waiting_links, g.reserve) == (0, 5)
+    assert niches_needing_links(conn, cfg, sp(7), dry_run=False) == set()
+    # às 11h, os mesmos 14 já não cobrem as próximas 6 h (15 posts + folga): volta a pedir
+    assert niches_needing_links(conn, cfg, sp(11), dry_run=False) == {"casa"}

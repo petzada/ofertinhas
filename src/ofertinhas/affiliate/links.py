@@ -62,12 +62,14 @@ def _promote(conn: sqlite3.Connection, mlb_id: str, to: CandidateState) -> None:
             db.save_candidate(conn, dataclasses.replace(cand, state=to))
 
 
-def next_link_request(conn: sqlite3.Connection, tag: str, now: datetime) -> dict | None:
+def next_link_request(conn: sqlite3.Connection, tag: str, now: datetime,
+                      niches: set[str] | None = None) -> dict | None:
     """Próximo pedido para a extensão ou None.
 
     Mesma ordem da fila de envio: automáticas primeiro, depois as que o admin aprovou no bot
     (o card foi mostrado); dentro de cada grupo, a maior nota. Aprovadas cujo produto já tem
-    link (de outro nicho) avançam direto, sem pedido.
+    link (de outro nicho) avançam direto, sem pedido. Com `niches`, só pede link para esses
+    (os grupos abaixo do estoque-alvo); as outras aprovadas esperam na reserva.
     """
     for cand in db.candidates_by_state(conn, S.APPROVED):
         offer = db.get_offer(conn, cand.mlb_id)
@@ -76,6 +78,8 @@ def next_link_request(conn: sqlite3.Connection, tag: str, now: datetime) -> dict
     approved = db.candidates_by_state(conn, S.APPROVED)  # já ordenadas pela nota
     approved.sort(key=lambda c: c.notified_at is not None)  # sort estável: automáticas antes
     for cand in approved:
+        if niches is not None and cand.niche not in niches:
+            continue
         offer = db.get_offer(conn, cand.mlb_id)
         if offer.link_requested_at and now - offer.link_requested_at < REQUEST_COOLDOWN:
             continue

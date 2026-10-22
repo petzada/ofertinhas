@@ -7,15 +7,17 @@ x_enabled: false  # trava do X: com true, cada post do Telegram também sai no X
 brand: "Ofertas 2KAI"    # texto do topo do card (o mesmo para todos os nichos)
 
 collector:              # ritmo da extensão no portal de afiliados
-  every_min: 20         # um ciclo de coleta a cada ~20 min
-  jitter_min: 5         # ± variação aleatória
-  pages_per_category: 3 # 18 ofertas por página
+  every_min: 60         # um ciclo de coleta a cada ~60 min
+  jitter_min: 10        # ± variação aleatória
+  pages_per_category: 2 # 18 ofertas por página
   categories_per_cycle: 6  # rodízio: cada ciclo coleta 6 categorias, as próximas no ciclo seguinte
   request_gap_s: [5, 15]
   include_unfiltered: false  # true: também lê a lista geral (nicho só por keywords)
-  window: null               # sem trava de horário; para limitar: ["08:00", "23:00"]
+  window: ["05:30", "22:00"]  # coleta e links só nesse horário ("Coletar agora" vale sempre)
   max_links_per_hour: 30
   link_gap_s: [30, 90]
+  stock_hours: 6        # estoque-alvo: link só quando o pronto não cobre as próximas 6 h de posts
+  stock_extra: 2        # folga além do alvo
 
 defaults:
   weights:               # importância relativa de cada critério (a soma é normalizada para 100)

@@ -413,3 +413,31 @@ async def test_x_off_or_dry_run_posts_nothing_there(conn, tmp_path):
     await x_run(conn, x_cfg(enabled=False), FakeTelegram(), x)
     await x_run(conn, x_cfg(), FakeTelegram(), x, dry_run=True)
     assert x.threads == []
+
+
+RULES = CONFIG + """
+defaults:
+  rules:
+    auto: {{min_discount_pct: 39, min_commission_pct: 10, strict: true}}
+    review: {{min_discount_pct: 30, min_commission_pct: 5}}
+"""
+
+
+async def test_price_change_redraws_the_card_before_posting(conn, tmp_path):
+    seed(conn, tmp_path, "MLB1", score=90)
+    db.upsert_offer(conn, dataclasses.replace(db.get_offer(conn, "MLB1"), price=279.9), now=NOW)
+    seed(conn, tmp_path, "MLB2", score=50)
+    tg = FakeTelegram()
+    assert await run(conn, cfg(), tg) == ["MLB2"]  # a de preço mudado não sai com card velho
+    cand = db.get_candidate(conn, "MLB1", "casa")
+    assert cand.state is S.LINKED and cand.card_path is None
+
+
+async def test_automatic_offer_that_left_the_rule_is_dropped(conn, tmp_path):
+    seed(conn, tmp_path, "MLB1")
+    offer = db.get_offer(conn, "MLB1")
+    db.upsert_offer(conn, dataclasses.replace(offer, price=289.9, original_price=399.9),
+                    now=NOW)  # 27% de desconto: abaixo dos 39% da regra
+    config = load_config_text(RULES.format(wa="false", group=GROUP, jid=JID))
+    assert await run(conn, config, FakeTelegram()) == []
+    assert db.get_candidate(conn, "MLB1", "casa").state is S.DISCARDED

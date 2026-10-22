@@ -127,3 +127,10 @@ def test_apply_failures_until_link_failed(conn):
 def test_apply_unknown_offer(conn):
     with pytest.raises(LinkError):
         apply_link_result(conn, "MLB404", None, "x")
+
+
+def test_only_niches_below_the_stock_target_get_links(conn):
+    seed(conn, "MLB1", niche="casa", score=90)
+    seed(conn, "MLB2", niche="tech", score=70)
+    assert next_link_request(conn, "t", NOW, niches={"tech"})["mlb_id"] == "MLB2"
+    assert next_link_request(conn, "t", NOW + timedelta(minutes=11), niches=set()) is None

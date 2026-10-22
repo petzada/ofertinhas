@@ -38,6 +38,7 @@ def render_tasks(conn: sqlite3.Connection, cfg: AppConfig, templates_dir: Path, 
 
 def apply_rendered(conn: sqlite3.Connection, results: list[dict]) -> int:
     return sum(
-        mark_rendered(conn, r["mlb_id"], r["niche"], r["caption"], r["card_path"])
+        mark_rendered(conn, r["mlb_id"], r["niche"], r["caption"], r["card_path"],
+                      r.get("price"))
         for r in results
     )

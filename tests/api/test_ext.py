@@ -66,8 +66,8 @@ def test_routes_require_token(env):
 def test_config_lists_niche_categories_and_rhythm(env):
     cfg = env.client.get("/ext/config", headers=H).json()
     assert cfg["paused"] is False
-    assert cfg["window"] is None  # sem trava de horário
-    assert cfg["collect_every_min"] == 20 and cfg["pages_per_category"] == 3
+    assert cfg["window"] == ["05:30", "22:00"]  # coleta e links só de dia
+    assert cfg["collect_every_min"] == 60 and cfg["pages_per_category"] == 2
     assert cfg["categories"][0] == {"id": "MLB1574", "name": "Casa, Móveis e Decoração"}
     assert cfg["portal_url"].startswith("https://www.mercadolivre.com.br/afiliados/hub")
     assert cfg["search_url"].endswith("/affiliate-program/api/hub/search?is_affiliate=true"
@@ -206,5 +206,6 @@ def test_stock_reports_ready_waiting_and_until_when(env):
     data = response.json()
     assert (data["ready"], data["waiting_links"]) == (0, 0)
     assert data["groups"] and set(data["groups"][0]) == {
-        "ready", "waiting_links", "posts_today", "max_posts", "ends_at", "ends_at_with_links"}
+        "ready", "waiting_links", "reserve", "target", "posts_today", "max_posts", "ends_at",
+        "ends_at_with_links"}
     assert env.client.get("/ext/stock").status_code == 401

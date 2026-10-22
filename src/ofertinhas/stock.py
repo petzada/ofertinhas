@@ -29,18 +29,22 @@ LINK_MINUTES = 1  # ~1 link por minuto com o portal aberto (intervalo de 30 a 90
 @dataclass(frozen=True)
 class GroupStock:
     key: str
+    niches: tuple[str, ...]
     ready: int
-    waiting_links: int
+    waiting_links: int  # links que faltam para chegar ao alvo (o que a extensão vai gerar)
+    reserve: int  # aprovadas sem link, à espera de vaga no alvo
+    target: int  # posts das próximas `stock_hours` horas + folga
     posts_today: int
     max_posts: int
     ends_at: datetime | None  # primeiro horário de post do dia sem oferta; None = cobre o dia
-    ends_at_with_links: datetime | None  # o mesmo, se as que esperam link ganharem link agora
+    ends_at_with_links: datetime | None  # o mesmo, depois que os links que faltam saírem
 
     def as_dict(self) -> dict:
         def iso(dt: datetime | None) -> str | None:
             return dt.isoformat() if dt else None
 
         return {"ready": self.ready, "waiting_links": self.waiting_links,
+                "reserve": self.reserve, "target": self.target,
                 "posts_today": self.posts_today, "max_posts": self.max_posts,
                 "ends_at": iso(self.ends_at), "ends_at_with_links": iso(self.ends_at_with_links)}
 
@@ -103,13 +107,26 @@ def group_stock(conn: sqlite3.Connection, cfg: AppConfig, now: datetime,
         slots = post_slots(now, db.last_post_at(conn, key), posts_today, pacing,
                            db.get_setting(conn, f"jitter:{key}", 0.0))
         ready = _expiries(conn, niches, READY, now)
-        waiting = _expiries(conn, niches, WAITING_LINK, now)
+        waiting = sorted(_expiries(conn, niches, WAITING_LINK, now), reverse=True)
+        horizon = now + timedelta(hours=cfg.collector.stock_hours)
+        target = sum(1 for s in slots if s < horizon)
+        target += cfg.collector.stock_extra if target else 0  # sem post à vista, sem folga
+        needed = min(max(0, target - len(ready)), len(waiting))
         report.append(GroupStock(
-            key=key, ready=len(ready), waiting_links=len(waiting), posts_today=posts_today,
-            max_posts=pacing.max_posts_per_day, ends_at=_covered_until(slots, ready),
-            ends_at_with_links=_covered_until(slots, ready + waiting),
+            key=key, niches=tuple(n.name for n in niches), ready=len(ready),
+            waiting_links=needed, reserve=len(waiting) - needed, target=target,
+            posts_today=posts_today, max_posts=pacing.max_posts_per_day,
+            ends_at=_covered_until(slots, ready),
+            ends_at_with_links=_covered_until(slots, ready + waiting[:needed]),
         ))
     return report
+
+
+def niches_needing_links(conn: sqlite3.Connection, cfg: AppConfig, now: datetime,
+                         dry_run: bool) -> set[str]:
+    """Nichos cujo grupo está abaixo do estoque-alvo: só deles a extensão gera link."""
+    return {name for g in group_stock(conn, cfg, now, dry_run) if g.waiting_links
+            for name in g.niches}
 
 
 async def alert_low_stock(conn: sqlite3.Connection, cfg: AppConfig, notify, now: datetime,

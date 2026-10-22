@@ -55,5 +55,5 @@ async def draw_cards(
         finally:
             gc.collect()  # o heap do Pyodide não encolhe: libera as imagens antes da próxima
         results.append({"mlb_id": task["mlb_id"], "niche": task["niche"],
-                        "caption": task["caption"], "card_path": ref})
+                        "caption": task["caption"], "card_path": ref, "price": offer.price})
     return results

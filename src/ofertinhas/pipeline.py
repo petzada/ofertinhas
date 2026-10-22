@@ -198,14 +198,21 @@ def linked_caption(
 
 
 def mark_rendered(
-    conn: sqlite3.Connection, mlb_id: str, niche: str, caption: str, card_ref: str
+    conn: sqlite3.Connection, mlb_id: str, niche: str, caption: str, card_ref: str,
+    price: float | None = None,
 ) -> bool:
-    """`linked` → `rendered`; False se a candidata mudou de estado no meio do caminho."""
+    """`linked` → `rendered`; False se a candidata mudou de estado no meio do caminho.
+
+    `ref_price` passa a ser o preço desenhado no card (`price`), para o envio conferir se o
+    preço mudou antes de postar."""
     cand = db.get_candidate(conn, mlb_id, niche)
     if cand is None or cand.state is not CandidateState.LINKED:
         return False
+    if price is None:
+        price = db.get_offer(conn, mlb_id).price
     db.save_candidate(conn, dataclasses.replace(
         cand, state=CandidateState.RENDERED, caption=caption, card_path=card_ref,
+        ref_price=price,
     ))
     return True
 
@@ -237,5 +244,5 @@ async def render_linked(
         except Exception:
             log.exception("falha ao gerar criativo de %s/%s", cand.mlb_id, cand.niche)
             continue
-        rendered += mark_rendered(conn, cand.mlb_id, cand.niche, caption, ref)
+        rendered += mark_rendered(conn, cand.mlb_id, cand.niche, caption, ref, offer.price)
     return rendered

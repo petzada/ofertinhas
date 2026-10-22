@@ -25,7 +25,7 @@ from ..config import AppConfig
 from ..models import utcnow
 from ..pipeline import niche_configs, score_and_route
 from ..settings import Settings
-from ..stock import group_stock
+from ..stock import group_stock, niches_needing_links
 
 TOKEN_HEADER = "X-Ofertinhas-Token"
 PORTAL_URL = "https://www.mercadolivre.com.br/afiliados/hub?is_affiliate=true"
@@ -170,7 +170,9 @@ def create_app(state: ApiState) -> FastAPI:
                 state.clock(), UNKNOWN_FORMAT_EVERY,
             )
             return {"request": None, "error": "ML_AFFILIATE_TAG ausente no .env"}
-        return {"request": next_link_request(conn, tag, state.clock())}
+        now = state.clock()
+        needy = niches_needing_links(conn, state.cfg, now, state.dry_run)
+        return {"request": next_link_request(conn, tag, now, niches=needy)}
 
     @router.post("/ext/links")
     async def ext_links(report: LinkReport) -> dict:
@@ -207,6 +209,7 @@ def create_app(state: ApiState) -> FastAPI:
         return {
             "ready": sum(g.ready for g in groups),
             "waiting_links": sum(g.waiting_links for g in groups),
+            "reserve": sum(g.reserve for g in groups),
             "groups": [g.as_dict() for g in groups],
         }
 

@@ -99,7 +99,8 @@ def test_niche_categories_must_be_portal_root_categories():
 
 def test_collector_defaults_and_categories_from_active_niches():
     cfg = load_config(EXAMPLE)
-    assert cfg.collector.every_min == 20 and cfg.collector.pages_per_category == 3
+    assert cfg.collector.every_min == 60 and cfg.collector.pages_per_category == 2
+    assert (cfg.collector.stock_hours, cfg.collector.stock_extra) == (6, 2)
     cats = cfg.collector_categories(paused=set())
     assert cats[:3] == ["MLB1574", "MLB5726", "MLB263532"]
     assert len(cats) == len(set(cats))

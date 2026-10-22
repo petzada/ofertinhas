@@ -186,6 +186,10 @@ class CollectorConfig(_Strict):
     window: tuple[time, time] | None = None  # None: coleta e links a qualquer hora
     max_links_per_hour: int = Field(30, ge=1)
     link_gap_s: tuple[int, int] = (30, 90)  # entre links gerados
+    # Estoque-alvo: só pede link quando o que já tem link não cobre os posts das próximas
+    # `stock_hours` horas (+ `stock_extra` de folga). O resto das aprovadas espera na reserva.
+    stock_hours: float = Field(6, gt=0)
+    stock_extra: int = Field(2, ge=0)
 
     _window_needs_quotes = field_validator("window", mode="before")(_reject_unquoted_times)
 

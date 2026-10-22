@@ -111,9 +111,30 @@ def _whatsapp_choices(
                     continue
                 if db.sent_to_chat_since(conn, cand.mlb_id, chat, since):
                     continue
+                if not _card_is_current(cand, db.get_offer(conn, cand.mlb_id)):
+                    continue  # preço mudou: o card com o preço novo sai no Telegram antes
                 choices.append(((cand.notified_at is not None, -cand.score), cand, niche))
     choices.sort(key=lambda c: c[0])
     return [(cand, niche) for _, cand, niche in choices]
+
+
+def _card_is_current(cand: Candidate, offer) -> bool:
+    """O preço desenhado no card (`ref_price`) ainda é o da última coleta."""
+    return abs(offer.price - cand.ref_price) < 0.01
+
+
+def _refresh(conn: sqlite3.Connection, cand: Candidate, niche: NicheConfig, offer,
+             now: datetime) -> None:
+    """Preço mudou desde o card: se a oferta automática não passa mais na regra, sai da fila;
+    senão, volta para `linked` e o card é desenhado de novo com o preço atual."""
+    rules = niche.rules
+    if (rules is not None and cand.notified_at is None
+            and not rules.auto.passes(offer.discount_pct, offer.commission_pct)):
+        log.info("%s/%s saiu da regra com o preço novo", cand.mlb_id, cand.niche)
+        db.save_candidate(conn, dataclasses.replace(cand, state=S.DISCARDED, decided_at=now))
+        return
+    log.info("%s/%s mudou de preço; card de novo", cand.mlb_id, cand.niche)
+    db.save_candidate(conn, dataclasses.replace(cand, state=S.LINKED, card_path=None))
 
 
 def _due(conn: sqlite3.Connection, key: str, pacing: Pacing, now: datetime, dry_run: bool,
@@ -201,11 +222,15 @@ async def _telegram_turn(conn, members, tg_chat, wa_jid, *, telegram, store, adm
     pacing = members[0].pacing
     if not _due(conn, key, pacing, now, dry_run, force):
         return None
-    found = _next_in_group(conn, members, now, only_mlb)
-    if found is None:
-        return None
-    cand, niche = found
-    offer = db.get_offer(conn, cand.mlb_id)
+    while True:
+        found = _next_in_group(conn, members, now, only_mlb)
+        if found is None:
+            return None
+        cand, niche = found
+        offer = db.get_offer(conn, cand.mlb_id)
+        if _card_is_current(cand, offer):
+            break
+        _refresh(conn, cand, niche, offer, now)  # e tenta a próxima da fila
     caption = to_telegram_html(cand.caption)
     if dry_run:
         caption = f"🧪 <b>TESTE • {niche.name}</b>\n\n{caption}"
