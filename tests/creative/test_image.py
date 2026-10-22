@@ -86,9 +86,9 @@ def test_fit_font_shrinks_until_it_fits():
     assert font.size < 90
 
 
-def test_upgrade_image_url_requests_original_size():
+def test_upgrade_image_url_requests_largest_size():
     url = "https://http2.mlstatic.com/D_NQ_NP_812345-MLB123-I.webp"
-    assert upgrade_image_url(url) == "https://http2.mlstatic.com/D_NQ_NP_812345-MLB123-O.webp"
+    assert upgrade_image_url(url) == "https://http2.mlstatic.com/D_NQ_NP_812345-MLB123-F.webp"
     assert upgrade_image_url("https://x/foto.png") == "https://x/foto.png"
 
 

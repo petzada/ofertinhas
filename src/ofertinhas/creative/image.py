@@ -153,10 +153,10 @@ def render_card(offer: Offer, theme: Theme, product: Image.Image | None) -> byte
 
 
 def upgrade_image_url(url: str) -> str:
-    """Pede a versão original da foto em vez da miniatura (`-I.webp` → `-O.webp`)."""
+    """Pede a maior versão da foto em vez da miniatura (`-I.webp` → `-F.webp`)."""
     if "mlstatic.com" not in url:
         return url
-    return ML_IMAGE_SIZE.sub(r"-O\1", url)
+    return ML_IMAGE_SIZE.sub(r"-F\1", url)
 
 
 async def fetch_product_image(client: httpx.AsyncClient, url: str | None) -> Image.Image | None:

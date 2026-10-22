@@ -1,0 +1,43 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://www.mercadolivre.com.br/affiliate-program/api/v2/affiliates/createLink",
+    "body": {
+      "itemId": "MLB5790540954",
+      "type": "product",
+      "extraCommission": "true",
+      "itemAddToList": "MLB5790540954",
+      "tag": "minhatag",
+      "urls": [
+        "www.mercadolivre.com.br/carregador-duplo-kingster-compativel-controles-ps5-com-led-indicador-bivolt-base-dock-e-cabo-tipo-c/p/MLB53879960"
+      ],
+      "buyBoxWinner": "MLB5790540954"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "status": 200,
+      "urls": [
+        {
+          "id": "33zyUam",
+          "created": true,
+          "tag": "minhatag",
+          "text": "🔍 Cole este texto no buscador do Mercado Livre: QL81M2-HWKB\n\n🔗 Ou acesse o link:\nhttps://meli.la/33zyUam",
+          "short_url": "https://meli.la/33zyUam",
+          "long_url": "REDACTED",
+          "title": "Carregador Duplo Kingster Compatível Controles PS5 com LED Indicador Bivolt Base Dock E Cabo Tipo C",
+          "type_url": "SOCIAL_PROFILE_ENCRYPTED",
+          "generated_date": "2026-10-22T04:11:29Z",
+          "origin_url": "www.mercadolivre.com.br/carregador-duplo-kingster-compativel-controles-ps5-com-led-indicador-bivolt-base-dock-e-cabo-tipo-c/p/MLB53879960",
+          "regex": "QL81M2-HWKB",
+          "list_url": "REDACTED",
+          "deeplink_list_url": "REDACTED"
+        }
+      ],
+      "total_items": 1,
+      "total_success": 1,
+      "total_error": 0
+    }
+  }
+}

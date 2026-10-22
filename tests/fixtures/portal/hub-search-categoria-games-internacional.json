@@ -1,0 +1,3042 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://www.mercadolivre.com.br/affiliate-program/api/hub/search?is_affiliate=true&device=desktop",
+    "body": {
+      "search": "",
+      "sort": "relevance",
+      "filters": [
+        {
+          "id": "category",
+          "value": "MLB1144",
+          "name": "Games"
+        }
+      ],
+      "offset": 0
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "polycard_client_model": {
+        "polycard_context": {
+          "contract_version": "1.3.0",
+          "picture_template": "https://http2.mlstatic.com/D_{square}_NP{2x}_{id}-{size}{sanitized_title}.webp",
+          "picture_size_default": "AB",
+          "url_prefix": "https://",
+          "type": "grid-card",
+          "card_size": "large",
+          "checkbox": false,
+          "thousand_separator": ".",
+          "decimal_separator": ",",
+          "styles_default": [],
+          "picture_overlay_default": true,
+          "picture_square_default": "Q",
+          "url_fragments_default": "#polycard_client=affiliates",
+          "signal_configs": {
+            "defaults": {
+              "min_visible_fraction": 0.75,
+              "min_duration_ms": 300,
+              "exit_fraction": 0.75,
+              "no_interaction_timeout_ms": 30000,
+              "once_per_card": false,
+              "initial_viewport_starts_on_scroll": false,
+              "stream": "melidata-dwell",
+              "enabled": true,
+              "sensors": {
+                "screen": {
+                  "enabled": false
+                },
+                "card": {
+                  "enabled": true
+                }
+              }
+            }
+          }
+        },
+        "polycards": [
+          {
+            "unique_id": "oqDOiROkrdHkHpiNGi60ApaG1EKndiPEabZorMymsMM",
+            "metadata": {
+              "id": "MLB4204366141",
+              "product_id": "MLB58013437",
+              "user_product_id": "MLBU3185956222",
+              "pid": "MLBP58013437",
+              "pid_extended": "MLBP58013437_MLB4204366141",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/controle-sem-fio-manete-bluetooth-joystick-para-ps4-tv-smart-samsung-pc-video-game-celular-com-p2/p/MLB58013437",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB4204366141&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB4204366141&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "741046-MLA106812688787_022026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Controle Sem Fio Manete Bluetooth Joystick Para PS4 Tv Smart Samsung Pc Vídeo Game Celular com P2",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.8 de 5 estrelas. Mais de 10mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.8"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +10mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 120,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 46.84,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "60% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "evjkBZTD0TIDfw1A78TJFsgUdHsq6hl4vYqg-q5tz8U",
+            "metadata": {
+              "id": "MLB5790540954",
+              "product_id": "MLB53879960",
+              "user_product_id": "MLBU3490150590",
+              "pid": "MLBP53879960",
+              "pid_extended": "MLBP53879960_MLB5790540954",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/carregador-duplo-kingster-compativel-controles-ps5-com-led-indicador-bivolt-base-dock-e-cabo-tipo-c/p/MLB53879960",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5790540954&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB5790540954&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "956886-MLA118797987253_102026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Carregador Duplo Kingster Compatível Controles PS5 com LED Indicador Bivolt Base Dock E Cabo Tipo C",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 5.0 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "5.0"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 102.82,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 87,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "15% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "-YoySQU2GRXmXvXkwIDQlFL2GY7WUE00HGzS6x1LJD0",
+            "metadata": {
+              "id": "MLB4587377807",
+              "product_id": "MLB24117280",
+              "user_product_id": "MLBU3879366579",
+              "pid": "MLBP24117280",
+              "pid_extended": "MLBP24117280_MLB4587377807",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/fone-de-ouvido-headphone-dapon-h02d-bluetooth-51-over-ear-22h-preto/p/MLB24117280",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB4587377807&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "673950-MLA99394598783_112025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Fone De Ouvido Headphone Dapon H02D Bluetooth 5.1 Over-ear 22h Preto",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 100mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 5%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 149,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 78.9,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "47% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "b1lZfP04RqneKUTK7XjlcSzycjs_P30Zn22Lne4JMOE",
+            "metadata": {
+              "id": "MLB7413456100",
+              "product_id": "MLB74108173",
+              "user_product_id": "MLBU4668245989",
+              "pid": "MLBP74108173",
+              "pid_extended": "MLBP74108173_MLB7413456100",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/grand-theft-auto-vi-playstation-5/p/MLB74108173",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7413456100&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "12939458",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "12939458"
+                    }
+                  ],
+                  "price": 418.41
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "639067-MLA114816196520_082026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Grand Theft Auto VI - PlayStation 5",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{label2}",
+                  "alt_text": "Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "+1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 449.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 418.41,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "6% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "{o} {price_total} {en} 8x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "o",
+                        "type": "label",
+                        "label": {
+                          "text": "ou"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      },
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 449.9,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      },
+                      {
+                        "key": "en",
+                        "type": "label",
+                        "label": {
+                          "text": "em"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      },
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 56.24,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "pyvCRzkWoxWp_vb06NoZgtjAT7CRzjKX6VKVsQh-x-Q",
+            "metadata": {
+              "id": "MLB7475167630",
+              "product_id": "MLB77937305",
+              "user_product_id": "MLBU4466565267",
+              "pid": "MLBP77937305",
+              "pid_extended": "MLBP77937305_MLB7475167630",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/fone-de-ouvido-inova-open-ear-bluetooth-para-esportes-com-controle-tatil-e-bateria-de-longa-duracao/p/MLB77937305",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7475167630&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB7475167630&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "713567-MLA116341381710_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "{black_friday_icon} OFERTA IMPERDÍVEL",
+                  "values": [
+                    {
+                      "key": "black_friday_icon",
+                      "type": "icon",
+                      "icon": {
+                        "key": "black_friday_icon",
+                        "icon_id": "black_friday_icon"
+                      }
+                    }
+                  ],
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#2968C8"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Fone De Ouvido Inova Open-ear Bluetooth Para Esportes Com Controle Tátil E Bateria De Longa Duração",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 500 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +500 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 118,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 55.28,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "53% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "8KBwlJqsRrOrOInQ89mC0whYwfKxIOFpGjcFAKnOtAM",
+            "metadata": {
+              "id": "MLB7524393354",
+              "user_product_id": "MLBU4974226758",
+              "pid": "MLBU4974226758",
+              "pid_extended": "MLBU4974226758_MLB7524393354",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/fone-de-ouvido-bluetooth-tws-a6s/up/MLBU4974226758",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7524393354&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB7524393354&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "989458-MLB116770200105_082026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "{black_friday_icon} OFERTA IMPERDÍVEL",
+                  "values": [
+                    {
+                      "key": "black_friday_icon",
+                      "type": "icon",
+                      "icon": {
+                        "key": "black_friday_icon",
+                        "icon_id": "black_friday_icon"
+                      }
+                    }
+                  ],
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#2968C8"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Fone De Ouvido Bluetooth Tws A6s Rosa",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.7 de 5 estrelas. Mais de 500 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.7"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +500 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "9%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 41.67,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 20.46,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "50% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "lLoM0YBBbHRYc-n_GojBGbTLVheSAITcgmVvrBGIrwA",
+            "metadata": {
+              "id": "MLB5124121138",
+              "product_id": "MLB24151704",
+              "user_product_id": "MLBU2365769774",
+              "pid": "MLBP24151704",
+              "pid_extended": "MLBP24151704_MLB5124121138",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/controle-sem-fio-sony-playstation-dualshock-4-preto/p/MLB24151704",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5124121138&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "677497-MLA113791725304_072026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Controle Sem Fio Sony Playstation Dualshock 4 - Preto",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.7 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.7"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 379.99,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "installments": {
+                    "text": "12x {price}",
+                    "no_interest": false,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 37.17,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "x8PWWHI_f_vSVV_nKihNWIhaGqFfmHhqoilsn1nxFHI",
+            "metadata": {
+              "id": "MLB4876626017",
+              "product_id": "MLB29478644",
+              "user_product_id": "MLBU4287054200",
+              "pid": "MLBP29478644",
+              "pid_extended": "MLBP29478644_MLB4876626017",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/maquinas-portateis-de-videogame-para-adultos-e-criancas-x7-color-azulvermelho/p/MLB29478644",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB4876626017&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB4876626017&extra_comm=true&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "13714249",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "13714249"
+                    }
+                  ],
+                  "price": 166.52
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "785660-MLU73981697248_012024"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Máquinas portáteis de videogame para adultos e crianças X7 Color Azul/Vermelho",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.6 de 5 estrelas. Mais de 5mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.6"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +5mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 181,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 166.52,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "8% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "ou {price_total} em outros meios",
+                    "no_interest": false,
+                    "values": [
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 181,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "a3s1thI8fz07pVee0DXUCH2PRdDiPOmabuxZAPcVHes",
+            "metadata": {
+              "id": "MLB7138672762",
+              "product_id": "MLB41199955",
+              "user_product_id": "MLBU3961152369",
+              "pid": "MLBP41199955",
+              "pid_extended": "MLBP41199955_MLB7138672762",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/carregador-controle-duplo-usb-led-video-game-preto-2-portas/p/MLB41199955",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7138672762&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB7138672762&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "876921-MLA95732318852_102025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS COMPARTILHADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Carregador Controle Duplo Usb Led Video Game Preto 2 Portas",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 5.0 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "5.0"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "17%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 99,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 67.22,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "32% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "VKIk6hV_wo7-6FpNyfrUC6WI2Bgtc8Q0JjyWdgRhhmc",
+            "metadata": {
+              "id": "MLB4649186331",
+              "product_id": "MLB66266830",
+              "user_product_id": "MLBU3931255475",
+              "pid": "MLBP66266830",
+              "pid_extended": "MLBP66266830_MLB4649186331",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/fone-de-ouvido-gamer-headset-rgb-led-com-microfone-headphone-p2-p-pc-ps3-ps4-ps5-xbox-celular-notebook-surround-51-com-adaptador-landara/p/MLB66266830",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB4649186331&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB4649186331&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "911287-MLA117801296907_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Fone De Ouvido Gamer Headset RGB Led Com Microfone Headphone P2 P/ PC PS3 PS4 PS5 Xbox Celular Notebook Surround 5.1 Com Adaptador Landara",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.7 de 5 estrelas. Mais de 10mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.7"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +10mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "9%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 69.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 47.43,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "32% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "DjAj0KtuWhs8aGcUGxEaWQQWOPy5YIDufE8BNgdW6sU",
+            "metadata": {
+              "id": "MLB5338583985",
+              "product_id": "MLB79197282",
+              "pid": "MLBP79197282",
+              "pid_extended": "MLBP79197282_MLB5338583985",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/castlevania-belmonts-curse-midnight-edition-switch-fisico/p/MLB79197282",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5338583985&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "724434-MLA117527223781_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Castlevania Belmonts Curse Midnight Edition Switch Fisico",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 5.0 de 5 estrelas. Mais de 500 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "5.0"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +500 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 424.4,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "installments": {
+                    "text": "8x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 53.05,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "cbt",
+                "id": "cbt",
+                "cbt": {
+                  "text": "{icon_cbt_new}",
+                  "alt_text": "Internacional",
+                  "values": [
+                    {
+                      "key": "icon_cbt_new",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_cbt_new"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "ATu23Pwn9jvXUoCIKfVPw-P5Zvag2U4NhAWL7ov03JY",
+            "metadata": {
+              "id": "MLB7412778880",
+              "product_id": "MLB66852007",
+              "user_product_id": "MLBU4701401971",
+              "pid": "MLBP66852007",
+              "pid_extended": "MLBP66852007_MLB7412778880",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/microfone-lapela-redondo-sem-fio-tipo-c-duplo-anti-ruido-p-android-e-iphone-15-16-17-com-caixinha-para-carregamento-cor-preto-micgeek/p/MLB66852007",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7412778880&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "959674-MLA117285365891_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Microfone Lapela Redondo Sem Fio Tipo-C Duplo Anti Ruído P/ Android E iPhone 15 16 17 Com Caixinha Para Carregamento Cor Preto MICGEEK",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.6 de 5 estrelas. Mais de 10mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.6"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +10mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 88.3,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 49.87,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "43% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "5lB5XlpiOuwEWfwPdNc7pY_DYq74hpvdHEcMVdVB3QA",
+            "metadata": {
+              "id": "MLB7789342180",
+              "product_id": "MLB2063512080",
+              "user_product_id": "MLBU5438183025",
+              "pid": "MLBF2063512080_MLB7789342180",
+              "pid_extended": "MLBF2063512080_MLB7789342180",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/jogo-sem-fio-saida-4k-hd-conecte-e-use-/p/MLB2063512080",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7789342180&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "792178-CBT117370260764_102026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "{black_friday_icon} OFERTA IMPERDÍVEL",
+                  "values": [
+                    {
+                      "key": "black_friday_icon",
+                      "type": "icon",
+                      "icon": {
+                        "key": "black_friday_icon",
+                        "icon_id": "black_friday_icon"
+                      }
+                    }
+                  ],
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#2968C8"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Jogo Sem Fio |   Saída 4k Hd |   Conecte E Use. |",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.3 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.3"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 134.43,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 113.73,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "15% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "cbt",
+                "id": "cbt",
+                "cbt": {
+                  "text": "{icon_cbt_new}",
+                  "alt_text": "Internacional",
+                  "values": [
+                    {
+                      "key": "icon_cbt_new",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_cbt_new"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "EbJ9a324NLq6A3_EvG48nu7oktXsJRmcUgmPPwuSPlM",
+            "metadata": {
+              "id": "MLB7111227742",
+              "product_id": "MLB29001054",
+              "user_product_id": "MLBU4247662784",
+              "pid": "MLBP29001054",
+              "pid_extended": "MLBP29001054_MLB7111227742",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/console-playstation-5-slim-edicao-digital-825-gb-branco-sony/p/MLB29001054",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7111227742&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "756435-MLA95500672926_102025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Console PlayStation® 5 Slim Edição Digital 825 GB Branco - Sony",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 10mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +10mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 4899,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 4599,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "6% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  },
+                  "installments": {
+                    "text": "10x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 459.9,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "tFRCSvmKlsN1aZ-kL1ngxhxlhKRIO1mWV-IaWafGd1k",
+            "metadata": {
+              "id": "MLB5811879470",
+              "product_id": "MLB39960346",
+              "user_product_id": "MLBU3491643987",
+              "pid": "MLBP39960346",
+              "pid_extended": "MLBP39960346_MLB5811879470",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/controle-sem-fio-joystick-redfin-bluetooth-compativel-para-ps4-videogame-tv-samsung-pc-p4-ps-4-manete-pc-gamer-tv-smart-controle-bluetooth-celular-headset-sem-fio-com-p2-marca-redfin/p/MLB39960346",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5811879470&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "762912-MLA105696431793_012026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Controle Sem Fio Joystick REDFIN Bluetooth Compatível Para Ps4 Videogame Tv Samsung Pc P4 Ps 4 Manete Pc Gamer Tv Smart Controle Bluetooth Celular Headset Sem Fio Com P2 Marca Redfin",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.7 de 5 estrelas. Mais de 100mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.7"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 114.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 52.76,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "54% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "Y1hSeDvAF6S3y5tBNKbXYQCkp35li7VTxTGR5ebep2Q",
+            "metadata": {
+              "id": "MLB5221214511",
+              "product_id": "MLB79291391",
+              "user_product_id": "MLBU5141461735",
+              "pid": "MLBP79291391",
+              "pid_extended": "MLBP79291391_MLB5221214511",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/controle-sem-fio-joystick-generico-bluetooth-compativel-para-ps4-videogame-tv-samsung-pc-p4-ps-4-manete-pc-gamer-tv-smart-controle-bluetooth-celular-headset-sem-fio-com-p2-marca-b-basto/p/MLB79291391",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5221214511&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "967325-MLA117590877359_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS BUSCADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Controle Sem Fio Joystick Genérico Bluetooth Compatível Para Ps4 Videogame Tv Samsung Pc P4 Ps 4 Manete Pc Gamer Tv Smart Controle Bluetooth Celular Headset Sem Fio Com P2 Marca B Basto",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 5.0 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "5.0"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 76.8,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 49.9,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "35% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "m8dwjitq5pUyqUAk_vbZlho35cNE2hc4J_BF3INU31c",
+            "metadata": {
+              "id": "MLB4443098347",
+              "user_product_id": "MLBU3759218372",
+              "pid": "MLBU3759218372",
+              "pid_extended": "MLBU3759218372_MLB4443098347",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/bateria-para-controle-ps5-dualsense-lip1708-2650mah--chave/up/MLBU3759218372",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB4443098347&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "883394-MLB114869995073_072026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Bateria Para Controle Ps5 Dualsense Lip1708 2650mah + Chave Cinza-escuro 3.65v",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.8 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.8"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 52.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 50.25,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "5% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "KKv7gr_YooAtWsT9sjSXqpsy71xMNiyV3x821g3iLZM",
+            "metadata": {
+              "id": "MLB5338584361",
+              "product_id": "MLB79197432",
+              "pid": "MLBP79197432",
+              "pid_extended": "MLBP79197432_MLB5338584361",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/castlevania-belmonts-curse-midnight-edition-ps5-midia-fisica/p/MLB79197432",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5338584361&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "979458-MLA116049593768_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS BUSCADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Castlevania Belmonts Curse Midnight Edition Ps5 Midia Fisica",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 5.0 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "5.0"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 383.75,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "installments": {
+                    "text": "7x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 54.82,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "cbt",
+                "id": "cbt",
+                "cbt": {
+                  "text": "{icon_cbt_new}",
+                  "alt_text": "Internacional",
+                  "values": [
+                    {
+                      "key": "icon_cbt_new",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_cbt_new"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "contract_version": "1.3.0"
+      },
+      "container_url": "https://lista.mercadolivre.com.br/_Container_aff-hub-v2-mixed-topics-mlb",
+      "filters": [
+        {
+          "id": "category",
+          "name": "Categorías",
+          "values": [
+            {
+              "id": "MLB186456",
+              "name": "Video Games"
+            },
+            {
+              "id": "MLB438579",
+              "name": "Peças para Consoles"
+            },
+            {
+              "id": "MLB438578",
+              "name": "Acessórios para Consoles"
+            },
+            {
+              "id": "MLB439527",
+              "name": "Acessórios para PC Gaming"
+            },
+            {
+              "id": "MLB11172",
+              "name": "Consoles"
+            }
+          ]
+        },
+        {
+          "id": "extra_commission",
+          "name": "Comisión extra"
+        },
+        {
+          "id": "best_seller",
+          "name": "Más vendidos"
+        }
+      ],
+      "sort": {
+        "id": "relevance",
+        "name": "Mais relevantes"
+      },
+      "available_sorts": [
+        {
+          "id": "lowest_price",
+          "name": "Menor preço"
+        },
+        {
+          "id": "highest_price",
+          "name": "Maior preço"
+        }
+      ]
+    }
+  }
+}

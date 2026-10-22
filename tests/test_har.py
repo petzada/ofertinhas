@@ -100,6 +100,14 @@ def test_scrub_json_masks_sensitive_keys_recursively():
     assert scrub_json(data) == {"a": [{"token": "REDACTED", "price": 10}], "phone": "REDACTED"}
 
 
+def test_scrub_json_masks_affiliate_private_urls():
+    data = {"urls": [{"short_url": "https://meli.la/abc", "long_url": "https://x?ref=SEGREDO",
+                      "list_url": "https://myaccount/x", "deeplink_list_url": "meli://x"}]}
+    assert scrub_json(data) == {"urls": [{"short_url": "https://meli.la/abc",
+                                          "long_url": "REDACTED", "list_url": "REDACTED",
+                                          "deeplink_list_url": "REDACTED"}]}
+
+
 def test_scrub_url_masks_sensitive_query_params():
     url = "https://x.mercadolivre.com.br/a?access_token=abc&page=2&csrf=1"
     assert scrub_url(url) == "https://x.mercadolivre.com.br/a?access_token=REDACTED&page=2&csrf=REDACTED"

@@ -25,6 +25,8 @@ SENSITIVE_EXACT = {
     "identification", "password", "address", "zip_code", "user_id", "cust_id",
     "customer_id", "buyer_id", "caller_id", "user", "users", "customer", "buyer",
     "me", "account", "profile",
+    # createLink: lista de desejos do afiliado e URL longa com o token de afiliado
+    "list_url", "deeplink_list_url", "long_url",
 }
 SENSITIVE_PARTS = ("token", "csrf", "session", "secret", "auth", "cookie", "ssid")
 

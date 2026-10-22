@@ -1,0 +1,3016 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://www.mercadolivre.com.br/affiliate-program/api/hub/search?is_affiliate=true&device=desktop",
+    "body": {
+      "search": "",
+      "sort": "relevance",
+      "filters": [
+        {
+          "id": "category",
+          "value": "MLB1384",
+          "name": "Bebês"
+        }
+      ],
+      "offset": 0
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "polycard_client_model": {
+        "polycard_context": {
+          "contract_version": "1.3.0",
+          "picture_template": "https://http2.mlstatic.com/D_{square}_NP{2x}_{id}-{size}{sanitized_title}.webp",
+          "picture_size_default": "AB",
+          "url_prefix": "https://",
+          "type": "grid-card",
+          "card_size": "large",
+          "checkbox": false,
+          "thousand_separator": ".",
+          "decimal_separator": ",",
+          "styles_default": [],
+          "picture_overlay_default": true,
+          "picture_square_default": "Q",
+          "url_fragments_default": "#polycard_client=affiliates",
+          "signal_configs": {
+            "defaults": {
+              "min_visible_fraction": 0.75,
+              "min_duration_ms": 300,
+              "exit_fraction": 0.75,
+              "no_interaction_timeout_ms": 30000,
+              "once_per_card": false,
+              "initial_viewport_starts_on_scroll": false,
+              "stream": "melidata-dwell",
+              "enabled": true,
+              "sensors": {
+                "screen": {
+                  "enabled": false
+                },
+                "card": {
+                  "enabled": true
+                }
+              }
+            }
+          }
+        },
+        "polycards": [
+          {
+            "unique_id": "sYw59Pwy64uuoU0eYzl_NdBimGWWhdjkD9vnoJgDbvU",
+            "metadata": {
+              "id": "MLB4558869807",
+              "product_id": "MLB24074299",
+              "user_product_id": "MLBU3868983382",
+              "pid": "MLBP24074299",
+              "pid_extended": "MLBP24074299_MLB4558869807",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/andador-softway-sonoro-styll-baby/p/MLB24074299",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB4558869807&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "656978-MLA95936630227_102025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS BUSCADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Andador Softway Sonoro - Styll Baby",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.6 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.6"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 199,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 179,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "10% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  },
+                  "installments": {
+                    "text": "2x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 89.5,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "dMB3PHbqIDVWiYmD1zLLXAsjS_WN8VzRzQjfrzdsjgU",
+            "metadata": {
+              "id": "MLB6000100840",
+              "user_product_id": "MLBU3655216916",
+              "pid": "MLBU3655216916",
+              "pid_extended": "MLBU3655216916_MLB6000100840",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/lencostoalhas-umedecidos-baby-free--hipoalergenico/up/MLBU3655216916",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6000100840&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB6000100840&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "918001-MLB117647277373_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Lenços/toalhas Umedecidos Baby Free  Hipoalergênico Kit 5 Pacotes",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 10mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +10mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "22%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 49.33,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 34.87,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "29% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "DgcTZmfmuF7Gyw8ggGP8NXjkvSz_hCJhZB63MaKVTGk",
+            "metadata": {
+              "id": "MLB6796757004",
+              "user_product_id": "MLBU3971344767",
+              "pid": "MLBU3971344767",
+              "pid_extended": "MLBU3971344767_MLB6796757004",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/protetor-tomada-bebe-buba-24un-antichoque-seguranca-infantil/up/MLBU3971344767",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6796757004&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB6796757004&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "669962-MLB111863993371_052026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Protetor Tomada Bebê Buba 24un Antichoque Segurança Infantil",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "52%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 37.77,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "orgVZMVR0YNkF3GvWSK0Fxr3enRQDmWG-J1NDCsLJCg",
+            "metadata": {
+              "id": "MLB6481260140",
+              "user_product_id": "MLBU3847238431",
+              "pid": "MLBU3847238431",
+              "pid_extended": "MLBU3847238431_MLB6481260140",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/brinquedo-educativo-infantil-empilhar-torre-gira-1-ano-6-pcs/up/MLBU3847238431",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6481260140&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB6481260140&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "756196-MLB109014844977_032026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Brinquedo Educativo Infantil Empilhar Torre Gira 1 Ano 6 Pçs Colorido",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "20%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 59.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 39.9,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "33% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "P-Zv9nuKzrSXKbUYEZWEvnhcpgOkUiiULyxQc8f2r70",
+            "metadata": {
+              "id": "MLB5477052650",
+              "variation_id": "184164593564",
+              "pid": "MLBI5477052650",
+              "pid_extended": "MLBI5477052650",
+              "pid_version": "0.5.0",
+              "url": "produto.mercadolivre.com.br/MLB-5477052650-mordedor-massageador-buba-controle-remoto-silicone-brinquedo-_JM",
+              "url_fragments": "#polycard_client=affiliates&sid=affiliates",
+              "url_params": "?searchVariation=184164593564&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "item"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "812909-MLA115352904488_082026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "sanitized_title": "-mordedor-massageador-buba-controle-remoto-silicone-brinquedo",
+              "overlay": true,
+              "variation_id": "184164593564"
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS BUSCADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Mordedor Massageador Buba Controle Remoto Silicone Brinquedo",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 35.4,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 29.74,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "15% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "Zt8Jo8rYPoeLEIDgsMFjNKljolcAhU_2eJFVbdQKV8E",
+            "metadata": {
+              "id": "MLB6207472808",
+              "product_id": "MLB40567474",
+              "user_product_id": "MLBU3757342335",
+              "pid": "MLBP40567474",
+              "pid_extended": "MLBP40567474_MLB6207472808",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/canguru-ergonomico-bebe-3-em-1-hygge-moments-12-posicoes-cinza/p/MLB40567474",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6207472808&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "694120-MLA99933079941_112025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Canguru Ergonômico Bebê 3 em 1 Hygge Moments 12 Posições Cinza",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 161.25,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 139,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "13% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "1_VKG7ugTo84dPIPllTr24swU-SOUH2DOKXCGNA-uXs",
+            "metadata": {
+              "id": "MLB5434288394",
+              "variation_id": "188398660149",
+              "pid": "MLBI5434288394",
+              "pid_extended": "MLBI5434288394",
+              "pid_version": "0.5.0",
+              "url": "produto.mercadolivre.com.br/MLB-5434288394-tnis-infantil-liso-colorido-si10-_JM",
+              "url_fragments": "#polycard_client=affiliates&sid=affiliates",
+              "url_params": "?searchVariation=188398660155&pdp_filters=item_id%3AMLB5434288394&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "item"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "735970-MLB116504251477_082026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "sanitized_title": "-tnis-infantil-liso-colorido-si10",
+              "overlay": true,
+              "variation_id": "188398660155"
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS COMPARTILHADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Tênis Infantil  Liso Colorido - Si10.",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 5.0 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "5.0"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "20%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 39.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 27.93,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "30% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "W1WRyFhKHzW4cSX3PIDOxpuFWzV2sGj8iEMSpq-u72g",
+            "metadata": {
+              "id": "MLB5144182819",
+              "product_id": "MLB54176884",
+              "user_product_id": "MLBU4936122129",
+              "pid": "MLBP54176884",
+              "pid_extended": "MLBP54176884_MLB5144182819",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/cadeirinha-para-auto-cosco-kids-pluris-de-0-a-36kg-com-3-posicoes/p/MLB54176884",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5144182819&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "14538560",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "14538560"
+                    }
+                  ],
+                  "price": 524.31
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "936235-MLA99454050964_112025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Cadeirinha para Auto Cosco Kids Pluris, de 0 a 36kg, com 3 Posições",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 569.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 524.31,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "7% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "ou {price_total} em outros meios",
+                    "no_interest": false,
+                    "values": [
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 569.9,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "sGs2TOVIssyB3cPJILJ943PBejOjEACiDGA96SpMtKw",
+            "metadata": {
+              "id": "MLB4325032019",
+              "product_id": "MLB57579327",
+              "user_product_id": "MLBU3628183370",
+              "pid": "MLBP57579327",
+              "pid_extended": "MLBP57579327_MLB4325032019",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/bicicleta-de-equilibrio-infantil-buba-4-rodas-verde-brinquedo-educativo-para-bebes-estimula-coordenacao-e-equilibrio/p/MLB57579327",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB4325032019&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB4325032019&extra_comm=true&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "13221298",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "13221298"
+                    }
+                  ],
+                  "price": 173.91
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "603590-MLA99975527237_112025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Bicicleta De Equilíbrio Infantil Buba 4 Rodas Verde Brinquedo Educativo Para Bebês , Estimula Coordenação E Equilíbrio",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 500 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +500 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 239.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 173.91,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "27% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "ou {price_total} em outros meios",
+                    "no_interest": false,
+                    "values": [
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 199.9,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "QnW57byRXbMdFRiQWMltgwGn97u6S2zkF-M5xNF8EO4",
+            "metadata": {
+              "id": "MLB6511676792",
+              "product_id": "MLB39351231",
+              "user_product_id": "MLBU3857650313",
+              "pid": "MLBP39351231",
+              "pid_extended": "MLBP39351231_MLB6511676792",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/gel-adesivo-vacina-e-febre-para-alivio-do-incomodo-vacinacao-compressa-refrescante-buba/p/MLB39351231",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6511676792&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "798006-MLU78420237571_082024"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Gel Adesivo Vacina e Febre para Alívio do Incômodo Vacinação Compressa Refrescante Buba",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 5mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +5mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 22.33,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "Fbgsoj72dYHKMiBkxve1VaS4qnqLFK4Rdt2gcTj6Qeg",
+            "metadata": {
+              "id": "MLB6540214890",
+              "user_product_id": "MLBU3868336095",
+              "pid": "MLBU3868336095",
+              "pid_extended": "MLBU3868336095_MLB6540214890",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/kit-karsselle-shampoo--cond-1l--mascara--oleo-7ml-mini/up/MLBU3868336095",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6540214890&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB6540214890&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "924182-MLB117598583632_102026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS COMPARTILHADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Kit Karssellé Shampoo + Cond 1l + Máscara + Óleo 7ml (mini)",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.4 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.4"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 59.99,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "installments": {
+                    "text": "2x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 30,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "yjInKXIIlEDRAYRlSJKrS6Sq3EXLIopCikH5VjfiCPM",
+            "metadata": {
+              "id": "MLB3669361443",
+              "product_id": "MLB35712627",
+              "user_product_id": "MLBU2311206949",
+              "pid": "MLBP35712627",
+              "pid_extended": "MLBP35712627_MLB3669361443",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/tapete-infantil-emborrachado-sensorial-dobravel-dupla-face-educativo-cidade-i-love-baby/p/MLB35712627",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB3669361443&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB3669361443&extra_comm=true&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "13221430",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "13221430"
+                    }
+                  ],
+                  "price": 75.04
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "646862-MLA99465145832_112025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Tapete Infantil Emborrachado Sensorial Dobrável Dupla Face Educativo Cidade I Love Baby",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 10mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +10mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 109.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 75.04,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "31% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "ou {price_total} em outros meios",
+                    "no_interest": false,
+                    "values": [
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 78.99,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "HU_rWRWEw9qdMPigPt6_8BYniM6gGUBdxFC_xgjSoJY",
+            "metadata": {
+              "id": "MLB6809265572",
+              "user_product_id": "MLBU3977008005",
+              "pid": "MLBU3977008005",
+              "pid_extended": "MLBU3977008005_MLB6809265572",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/kit-saida-maternidade-safari-menino-4-pcs-bordado-delicado/up/MLBU3977008005",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6809265572&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "868361-MLB110979509102_052026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Kit Saída Maternidade Safari Menino 4 Pçs Bordado Delicado Verde 0-1 M",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.8 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.8"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 95.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 61.9,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "35% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "uv6gu2XqCYJPUn9udc8Tm0RJAGOk2lDMwTlJlA_fhzk",
+            "metadata": {
+              "id": "MLB5762171908",
+              "variation_id": "191388864533",
+              "pid": "MLBI5762171908",
+              "pid_extended": "MLBI5762171908",
+              "pid_version": "0.5.0",
+              "url": "produto.mercadolivre.com.br/MLB-5762171908-body-beb-bandeira-brasil-letras-roupa-_JM",
+              "url_fragments": "#polycard_client=affiliates&sid=affiliates",
+              "url_params": "?searchVariation=191388864533&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "item"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "688946-MLB93959712689_102025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "sanitized_title": "-body-beb-bandeira-brasil-letras-roupa",
+              "overlay": true,
+              "variation_id": "191388864533"
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Body Bebê Bandeira Brasil Letras Roupa",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.1 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.1"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 29.9,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "mfkvLPh2-u9JLUhiZZc7t3DX9-ow28pCH59zGNd79gE",
+            "metadata": {
+              "id": "MLB7535460328",
+              "product_id": "MLB45985757",
+              "user_product_id": "MLBU4996535152",
+              "pid": "MLBP45985757",
+              "pid_extended": "MLBP45985757_MLB7535460328",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/kit-3-sabonetes-liquidos-granado-bebe-glicerina-tradicional-250ml-refil/p/MLB45985757",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7535460328&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "649364-MLA99924628837_112025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Kit 3 Sabonetes Líquidos Granado Bebê Glicerina Tradicional 250ml Refil",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 5.0 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "5.0"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 59,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "xU3zBa3ihdFK-7mWBdFcUOBAPT0pnbRvQNDGgPzw2KU",
+            "metadata": {
+              "id": "MLB7058207216",
+              "user_product_id": "MLBU4185968554",
+              "pid": "MLBU4185968554",
+              "pid_extended": "MLBU4185968554_MLB7058207216",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/andador-quadriciclo-jip-jip-baby-quad-lady-star-rosa-maral/up/MLBU4185968554",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7058207216&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "13221226",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "13221226"
+                    }
+                  ],
+                  "price": 302.24
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "847142-MLB114221755819_072026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS COMPARTILHADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Andador Quadriciclo Jip Jip Baby Quad Lady Star Rosa Maral Rosa",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 5.0 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "5.0"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 799,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 302.24,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "62% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "ou {price_total} em outros meios",
+                    "no_interest": false,
+                    "values": [
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 318.15,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "r7Z57qmH7HTYiAQ1dYkdP9O6z8unMNv2kRScKfvK-W4",
+            "metadata": {
+              "id": "MLB5832478624",
+              "user_product_id": "MLBU3186323820",
+              "pid": "MLBU3186323820",
+              "pid_extended": "MLBU3186323820_MLB5832478624",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/3-brinquedo-educativo-encaixe-bebe-infantil-1-ano-12-meses/up/MLBU3186323820",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5832478624&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB5832478624&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "648735-MLB115531812660_082026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS COMPARTILHADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "3 Brinquedo Educativo Encaixe Bebe Infantil 1 Ano 12 Meses Colorido",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 78.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 69.99,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "11% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "5jyg0Qyds1pJLIezX9xRBuEFdcQv1OkaKPmCfaIUHRo",
+            "metadata": {
+              "id": "MLB5498761126",
+              "variation_id": "189018104387",
+              "pid": "MLBI5498761126",
+              "pid_extended": "MLBI5498761126",
+              "pid_version": "0.5.0",
+              "url": "produto.mercadolivre.com.br/MLB-5498761126-chocalho-mordedor-para-beb-3-meses-dentico-70p-_JM",
+              "url_fragments": "#polycard_client=affiliates&sid=affiliates",
+              "url_params": "?searchVariation=189018104387&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "item"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "800020-MLB116420473828_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "sanitized_title": "-chocalho-mordedor-para-beb-3-meses-dentico-70p",
+              "overlay": true,
+              "variation_id": "189018104387"
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Chocalho Mordedor Para Bebê 3  Meses Dentição 70p",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 29.99,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 28.49,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "5% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "contract_version": "1.3.0"
+      },
+      "container_url": "https://lista.mercadolivre.com.br/_Container_aff-hub-v2-mixed-topics-mlb",
+      "filters": [
+        {
+          "id": "category",
+          "name": "Categorías",
+          "values": [
+            {
+              "id": "MLB420332",
+              "name": "Andadores e Mini Veículos"
+            },
+            {
+              "id": "MLB5358",
+              "name": "Segurança para Bebê"
+            },
+            {
+              "id": "MLB420293",
+              "name": "Chupetas e Mordedores"
+            },
+            {
+              "id": "MLB420409",
+              "name": "Passeio do Bebê"
+            },
+            {
+              "id": "MLB1396",
+              "name": "Roupas de Bebê"
+            },
+            {
+              "id": "MLB1392",
+              "name": "Brinquedos para Bebês"
+            },
+            {
+              "id": "MLB420295",
+              "name": "Maternidade"
+            },
+            {
+              "id": "MLB420334",
+              "name": "Banho do Bebê"
+            },
+            {
+              "id": "MLB5360",
+              "name": "Alimentação e Amamentação"
+            },
+            {
+              "id": "MLB420353",
+              "name": "Saúde do Bebê"
+            },
+            {
+              "id": "MLB420361",
+              "name": "Quarto do Bebê"
+            },
+            {
+              "id": "MLB420375",
+              "name": "Higiene e Cuidados com o Bebê"
+            }
+          ]
+        },
+        {
+          "id": "extra_commission",
+          "name": "Comisión extra"
+        },
+        {
+          "id": "best_seller",
+          "name": "Más vendidos"
+        }
+      ],
+      "sort": {
+        "id": "relevance",
+        "name": "Mais relevantes"
+      },
+      "available_sorts": [
+        {
+          "id": "lowest_price",
+          "name": "Menor preço"
+        },
+        {
+          "id": "highest_price",
+          "name": "Maior preço"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,3169 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://www.mercadolivre.com.br/affiliate-program/api/hub/search?is_affiliate=true&device=desktop",
+    "body": {
+      "search": "",
+      "sort": "relevance",
+      "filters": [],
+      "offset": 54
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "polycard_client_model": {
+        "polycard_context": {
+          "contract_version": "1.3.0",
+          "picture_template": "https://http2.mlstatic.com/D_{square}_NP{2x}_{id}-{size}{sanitized_title}.webp",
+          "picture_size_default": "AB",
+          "url_prefix": "https://",
+          "type": "grid-card",
+          "card_size": "large",
+          "checkbox": false,
+          "thousand_separator": ".",
+          "decimal_separator": ",",
+          "styles_default": [],
+          "picture_overlay_default": true,
+          "picture_square_default": "Q",
+          "url_fragments_default": "#polycard_client=affiliates",
+          "signal_configs": {
+            "defaults": {
+              "min_visible_fraction": 0.75,
+              "min_duration_ms": 300,
+              "exit_fraction": 0.75,
+              "no_interaction_timeout_ms": 30000,
+              "once_per_card": false,
+              "initial_viewport_starts_on_scroll": false,
+              "stream": "melidata-dwell",
+              "enabled": true,
+              "sensors": {
+                "screen": {
+                  "enabled": false
+                },
+                "card": {
+                  "enabled": true
+                }
+              }
+            }
+          }
+        },
+        "polycards": [
+          {
+            "unique_id": "6tZxvRPnKJ-k9FvU5-yKbDZVyLOwpJTeaoEy7ieZ5VQ",
+            "metadata": {
+              "id": "MLB4133319409",
+              "variation_id": "189150737367",
+              "pid": "MLBI4133319409",
+              "pid_extended": "MLBI4133319409",
+              "pid_version": "0.5.0",
+              "url": "produto.mercadolivre.com.br/MLB-4133319409-kit-3-legging-com-bolso-fitness-feminino-atletyca-_JM",
+              "url_fragments": "#polycard_client=affiliates&sid=affiliates",
+              "url_params": "?searchVariation=189150737367&pdp_filters=item_id%3AMLB4133319409&extra_comm=true&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "14388620",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "14388620"
+                    }
+                  ],
+                  "price": 84.54
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "item"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "826099-MLB88443115013_072025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "sanitized_title": "-kit-3-legging-com-bolso-fitness-feminino-atletyca",
+              "overlay": true,
+              "variation_id": "189150737367"
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Kit 3 Legging Com Bolso Fitness Feminino Atletyca",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.7 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.7"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "24%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 215.71,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 84.54,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "60% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "ou {price_total} em outros meios",
+                    "no_interest": false,
+                    "values": [
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 88.99,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "2z5kbEP3sPhAWE7Hbr0VQ0bubyJ94T1eEPqVkBgBV5Q",
+            "metadata": {
+              "id": "MLB3555628527",
+              "product_id": "MLB19493942",
+              "user_product_id": "MLBU1402108317",
+              "pid": "MLBP19493942",
+              "pid_extended": "MLBP19493942_MLB3555628527",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/guarda-roupa-casal-madesa-monaco-3-portas-correr-espelho-cor-branco-1093d81e/p/MLB19493942",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB3555628527&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB3555628527&extra_comm=true&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "14471080",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "14471080"
+                    }
+                  ],
+                  "price": 809.09
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "610870-MLA95657253150_102025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Guarda Roupa Casal Madesa Mônaco 3 Portas Correr Espelho Cor Branco 1093D81E",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.6 de 5 estrelas. Mais de 5mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.6"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +5mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "17%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 1235,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 809.09,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "34% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "{o} {price_total} {en} 10x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "o",
+                        "type": "label",
+                        "label": {
+                          "text": "ou"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      },
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 929.99,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      },
+                      {
+                        "key": "en",
+                        "type": "label",
+                        "label": {
+                          "text": "em"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      },
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 93,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "B2V7JISodCLnSZHFtq8pqsdrgE3K7OJv_PsAafC0bYQ",
+            "metadata": {
+              "id": "MLB5380886386",
+              "user_product_id": "MLBU3528057754",
+              "pid": "MLBU3528057754",
+              "pid_extended": "MLBU3528057754_MLB5380886386",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/vaso-sanitario-monobloco-privada-banheiro-kit-caixa-acoplada/up/MLBU3528057754",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5380886386&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB5380886386&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "657688-MLB118947992687_102026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Vaso Sanitário Monobloco Privada Banheiro Kit Caixa Acoplada",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.8 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.8"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "24%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 1249,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "49% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  },
+                  "installments": {
+                    "text": "10x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 124.9,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "HzmhGklFtqryushTOD6yUx32_xCVw4Uwgcx79GPiHhU",
+            "metadata": {
+              "id": "MLB5245509281",
+              "product_id": "MLB79379982",
+              "user_product_id": "MLBU5185633989",
+              "pid": "MLBP79379982",
+              "pid_extended": "MLBP79379982_MLB5245509281",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/arvore-de-natal-180m-pinheiro-verde-450-galhos-base-de-ferro/p/MLB79379982",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5245509281&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "759252-MLA117713732759_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Árvore de Natal 1,80m Pinheiro Verde 450 Galhos Base de Ferro",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 5.0 de 5 estrelas. Mais de 500 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "5.0"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +500 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 179.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 119.9,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "33% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "XIxuqNmDUwdgVluC9QH_FyKhh8EbCF_ZHRJW1uUKyko",
+            "metadata": {
+              "id": "MLB6642325828",
+              "product_id": "MLB68320090",
+              "user_product_id": "MLBU3896207951",
+              "pid": "MLBP68320090",
+              "pid_extended": "MLBP68320090_MLB6642325828",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/cafeteira-eletrica-jarra-de-vidro-600ml-hayom-640w-preto/p/MLB68320090",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6642325828&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "956856-MLA109730849314_042026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS COMPARTILHADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Cafeteira Elétrica Jarra De Vidro 600ml Hayom 640w Preto",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.7 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.7"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 5%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 125,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 69,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "44% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "tGm_TZXIy2eEoWtIj22iv08CKts2kM6tTVcrrLHD4qM",
+            "metadata": {
+              "id": "MLB7212788522",
+              "user_product_id": "MLBU4385992028",
+              "pid": "MLBU4385992028",
+              "pid_extended": "MLBU4385992028_MLB7212788522",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/escova-secadora-4-em-1-seca-alisa-e-modela-cabelo-1200w/up/MLBU4385992028",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7212788522&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "818890-MLB114915181274_082026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS COMPARTILHADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Escova Secadora 4 Em 1 Seca Alisa E Modela Cabelo 1200w Preto 110v",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.6 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.6"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 37,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "dHtoKjsvsmnykvjs1t1NtfmjVRrRbhUncBFM4iARUX8",
+            "metadata": {
+              "id": "MLB5293771073",
+              "product_id": "MLB78877504",
+              "user_product_id": "MLBU5158402154",
+              "pid": "MLBP78877504",
+              "pid_extended": "MLBP78877504_MLB5293771073",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/celular-samsung-galaxy-s26-fe-128gb-8gb-ram-tela-67-azul-cobalto/p/MLB78877504",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5293771073&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "12937854",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "12937854"
+                    }
+                  ],
+                  "price": 3599.1
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "895608-MLA117138199441_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "{black_friday_icon} BLACK FRIDAY",
+                  "values": [
+                    {
+                      "key": "black_friday_icon",
+                      "type": "icon",
+                      "icon": {
+                        "key": "black_friday_icon",
+                        "icon_id": "black_friday_icon"
+                      }
+                    }
+                  ],
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#1A1A1A"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Celular Samsung Galaxy S26 FE 128GB, 8GB RAM Tela 6,7\" - Azul cobalto",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 5%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 5499,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 3599,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "34% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "{o} {price_total} {en} 10x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "o",
+                        "type": "label",
+                        "label": {
+                          "text": "ou"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      },
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 3999,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      },
+                      {
+                        "key": "en",
+                        "type": "label",
+                        "label": {
+                          "text": "em"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      },
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 399.9,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "VRizB_lcXdwJAYZ4m-7NfxML7GXcMCrngA7A5_7EZKI",
+            "metadata": {
+              "id": "MLB7192854404",
+              "user_product_id": "MLBU4334008139",
+              "pid": "MLBU4334008139",
+              "pid_extended": "MLBU4334008139_MLB7192854404",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/churrasqueira-portatil-a-carvao-camping-praia-dobravel/up/MLBU4334008139",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB7192854404&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB7192854404&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "892281-MLB114719390317_072026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Churrasqueira Portátil A Carvão Camping Praia Dobrável Preto",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.7 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.7"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "20%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 69.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 67.8,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "3% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  },
+                  "installments": {
+                    "text": "3x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 22.6,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "reg5RANmhHv5LfQwwZJTDJHIcHfuhTOi8EKHI4tfdSs",
+            "metadata": {
+              "id": "MLB4714562299",
+              "product_id": "MLB47281532",
+              "user_product_id": "MLBU3835711069",
+              "pid": "MLBP47281532",
+              "pid_extended": "MLBP47281532_MLB4714562299",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/bolsa-feminina-para-notebook-com-compartimento-termico-para-almoco-bolsa-tote-executiva-pu-couro-156-polegadas-mochila-conversivel-leve-para-trabalho-e-escritorio-matein-1447-cor-preto-liso/p/MLB47281532",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB4714562299&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "907577-MLA99583764690_122025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS BUSCADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Bolsa Feminina Para Notebook Com Compartimento Térmico Para Almoço Bolsa Tote Executiva Pu Couro 15,6 Polegadas Mochila Conversível Leve Para Trabalho E Escritório, Matein 1447 Cor Preto Liso",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 16%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 400,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 142,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "64% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "UkjCjjKCFOC9p9mTVyBWOxFjUqi6cscqGkzbvAGa8Y4",
+            "metadata": {
+              "id": "MLB6600141906",
+              "product_id": "MLB67734744",
+              "user_product_id": "MLBU3899471282",
+              "pid": "MLBP67734744",
+              "pid_extended": "MLBP67734744_MLB6600141906",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/conjunto-de-panelas-cacarolas-5-pecas-antiaderente-com-3-utensilios-e-tampa-de-vidro-preto/p/MLB67734744",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6600141906&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB6600141906&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "937372-MLA118383619877_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS BUSCADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Conjunto De Panelas Caçarolas 5 Peças Antiaderente Com 3 Utensilios E Tampa De Vidro Preto",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.8 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.8"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "20%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 268.05,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 199.9,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "25% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  },
+                  "installments": {
+                    "text": "12x {price}",
+                    "no_interest": false,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 19.79,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "sAiNF914U3AMJUGvOiGjf3PDJqmnihVlmGbXl3Uny9g",
+            "metadata": {
+              "id": "MLB5219805163",
+              "product_id": "MLB26847923",
+              "user_product_id": "MLBU5174016868",
+              "pid": "MLBP26847923",
+              "pid_extended": "MLBP26847923_MLB5219805163",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/varal-chao-aco-inox-retratil-3-andares-sg-style/p/MLB26847923",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5219805163&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "636200-MLA110342949219_042026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS BUSCADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Varal Chão Aço Inox Retrátil 3 Andares S.G Style",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.6 de 5 estrelas. Mais de 5mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.6"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +5mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 159.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 68.47,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "57% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  },
+                  "installments": {
+                    "text": "3x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 22.82,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "sYiT5tawfEZKCy01_NNo-fpiXkNP8HZULsWsFc13s_c",
+            "metadata": {
+              "id": "MLB1663767572",
+              "product_id": "MLB10513380",
+              "user_product_id": "MLBU600187222",
+              "pid": "MLBP10513380",
+              "pid_extended": "MLBP10513380_MLB1663767572",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/ventilador-de-coluna-40cm-ventisol-turbo-6-pas-oscilante-e-altura-ajustavel-cor-preto/p/MLB10513380",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB1663767572&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "795443-MLA99956962451_112025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Ventilador de Coluna 40cm Ventisol Turbo 6 Pás Oscilante e Altura ajustável Cor Preto",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.7 de 5 estrelas. Mais de 50mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.7"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +50mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 5%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 222.9,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 168.63,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "24% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  },
+                  "installments": {
+                    "text": "5x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 33.73,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "I3qaV0F44M21HV8psCvEQ3WoG5dpvrpcv1CdZIN91rs",
+            "metadata": {
+              "id": "MLB7585358854",
+              "variation_id": "206878948811",
+              "pid": "MLBI7585358854",
+              "pid_extended": "MLBI7585358854",
+              "pid_version": "0.5.0",
+              "url": "produto.mercadolivre.com.br/MLB-7585358854-mesa-de-escritorio-dec-moveis-120x60-2-gavetas-1-com-chave-_JM",
+              "url_fragments": "#polycard_client=affiliates&sid=affiliates",
+              "url_params": "?searchVariation=206878948811&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "item"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "833442-MLB115693657486_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "sanitized_title": "-mesa-de-escritorio-dec-moveis-120x60-2-gavetas-1-com-chave",
+              "overlay": true,
+              "variation_id": "206878948811"
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "PREÇO IMBATÍVEL",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Mesa De Escritório Dec Móveis 120x60 2 Gavetas (1 Com Chave)",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.3 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.3"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 389.9,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "installments": {
+                    "text": "7x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 55.7,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "BPDJfpkgjvVJIT-hmKw7o63sVwM4biPGj-TW99z_mAI",
+            "metadata": {
+              "id": "MLB6545636022",
+              "user_product_id": "MLBU3880729472",
+              "pid": "MLBU3880729472",
+              "pid_extended": "MLBU3880729472_MLB6545636022",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/kit-6-pote-vidro-porta-temperos-hermetico-cozinha-organiza-v/up/MLBU3880729472",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB6545636022&sid=affiliates",
+              "url_params": "?pdp_filters=item_id%3AMLB6545636022&extra_comm=true&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "user_product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "679824-MLB114327556861_072026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Kit 6 Pote Vidro Porta Temperos Hermético Cozinha Organiza V Vidro/tampa De Bambu",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.9 de 5 estrelas. Mais de 10mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.9"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +10mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "20%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 74.67,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 39.89,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "46% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "Gd3PhpSC0iTJPr4M6LOgAUCV8U-hVkHjhymHCd6US5Q",
+            "metadata": {
+              "id": "MLB4480714525",
+              "product_id": "MLB25840836",
+              "user_product_id": "MLBU3798898757",
+              "pid": "MLBP25840836",
+              "pid_extended": "MLBP25840836_MLB4480714525",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/bolinhas-coloridas-para-piscina-play-cia-plastico-76cm-kit-50-unidades/p/MLB25840836",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB4480714525&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "948350-MLA113591377802_072026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Bolinhas Coloridas Para Piscina Play & Cia Plástico 7.6cm Kit 50 Unidades",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.8 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.8"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 27.99,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 24.74,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "11% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "t5eDnLQZXJcvEwzZAH8mm4Mi5EIv4ELNXruNgUWZ5z8",
+            "metadata": {
+              "id": "MLB5787521498",
+              "product_id": "MLB59810005",
+              "user_product_id": "MLBU3406238289",
+              "pid": "MLBP59810005",
+              "pid_extended": "MLBP59810005_MLB5787521498",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/geladeira-lg-frost-free-inverter-395l-duplex-cor-branca-12-branco/p/MLB59810005",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5787521498&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "878982-MLA100075741481_122025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS BUSCADO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#635BF5"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Geladeira LG Frost Free Inverter 395l Duplex Cor Branca - 12 Branco",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.7 de 5 estrelas. Mais de 100 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.7"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 5%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 3699,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 2589,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "30% OFF",
+                    "styles": {
+                      "color_hex": "#FFFFFF",
+                      "background_color_hex": "#00A650"
+                    }
+                  },
+                  "installments": {
+                    "text": "10x {price} sem juros",
+                    "no_interest": true,
+                    "values": [
+                      {
+                        "key": "price",
+                        "type": "price",
+                        "price": {
+                          "value": 258.93,
+                          "currency": "BRL"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "O2DQgy7_aQcvkBKEyzQwdHFt5ECHrAunXFHePmzvXT4",
+            "metadata": {
+              "id": "MLB5073108092",
+              "product_id": "MLB19590092",
+              "user_product_id": "MLBU1368355914",
+              "pid": "MLBP19590092",
+              "pid_extended": "MLBP19590092_MLB5073108092",
+              "pid_version": "0.5.0",
+              "url": "www.mercadolivre.com.br/ducha-eletronica-lorenzetti-loren-shower-ultra-7500w-220v-branco/p/MLB19590092",
+              "url_fragments": "#polycard_client=affiliates&wid=MLB5073108092&sid=affiliates",
+              "url_params": "?pdp_filters=deal%3AMLB1578289-1&extra_comm=false&brand_comm=false",
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "false",
+              "brand_commission": "false",
+              "type": "product"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "638677-MLA118516851287_092026"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "overlay": true
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "MAIS VENDIDO",
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#FF7733"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Ducha Eletrônica Lorenzetti Loren Shower Ultra 7500W 220V Branco",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.8 de 5 estrelas. Mais de 100mil produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.8"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +100mil vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "GANHOS 12%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "current_price": {
+                    "value": 135,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "unique_id": "eKWifPWs3-UCuT1jqWKWEFz_HZaLAqh7zirXSpBrKkE",
+            "metadata": {
+              "id": "MLB4029963733",
+              "variation_id": "183339764386",
+              "pid": "MLBI4029963733",
+              "pid_extended": "MLBI4029963733",
+              "pid_version": "0.5.0",
+              "url": "produto.mercadolivre.com.br/MLB-4029963733-camisa-brasil-camiseta-torcedor-futebol-masculina-dry-fit-uv-_JM",
+              "url_fragments": "#polycard_client=affiliates&sid=affiliates",
+              "url_params": "?searchVariation=183339764386&pdp_filters=item_id%3AMLB4029963733&extra_comm=true&brand_comm=false",
+              "tracks": {
+                "price": {
+                  "promotions": [
+                    {
+                      "campaigns": [
+                        {
+                          "id": "14164004",
+                          "type": "PIX"
+                        }
+                      ],
+                      "type": "price_decrement",
+                      "campaign_id": "14164004"
+                    }
+                  ],
+                  "price": 44.74
+                }
+              },
+              "card_type": "grid-card",
+              "vertical": "",
+              "extra_commission": "true",
+              "brand_commission": "false",
+              "type": "item"
+            },
+            "pictures": {
+              "scale": "FILL",
+              "pictures": [
+                {
+                  "id": "817552-MLB98020334608_112025"
+                }
+              ],
+              "square": "Q",
+              "alt_text": "Imagem",
+              "sanitized_title": "-camisa-brasil-camiseta-torcedor-futebol-masculina-dry-fit-uv",
+              "overlay": true,
+              "variation_id": "183339764386"
+            },
+            "components": [
+              {
+                "type": "highlight",
+                "id": "highlight",
+                "highlight": {
+                  "text": "{black_friday_icon} OFERTA IMPERDÍVEL",
+                  "values": [
+                    {
+                      "key": "black_friday_icon",
+                      "type": "icon",
+                      "icon": {
+                        "key": "black_friday_icon",
+                        "icon_id": "black_friday_icon"
+                      }
+                    }
+                  ],
+                  "styles": {
+                    "color_hex": "#FFFFFF",
+                    "background_color_hex": "#2968C8"
+                  }
+                }
+              },
+              {
+                "type": "title",
+                "id": "title",
+                "title": {
+                  "text": "Camisa Brasil Camiseta Torcedor Futebol Masculina Dry Fit Uv",
+                  "long_title": false
+                }
+              },
+              {
+                "type": "review_compacted",
+                "id": "review_compacted",
+                "review_compacted": {
+                  "text": "{icon_star_fill} {label} {label2}",
+                  "alt_text": "Classificação 4.6 de 5 estrelas. Mais de 1000 produtos vendidos.",
+                  "values": [
+                    {
+                      "key": "icon_star_fill",
+                      "type": "icon",
+                      "icon": {
+                        "key": "icon_star_fill",
+                        "icon_id": "icon_star_fill"
+                      }
+                    },
+                    {
+                      "key": "label",
+                      "type": "label",
+                      "label": {
+                        "text": "4.6"
+                      },
+                      "styles": {
+                        "color_hex": "#000000",
+                        "font_size": "xs",
+                        "font_weight": "regular"
+                      }
+                    },
+                    {
+                      "key": "label2",
+                      "type": "label",
+                      "label": {
+                        "text": "| +1000 vendidos"
+                      },
+                      "styles": {
+                        "color_hex": "#737373",
+                        "font_size": "xs"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "chip",
+                "id": "affiliates_commission_chip",
+                "chip": {
+                  "type": "composite",
+                  "inverted": false,
+                  "inline": true,
+                  "pill": {
+                    "text": "{ganancia} {extra}",
+                    "values": [
+                      {
+                        "key": "ganancia",
+                        "type": "label",
+                        "label": {
+                          "text": "GANHOS"
+                        }
+                      },
+                      {
+                        "key": "extra",
+                        "type": "label",
+                        "label": {
+                          "text": "EXTRAS"
+                        },
+                        "styles": {
+                          "font_style": "italic"
+                        }
+                      }
+                    ],
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#A5F8F2"
+                    }
+                  },
+                  "label": {
+                    "text": "21%",
+                    "styles": {
+                      "font_weight": "semibold",
+                      "background_color_hex": "#E3F6F5"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "price",
+                "id": "price",
+                "price": {
+                  "previous_price": {
+                    "value": 69.49,
+                    "currency": "BRL",
+                    "decimal_style": "normal"
+                  },
+                  "current_price": {
+                    "value": 44.74,
+                    "currency": "BRL",
+                    "decimal_style": "superscript"
+                  },
+                  "discount_label": {
+                    "text": "35% OFF no Pix"
+                  },
+                  "installments": {
+                    "text": "ou {price_total} em outros meios",
+                    "no_interest": false,
+                    "values": [
+                      {
+                        "key": "price_total",
+                        "type": "price",
+                        "price": {
+                          "value": 47.09,
+                          "currency": "BRL"
+                        },
+                        "styles": {
+                          "color": "primary"
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "action_links",
+                "id": "action_links",
+                "action_links": [
+                  {
+                    "id": "share_action",
+                    "type": "button",
+                    "hierarchy": "quiet",
+                    "size": "medium",
+                    "text": "Compartilhar"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "contract_version": "1.3.0"
+      },
+      "container_url": "https://lista.mercadolivre.com.br/_Container_aff-hub-v2-mixed-topics-mlb",
+      "filters": [
+        {
+          "id": "category",
+          "name": "Categorías",
+          "values": [
+            {
+              "id": "MLB1132",
+              "name": "Brinquedos e Hobbies"
+            },
+            {
+              "id": "MLB263532",
+              "name": "Ferramentas"
+            },
+            {
+              "id": "MLB1648",
+              "name": "Informática"
+            },
+            {
+              "id": "MLB1384",
+              "name": "Bebês"
+            },
+            {
+              "id": "MLB3937",
+              "name": "Joias e Relógios"
+            },
+            {
+              "id": "MLB1574",
+              "name": "Casa, Móveis e Decoração"
+            },
+            {
+              "id": "MLB1500",
+              "name": "Construção"
+            },
+            {
+              "id": "MLB1000",
+              "name": "Eletrônicos, Áudio e Vídeo"
+            },
+            {
+              "id": "MLB1499",
+              "name": "Indústria e Comércio"
+            },
+            {
+              "id": "MLB12404",
+              "name": "Festas e Lembrancinhas"
+            },
+            {
+              "id": "MLB1144",
+              "name": "Games"
+            },
+            {
+              "id": "MLB1039",
+              "name": "Câmeras e Acessórios"
+            },
+            {
+              "id": "MLB1276",
+              "name": "Esportes e Fitness"
+            },
+            {
+              "id": "MLB5726",
+              "name": "Eletrodomésticos"
+            },
+            {
+              "id": "MLB264586",
+              "name": "Saúde"
+            },
+            {
+              "id": "MLB5672",
+              "name": "Acessórios para Veículos"
+            },
+            {
+              "id": "MLB271599",
+              "name": "Agro"
+            },
+            {
+              "id": "MLB1368",
+              "name": "Arte, Papelaria e Armarinho"
+            },
+            {
+              "id": "MLB1071",
+              "name": "Pet Shop"
+            },
+            {
+              "id": "MLB1182",
+              "name": "Instrumentos Musicais"
+            },
+            {
+              "id": "MLB1246",
+              "name": "Beleza e Cuidado Pessoal"
+            },
+            {
+              "id": "MLB1051",
+              "name": "Celulares e Telefones"
+            },
+            {
+              "id": "MLB1196",
+              "name": "Livros, Revistas e Comics"
+            },
+            {
+              "id": "MLB1430",
+              "name": "Calçados, Roupas e Bolsas"
+            }
+          ]
+        },
+        {
+          "id": "extra_commission",
+          "name": "Comisión extra"
+        },
+        {
+          "id": "best_seller",
+          "name": "Más vendidos"
+        }
+      ],
+      "sort": {
+        "id": "relevance",
+        "name": "Mais relevantes"
+      },
+      "available_sorts": [
+        {
+          "id": "lowest_price",
+          "name": "Menor preço"
+        },
+        {
+          "id": "highest_price",
+          "name": "Maior preço"
+        }
+      ]
+    }
+  }
+}
