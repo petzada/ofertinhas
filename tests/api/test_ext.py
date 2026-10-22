@@ -67,7 +67,7 @@ def test_config_lists_niche_categories_and_rhythm(env):
     cfg = env.client.get("/ext/config", headers=H).json()
     assert cfg["paused"] is False
     assert cfg["window"] == ["05:30", "22:00"]  # coleta e links só de dia
-    assert cfg["collect_every_min"] == 60 and cfg["pages_per_category"] == 2
+    assert cfg["collect_every_min"] == 60 and cfg["pages_per_category"] == 1
     assert cfg["categories"][0] == {"id": "MLB1574", "name": "Casa, Móveis e Decoração"}
     assert cfg["portal_url"].startswith("https://www.mercadolivre.com.br/afiliados/hub")
     assert cfg["search_url"].endswith("/affiliate-program/api/hub/search?is_affiliate=true"

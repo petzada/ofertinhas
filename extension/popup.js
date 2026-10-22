@@ -88,8 +88,7 @@ $("toggle").addEventListener("click", async () => {
     $("error").hidden = false;
   }
   await render();
-renderStock();
-setInterval(renderStock, 5_000); // acompanha os links enquanto o popup está aberto
+  await renderStock();
 });
 
 $("collect").addEventListener("click", async () => {
@@ -99,11 +98,11 @@ $("collect").addEventListener("click", async () => {
   setTimeout(() => {
     $("collect").textContent = "Coletar agora";
     render();
-renderStock();
-setInterval(renderStock, 5_000); // acompanha os links enquanto o popup está aberto
+    renderStock();
   }, 1500);
 });
 
 render();
 renderStock();
-setInterval(renderStock, 5_000); // acompanha os links enquanto o popup está aberto
+// Um só timer: acompanha os links enquanto o popup está aberto (cada consulta roda na nuvem).
+setInterval(renderStock, 20_000);

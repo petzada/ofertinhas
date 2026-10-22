@@ -9,7 +9,7 @@ brand: "Ofertas 2KAI"    # texto do topo do card (o mesmo para todos os nichos)
 collector:              # ritmo da extensão no portal de afiliados
   every_min: 60         # um ciclo de coleta a cada ~60 min
   jitter_min: 10        # ± variação aleatória
-  pages_per_category: 2 # 18 ofertas por página
+  pages_per_category: 1 # 18 ofertas por página (as melhores da categoria ficam na 1ª)
   categories_per_cycle: 6  # rodízio: cada ciclo coleta 6 categorias, as próximas no ciclo seguinte
   request_gap_s: [5, 15]
   include_unfiltered: false  # true: também lê a lista geral (nicho só por keywords)
