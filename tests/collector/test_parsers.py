@@ -116,3 +116,23 @@ def test_one_broken_card_is_skipped():
 )
 def test_parse_sold(text, expected):
     assert parse_sold(text) == expected
+
+
+def without_commission(resp):
+    for card in resp["polycard_client_model"]["polycards"]:
+        card["components"] = [c for c in card["components"]
+                              if c["id"] != "affiliates_commission_chip"]
+        card["metadata"]["brand_commission"] = card["metadata"]["extra_commission"] = "none"
+    return resp
+
+
+def test_page_of_products_without_commission_is_valid_but_empty():
+    req, resp = load("hub-search-categoria-bebes.json")
+    assert parse_hub_search(req, without_commission(resp), now=NOW) == []
+
+
+def test_cards_without_commission_are_skipped_among_good_ones():
+    req, resp = load("hub-search-geral-offset18.json")
+    cards = resp["polycard_client_model"]["polycards"]
+    without_commission({"polycard_client_model": {"polycards": cards[:5]}})
+    assert len(parse_hub_search(req, resp, now=NOW)) == len(cards) - 5

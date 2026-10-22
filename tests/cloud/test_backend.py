@@ -167,3 +167,9 @@ def test_post_x_needs_the_keys(backend):
     client = TestClient(backend.app)
     assert client.post("/admin/post-x").status_code == 401
     assert client.post("/admin/post-x", headers=H).status_code == 409
+
+
+def test_stats_reports_the_day(backend):
+    stats = TestClient(backend.app).get("/admin/stats", headers=H).json()
+    assert stats["offers_seen_today"] == 0 and stats["links_by_hour"] == []
+    assert TestClient(backend.app).get("/admin/stats").status_code == 401

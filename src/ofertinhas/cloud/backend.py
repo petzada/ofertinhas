@@ -9,7 +9,7 @@ import json
 import logging
 import secrets
 from collections.abc import Callable, Mapping
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import httpx
@@ -22,7 +22,7 @@ from ..approval.bot import BotDeps
 from ..config import load_config
 from ..creative.image import fetch_product_image
 from ..jobs import guarded, make_jobs
-from ..models import utcnow
+from ..models import TZ, utcnow
 from ..publisher.publish import publish_due, x_thread
 from ..publisher.telegram import TelegramSender
 from ..publisher.whatsapp import WhatsAppSender
@@ -158,6 +158,42 @@ class CloudBackend:
                     "recent_posts": [dict(zip(r.keys(), r, strict=True)) for r in recent],
                     "alerts": {r["key"]: json.loads(r["value_json"]) for r in alerts},
                     "latest_links": [dict(zip(r.keys(), r, strict=True)) for r in latest_links]}
+
+        @app.get("/admin/stats", dependencies=[Depends(app.state.require_token)])
+        async def admin_stats() -> dict:
+            """Volume do dia (horário de SP): coletas, links, posts e a idade do estoque."""
+            now = self.clock()
+            start = now.astimezone(TZ).replace(hour=0, minute=0, second=0, microsecond=0)
+            start, hour_ago = start.astimezone(UTC).isoformat(), (now - timedelta(hours=1))
+
+            def rows(sql: str, *params) -> list[dict]:
+                return [dict(zip(r.keys(), r, strict=True))
+                        for r in self.conn.execute(sql, params)]
+
+            real = "chat NOT LIKE 'dry-run:%' AND chat <> 'manual-test'"
+            return {
+                "now": now.isoformat(),
+                "offers_seen_today": rows("SELECT COUNT(*) AS n FROM offers WHERE updated_at >= ?",
+                                          start)[0]["n"],
+                "offers_seen_last_hour": rows(
+                    "SELECT COUNT(*) AS n FROM offers WHERE updated_at >= ?",
+                    hour_ago.astimezone(UTC).isoformat())[0]["n"],
+                "links_by_hour": rows(
+                    "SELECT substr(link_requested_at, 1, 13) AS hour, COUNT(*) AS n FROM offers "
+                    "WHERE affiliate_link IS NOT NULL AND link_requested_at >= ? "
+                    "GROUP BY hour ORDER BY hour", start),
+                "posts_today": rows(
+                    f"SELECT channel, COUNT(*) AS n FROM posts WHERE status = 'sent' AND {real} "
+                    "AND sent_at >= ? GROUP BY channel", start),
+                "linked_today_by_state": rows(
+                    "SELECT c.state, COUNT(*) AS n FROM candidates c JOIN offers o "
+                    "ON o.mlb_id = c.mlb_id WHERE o.link_requested_at >= ? GROUP BY c.state",
+                    start),
+                "rendered_age": rows(
+                    "SELECT c.mlb_id, c.decided_at, c.ref_price, o.price, o.updated_at "
+                    "FROM candidates c JOIN offers o ON o.mlb_id = c.mlb_id "
+                    "WHERE c.state = 'rendered' ORDER BY c.decided_at"),
+            }
 
         @app.post("/admin/post-now", dependencies=[Depends(app.state.require_token)])
         async def admin_post_now(mlb_id: str | None = None) -> dict:

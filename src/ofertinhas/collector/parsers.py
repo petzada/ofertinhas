@@ -101,10 +101,21 @@ def parse_hub_search(
 
     offers = []
     for card in cards:
+        if not _has_commission(card):
+            continue  # produto fora do programa de afiliados: não serve, mas não é erro
         try:
             offers.append(_parse_card(card, category_path, now))
         except (KeyError, TypeError, ValueError, IndexError) as e:
             log.warning("card ignorado: %s (%r)", e, card.get("metadata", {}).get("id"))
-    if cards and not offers:
+    if any(_has_commission(c) for c in cards) and not offers:
         return None
     return offers
+
+
+def _has_commission(card: Any) -> bool:
+    """Card sem o selo "GANHOS x%" é de produto sem comissão (o portal manda `none` nos
+    campos de comissão). Uma página inteira assim é válida: só não tem o que aproveitar."""
+    components = card.get("components") if isinstance(card, dict) else None
+    if not isinstance(components, list):
+        return True  # estrutura estranha: deixa o leitor decidir (e avisar)
+    return any(c.get("id") == "affiliates_commission_chip" for c in components)
