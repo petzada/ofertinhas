@@ -152,6 +152,8 @@ class CollectorConfig(_Strict):
     every_min: int = Field(20, ge=5)
     jitter_min: int = Field(5, ge=0)
     pages_per_category: int = Field(3, ge=1, le=10)
+    # Categorias por ciclo, em rodízio: cobre todos os nichos sem aumentar as chamadas ao ML.
+    categories_per_cycle: int = Field(6, ge=1)
     request_gap_s: tuple[int, int] = (5, 15)  # entre chamadas de busca
     include_unfiltered: bool = False  # também busca a lista geral (nicho só por keywords)
     window: tuple[time, time] | None = None  # None: coleta e links a qualquer hora

@@ -133,7 +133,7 @@ async function collect({ manual = false } = {}) {
   let next = RETRY_AFTER_ERROR_MS;
   try {
     const api = await backend();
-    const cfg = await api.get("/ext/config");
+    const cfg = await api.get("/ext/config?purpose=collect"); // avança o rodízio de categorias
     next = nextDelayMs(cfg.collect_every_min, cfg.collect_jitter_min);
     await patchState({ cfg, paused: cfg.paused, pauseReason: cfg.pause_reason, lastError: null });
     const tab = portalTab(cfg.portal_url);

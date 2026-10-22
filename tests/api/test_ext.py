@@ -74,6 +74,27 @@ def test_config_lists_niche_categories_and_rhythm(env):
                                       "&device=desktop")
 
 
+def test_collect_config_rotates_categories(env):
+    env.state.cfg.collector.categories_per_cycle = 4  # o exemplo tem 6 categorias
+
+    def ids():
+        reply = env.client.get("/ext/config?purpose=collect", headers=H).json()
+        return [c["id"] for c in reply["categories"]]
+
+    first, second, third = ids(), ids(), ids()
+    assert first == ["MLB1574", "MLB5726", "MLB263532", "MLB1648"]
+    assert second == ["MLB1051", "MLB1000", "MLB1574", "MLB5726"]
+    assert third == ["MLB263532", "MLB1648", "MLB1051", "MLB1000"]
+
+
+def test_plain_config_does_not_advance_rotation(env):
+    env.state.cfg.collector.categories_per_cycle = 4
+    env.client.get("/ext/config", headers=H)
+    env.client.get("/ext/config", headers=H)
+    first = env.client.get("/ext/config?purpose=collect", headers=H).json()["categories"]
+    assert first[0]["id"] == "MLB1574"
+
+
 def test_config_skips_paused_niche_categories(env):
     db.set_niche_override(env.conn, "casa", "paused", True)
     ids = [c["id"] for c in env.client.get("/ext/config", headers=H).json()["categories"]]

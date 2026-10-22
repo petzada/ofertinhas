@@ -33,6 +33,7 @@ SEARCH_URL = (
     "?is_affiliate=true&device=desktop"
 )
 SEARCH_PATH = "/affiliate-program/api/hub/search"
+ROTATION_KEY = "collector:rotation"
 UNKNOWN_FORMAT_EVERY = timedelta(hours=1)
 ALERT_EVERY = timedelta(minutes=30)
 
@@ -88,15 +89,23 @@ def create_app(state: ApiState) -> FastAPI:
     async def health() -> dict:
         return {"ok": True, "version": __version__}
 
+    def rotate(all_ids: list[str], advance: bool) -> list[str]:
+        """Próximas `categories_per_cycle` categorias; só a coleta faz o rodízio andar."""
+        size = state.cfg.collector.categories_per_cycle
+        if not all_ids or size >= len(all_ids):
+            return all_ids
+        offset = db.get_setting(conn, ROTATION_KEY, 0) % len(all_ids)
+        if advance:
+            db.set_setting(conn, ROTATION_KEY, (offset + size) % len(all_ids))
+        return [all_ids[(offset + i) % len(all_ids)] for i in range(size)]
+
     @router.get("/ext/config")
-    async def ext_config() -> dict:
+    async def ext_config(purpose: str | None = None) -> dict:
         col = state.cfg.collector
         pause = db.get_setting(conn, db.EXTENSION_PAUSED_KEY)
         paused_niches = {n for n, c in niche_configs(conn, state.cfg).items() if c.paused}
-        categories = [
-            {"id": c, "name": ROOT_CATEGORIES[c]}
-            for c in state.cfg.collector_categories(paused_niches)
-        ]
+        ids = rotate(state.cfg.collector_categories(paused_niches), advance=purpose == "collect")
+        categories = [{"id": c, "name": ROOT_CATEGORIES[c]} for c in ids]
         if col.include_unfiltered:
             categories.append(None)
         return {
