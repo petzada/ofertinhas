@@ -1,16 +1,26 @@
 """Etapas do ciclo de vida das ofertas; cada uma lê o estado do banco e grava o próximo."""
 
+import dataclasses
+import logging
 import sqlite3
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Awaitable, Callable, Iterable
 from datetime import datetime, timedelta
+from pathlib import Path
+
+from PIL import Image
 
 from . import db
 from .config import AppConfig, NicheConfig, Profile
+from .creative.image import render_card
+from .creative.text import render_caption
+from .creative.themes import theme_for
 from .models import ACTIVE_STATES, COOLDOWN_STATES, Candidate, CandidateState, Offer, utcnow
 from .ranking.filters import passes
 from .ranking.niches import match_niches
 from .ranking.scoring import Score, score_offer
+
+log = logging.getLogger(__name__)
 
 
 def niche_configs(conn: sqlite3.Connection, cfg: AppConfig) -> dict[str, NicheConfig]:
@@ -92,3 +102,41 @@ def score_and_route(
             )
             counts[state] += 1
     return counts
+
+
+async def render_linked(
+    conn: sqlite3.Connection,
+    cfg: AppConfig,
+    cards_dir: Path,
+    templates_dir: Path,
+    fetch_image: Callable[[str | None], Awaitable[Image.Image | None]],
+    now: datetime | None = None,
+) -> int:
+    """Gera legenda e card das candidatas com link (`linked` → `rendered`).
+
+    A legenda é uma só para Telegram e WhatsApp (formato neutro) e o rodízio de modelos é
+    por nicho. Uma candidata com problema é registrada no log e não trava as outras.
+    """
+    cards_dir.mkdir(parents=True, exist_ok=True)
+    rendered = 0
+    for cand in db.candidates_by_state(conn, CandidateState.LINKED):
+        try:
+            offer = db.get_offer(conn, cand.mlb_id)
+            template = (
+                cfg.for_niche(cand.niche).template if cand.niche in cfg.niches else cand.niche
+            )
+            caption = render_caption(conn, offer, template, cand.niche, templates_dir, now=now)
+            png = render_card(offer, theme_for(cand.niche), await fetch_image(offer.image_url))
+            path = cards_dir / f"{cand.mlb_id}-{cand.niche}.png"
+            path.write_bytes(png)
+        except Exception:
+            log.exception("falha ao gerar criativo de %s/%s", cand.mlb_id, cand.niche)
+            continue
+        db.save_candidate(
+            conn,
+            dataclasses.replace(
+                cand, state=CandidateState.RENDERED, caption=caption, card_path=str(path)
+            ),
+        )
+        rendered += 1
+    return rendered
