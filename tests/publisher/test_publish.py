@@ -156,10 +156,12 @@ async def test_niches_sharing_a_group_share_queue_and_pace(conn, tmp_path):
     assert await run(conn, cfg(), tg, now=NOW + timedelta(minutes=31)) == ["MLB1"]
 
 
-async def test_your_approvals_go_first_in_the_group(conn, tmp_path):
-    seed(conn, tmp_path, "MLB1", score=95)
-    seed(conn, tmp_path, "MLB2", score=60, notified=True)  # aprovada por você
-    assert await run(conn, cfg(), FakeTelegram()) == ["MLB2"]
+async def test_automatic_offers_go_before_your_approvals(conn, tmp_path):
+    seed(conn, tmp_path, "MLB1", score=60)  # automática: passou na regra mais dura
+    seed(conn, tmp_path, "MLB2", score=95, notified=True)  # aprovada por você: complemento
+    tg = FakeTelegram()
+    assert await run(conn, cfg(), tg) == ["MLB1"]
+    assert await run(conn, cfg(), tg, now=NOW + timedelta(minutes=31)) == ["MLB2"]
 
 
 async def test_paused_niche_is_skipped(conn, tmp_path):

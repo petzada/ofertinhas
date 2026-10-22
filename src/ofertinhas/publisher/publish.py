@@ -36,13 +36,17 @@ WHATSAPP_TYPING_S = (3, 8)
 def _next_in_group(
     conn: sqlite3.Connection, niches: list[NicheConfig], now: datetime
 ) -> tuple[Candidate, NicheConfig] | None:
-    """Melhor oferta pronta do grupo (aprovadas à mão primeiro), expirando as que sumiram."""
+    """Próxima oferta do grupo, expirando as que sumiram da coleta.
+
+    Automáticas primeiro (passaram na regra mais dura); as aprovadas à mão (card mostrado)
+    completam a fila depois. Dentro de cada grupo, a maior nota.
+    """
     by_name = {n.name: n for n in niches}
     while True:
         ready = [c for name in by_name for c in db.candidates_by_state(conn, S.RENDERED, name)]
         if not ready:
             return None
-        ready.sort(key=lambda c: (c.notified_at is None, -c.score))
+        ready.sort(key=lambda c: (c.notified_at is not None, -c.score))
         cand = ready[0]
         niche = by_name[cand.niche]
         offer = db.get_offer(conn, cand.mlb_id)
