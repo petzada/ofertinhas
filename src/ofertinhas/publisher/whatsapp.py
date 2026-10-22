@@ -69,6 +69,23 @@ class WhatsAppSender:
                 await self.sleep(2**attempt)
         raise last_error
 
+    async def connection_state(self) -> str:
+        """`open`, `closed`, `connecting` ou `qr-code`."""
+        data = await self._call("GET", f"/instance/connectionState/{self.instance}")
+        return str((data or {}).get("state", "desconhecido"))
+
+    async def pairing_code(self, number: str) -> str:
+        """Código de 8 caracteres para digitar no app do WhatsApp do número (Aparelhos
+        conectados → Conectar com número de telefone), no lugar do QR code."""
+        digits = "".join(c for c in number if c.isdigit())
+        data = await self._call(
+            "GET", f"/instance/connect/{self.instance}", params={"number": digits}
+        )
+        code = (data or {}).get("pairingCode")
+        if not code:
+            raise WhatsAppError("a API não devolveu código de pareamento", retryable=False)
+        return str(code)
+
     async def list_groups(self) -> list[dict]:
         return await self._call(
             "GET", f"/group/fetchAllGroups/{self.instance}", params={"getParticipants": "false"}

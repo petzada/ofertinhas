@@ -66,6 +66,29 @@ async def test_server_errors_retry_with_backoff(sender, sleeps):
 
 
 @respx.mock
+async def test_pairing_code_for_number(sender):
+    route = respx.get(f"{BASE}/instance/connect/Ofertas01").mock(return_value=httpx.Response(
+        200, json={"id": "Ofertas01", "connected": False, "pairingCode": "ABCD-1234"}))
+    assert await sender.pairing_code("+55 (11) 98888-7777") == "ABCD-1234"
+    assert route.calls.last.request.url.params["number"] == "5511988887777"
+
+
+@respx.mock
+async def test_pairing_code_missing_is_an_error(sender):
+    respx.get(f"{BASE}/instance/connect/Ofertas01").mock(
+        return_value=httpx.Response(200, json={"connected": True}))
+    with pytest.raises(WhatsAppError, match="código"):
+        await sender.pairing_code("5511988887777")
+
+
+@respx.mock
+async def test_connection_state(sender):
+    respx.get(f"{BASE}/instance/connectionState/Ofertas01").mock(return_value=httpx.Response(
+        200, json={"instance": {"state": "open"}, "state": "open"}))
+    assert await sender.connection_state() == "open"
+
+
+@respx.mock
 async def test_presence_errors_are_ignored(sender):
     respx.post(f"{BASE}/chat/sendPresence/Ofertas01").mock(return_value=httpx.Response(500))
     await sender.send_presence(JID)  # não levanta

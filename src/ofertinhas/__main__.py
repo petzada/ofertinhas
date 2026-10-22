@@ -23,6 +23,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub.add_parser("new-token", help="gera o token que a extensão usa para falar com o backend")
     sub.add_parser("whatsapp-groups", help="lista os grupos e JIDs da instância da WhatsMiau.dev")
+    connect = sub.add_parser(
+        "whatsapp-connect", help="gera o código de pareamento da WhatsMiau.dev (sem QR code)"
+    )
+    connect.add_argument("--number", required=True, help="número com DDI e DDD, ex.: 5511999998888")
     sample = sub.add_parser("render-sample", help="gera uma imagem de exemplo do nicho")
     sample.add_argument("niche")
     sub.add_parser("install-task", help="inicia o backend ao fazer logon no Windows")
@@ -54,6 +58,8 @@ def main(argv: list[str] | None = None) -> int:
         return _telegram_setup()
     if args.command == "whatsapp-groups":
         return _whatsapp_groups()
+    if args.command == "whatsapp-connect":
+        return _whatsapp_connect(args.number)
     if args.command == "setup":
         from .setup import run_setup
 
@@ -121,6 +127,47 @@ def _run(dry_run: bool) -> int:
     setup_logging(settings.data_dir)
     asyncio.run(run(settings, cfg, dry_run))
     return 0
+
+
+def _whatsapp_connect(number: str) -> int:
+    import asyncio
+
+    import httpx
+
+    from .publisher.whatsapp import WhatsAppError
+    from .run import whatsapp_sender
+    from .settings import Settings
+
+    async def connect(settings: Settings) -> bool:
+        async with httpx.AsyncClient() as http:
+            sender = whatsapp_sender(settings, http)
+            if await sender.connection_state() == "open":
+                print("A instância já está conectada.")
+                return True
+            code = await sender.pairing_code(number)
+            print(
+                f"\nCódigo de pareamento: {code}\n\n"
+                "No WhatsApp desse número: Configurações → Aparelhos conectados → Conectar um\n"
+                "aparelho → Conectar com número de telefone, e digite o código acima.\n"
+                "Esperando a conexão (até 3 min)…"
+            )
+            for _ in range(36):
+                await asyncio.sleep(5)
+                if await sender.connection_state() == "open":
+                    print("✅ WhatsApp conectado.")
+                    return True
+            print("Não conectou a tempo. Rode o comando de novo para gerar outro código.")
+            return False
+
+    settings = Settings.load()
+    if not (settings.whatsmiau_api_key and settings.whatsmiau_instance):
+        print("Erro: preencha WHATSMIAU_API_KEY e WHATSMIAU_INSTANCE no .env", file=sys.stderr)
+        return 1
+    try:
+        return 0 if asyncio.run(connect(settings)) else 1
+    except WhatsAppError as e:
+        print(f"Erro da WhatsMiau.dev: {e}", file=sys.stderr)
+        return 1
 
 
 def _whatsapp_groups() -> int:
