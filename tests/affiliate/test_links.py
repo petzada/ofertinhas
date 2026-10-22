@@ -1,3 +1,4 @@
+import dataclasses
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -78,6 +79,15 @@ def test_next_request_picks_best_approved_without_link(conn):
     assert req["mlb_id"] == "MLB2"
     assert req["body"]["tag"] == "minhatag"
     assert req["url"].endswith("/affiliate-program/api/v2/affiliates/createLink")
+
+
+def test_your_approvals_come_before_automatic_ones(conn):
+    seed(conn, "MLB1", score=95)  # automática
+    seed(conn, "MLB2", score=70)  # aprovada por você no bot (card mostrado)
+    cand = db.get_candidate(conn, "MLB2", "casa")
+    db.save_candidate(conn, dataclasses.replace(cand, notified_at=NOW))
+    assert next_link_request(conn, "t", NOW)["mlb_id"] == "MLB2"
+    assert next_link_request(conn, "t", NOW)["mlb_id"] == "MLB1"
 
 
 def test_requested_offer_waits_ten_minutes(conn):

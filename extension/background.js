@@ -1,6 +1,6 @@
 // Service worker da extensão: liga a lógica de lib/ às APIs do navegador.
 // - alarme "collect": um ciclo de coleta, reagendado com variação aleatória;
-// - alarme "links": a cada minuto, no máximo um link de afiliado;
+// - alarme "links": a cada 30 s, no máximo um link de afiliado;
 // - freio: qualquer sinal de bloqueio pausa tudo e avisa o backend (que avisa no Telegram).
 
 import { Backend } from "./lib/backend.js";
@@ -205,7 +205,8 @@ async function linkStep() {
 }
 
 async function ensureAlarms() {
-  await chrome.alarms.create("links", { periodInMinutes: 1 });
+  // 30 s é o mínimo do navegador; o ritmo real é dado por link_gap_s e max_links_per_hour.
+  await chrome.alarms.create("links", { periodInMinutes: 0.5 });
   if (!(await chrome.alarms.get("collect"))) {
     await chrome.alarms.create("collect", { when: Date.now() + 60_000 });
   }

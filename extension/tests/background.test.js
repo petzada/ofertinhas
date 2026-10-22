@@ -62,7 +62,7 @@ describe("background.js", () => {
 
   it("cria os alarmes ao instalar", async () => {
     await listeners.installed();
-    assert.deepEqual(alarms.links, { periodInMinutes: 1 });
+    assert.deepEqual(alarms.links, { periodInMinutes: 0.5 });
     assert.ok(alarms.collect.when > Date.now());
   });
 
