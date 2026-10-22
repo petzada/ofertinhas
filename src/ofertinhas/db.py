@@ -79,7 +79,8 @@ MIGRATIONS = [
 
 
 def connect(path: str | Path = ":memory:") -> sqlite3.Connection:
-    conn = sqlite3.connect(path)
+    # Um único processo asyncio usa a conexão; o servidor HTTP pode atendê-la de outra thread.
+    conn = sqlite3.connect(path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     if str(path) != ":memory:":

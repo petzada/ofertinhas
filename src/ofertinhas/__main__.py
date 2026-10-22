@@ -35,8 +35,22 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "har-extract":
         return _har_extract(parser, args)
+    if args.command == "new-token":
+        return _new_token()
     print(f"Comando '{args.command}' ainda não implementado.", file=sys.stderr)
     return 2
+
+
+def _new_token() -> int:
+    from .settings import new_token
+
+    token = new_token()
+    print(
+        f"EXTENSION_TOKEN={token}\n\n"
+        "1. Cole a linha acima no arquivo .env do projeto.\n"
+        "2. Cole o mesmo token nas opções da extensão no Brave."
+    )
+    return 0
 
 
 def _har_extract(parser: argparse.ArgumentParser, args: argparse.Namespace) -> int:
