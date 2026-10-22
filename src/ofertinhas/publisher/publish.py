@@ -58,16 +58,18 @@ def pacing_key(tg_chat: int | None, wa_jid: str | None, dry_run: bool) -> str:
 
 
 def _next_in_group(
-    conn: sqlite3.Connection, niches: list[NicheConfig], now: datetime
+    conn: sqlite3.Connection, niches: list[NicheConfig], now: datetime,
+    only_mlb: str | None = None,
 ) -> tuple[Candidate, NicheConfig] | None:
     """Próxima oferta do grupo, expirando as que sumiram da coleta.
 
     Automáticas primeiro (passaram na regra mais dura); as aprovadas à mão (card mostrado)
-    completam a fila depois. Dentro de cada grupo, a maior nota.
+    completam a fila depois. Dentro de cada grupo, a maior nota. Com `only_mlb`, só essa.
     """
     by_name = {n.name: n for n in niches}
     while True:
-        ready = [c for name in by_name for c in db.candidates_by_state(conn, S.RENDERED, name)]
+        ready = [c for name in by_name for c in db.candidates_by_state(conn, S.RENDERED, name)
+                 if only_mlb is None or c.mlb_id == only_mlb]
         if not ready:
             return None
         ready.sort(key=lambda c: (c.notified_at is not None, -c.score))
@@ -97,11 +99,13 @@ async def publish_due(
     card_store: CardStore | None = None,
     whatsapp_test_jid: str | None = None,
     force: bool = False,
+    only_mlb: str | None = None,
 ) -> list[str]:
     """Posta no máximo uma oferta por grupo e devolve os MLB postados.
 
     `force` é o post avulso pedido pelo admin: ignora janela, intervalo e espera após falha
-    só desta vez (o post conta no ritmo e no limite do dia como qualquer outro).
+    só desta vez (o post conta no ritmo e no limite do dia como qualquer outro). Com
+    `only_mlb`, posta só essa oferta (com card pronto), no grupo do nicho dela.
 
     Sem `card_store`, o `card_path` da candidata é um arquivo em disco."""
     rng = rng or random.Random()
@@ -125,7 +129,7 @@ async def publish_due(
         )
         if not (allowed or force):
             continue
-        found = _next_in_group(conn, members, now)
+        found = _next_in_group(conn, members, now, only_mlb)
         if found is None:
             continue
         cand, niche = found

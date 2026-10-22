@@ -256,3 +256,14 @@ async def test_force_posts_outside_the_window_and_interval(conn, tmp_path):
                                notify=Notes(), sleep=no_sleep, force=True)
     assert len(posted) == 1 and tg.sent[0][0] == str(GROUP)
     assert db.posts_today(conn, str(GROUP), three_am) == 1  # conta no limite do dia
+
+
+async def test_force_can_pick_one_offer(conn, tmp_path):
+    seed(conn, tmp_path, "MLB1", score=90)
+    seed(conn, tmp_path, "MLB2", score=50)
+    tg = FakeTelegram()
+    posted = await publish_due(conn, cfg(), telegram=tg, card_host=FakeCardHost(),
+                               admin_chat_id=ADMIN, dry_run=False, now=NOW, notify=Notes(),
+                               sleep=no_sleep, force=True, only_mlb="MLB2")
+    assert posted == ["MLB2"]
+    assert db.get_candidate(conn, "MLB1", "casa").state is S.RENDERED

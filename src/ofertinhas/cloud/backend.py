@@ -139,13 +139,21 @@ class CloudBackend:
                 "SELECT mlb_id, niche, channel, chat, status, sent_at, error FROM posts "
                 "ORDER BY sent_at DESC LIMIT 6"
             )
+            latest_links = self.conn.execute(
+                "SELECT c.mlb_id, c.niche, c.state, o.link_requested_at, o.updated_at AS last_seen "
+                "FROM candidates c JOIN offers o ON o.mlb_id = c.mlb_id "
+                "WHERE o.affiliate_link IS NOT NULL AND o.link_requested_at IS NOT NULL "
+                "ORDER BY o.link_requested_at DESC LIMIT 5"
+            )
             return {"dry_run": self.dry_run, "last_tick": db.get_setting(self.conn, LAST_TICK_KEY),
                     "candidates": db.count_candidates(self.conn),
-                    "recent_posts": [dict(zip(r.keys(), r, strict=True)) for r in recent]}
+                    "recent_posts": [dict(zip(r.keys(), r, strict=True)) for r in recent],
+                    "latest_links": [dict(zip(r.keys(), r, strict=True)) for r in latest_links]}
 
         @app.post("/admin/post-now", dependencies=[Depends(app.state.require_token)])
-        async def admin_post_now() -> dict:
-            """Um post avulso por grupo agora, fora da janela e do intervalo."""
+        async def admin_post_now(mlb_id: str | None = None) -> dict:
+            """Um post avulso por grupo agora, fora da janela e do intervalo; com `mlb_id`,
+            só essa oferta (precisa estar com o card pronto)."""
             if "publish" in self._running:  # o job do minuto está postando: sem post duplo
                 raise HTTPException(status_code=409, detail="postagem em andamento")
             self._running.add("publish")
@@ -156,6 +164,7 @@ class CloudBackend:
                     dry_run=self.dry_run, now=self.clock(), notify=self.notify,
                     card_store=self.card_store,
                     whatsapp_test_jid=self.settings.whatsapp_test_jid, force=True,
+                    only_mlb=mlb_id,
                 )
             finally:
                 self._running.discard("publish")
