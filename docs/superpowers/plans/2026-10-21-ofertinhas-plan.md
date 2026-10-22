@@ -79,25 +79,31 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 - Grava em `tests/fixtures/portal/NNN-<slug>.json` e gera um índice `tests/fixtures/portal/index.md`.
 - **Testes:** HAR sintético com cookie, header `Authorization` e e-mail; a saída não contém nenhum dos três.
 
-### T2.4 Mapeamento
+### T2.4 Mapeamento ✅
+- **Feito:** `docs/notes/portal-mapping.md`, com fixtures em `tests/fixtures/portal/`. Lista em `hub/search` e link em `createLink` (`meli.la`); a extensão chama as duas de dentro da aba do portal. Frete grátis e Full não vêm na lista (ver T2.7).
 - **Arquivo:** `docs/notes/portal-mapping.md`.
 - Descreve quais URLs trazem a lista de ofertas e em que campo está cada dado: comissão, preço de/por, categoria, foto, avaliação, vendidos, frete grátis, Full e cupom.
 - Registra qual chamada o Gerador de link faz (endpoint, método e corpo) e como a resposta traz o link.
 - Define os padrões de URL de captura da extensão e a estratégia de link (endpoint ou formulário).
 
-### T2.5 Parsers
-- **Arquivo:** `collector/parsers.py`. `parse_portal_payload(url, body) -> list[RawOffer] | None`, onde `None` significa formato desconhecido (o JSON é salvo em `data/unparsed/` e o admin é avisado).
-- Normaliza preços, comissão e MLB id e devolve o id da categoria folha.
-- **Testes** com as fixtures de T2.3: quantidade de itens, um item conferido campo a campo e um payload desconhecido retornando `None`.
+### T2.5 Parser da busca
+- **Arquivo:** `collector/parsers.py`. `parse_hub_search(request_body, response_body) -> list[Offer] | None`, onde `None` significa formato desconhecido (o JSON é salvo em `data/unparsed/` e o admin é avisado).
+- Campos conforme o mapeamento: MLB (`metadata.id`), `type`, `extra_commission`, URL, título, comissão (os 2 formatos do chip), preço atual e anterior, `pix_only` ("no Pix" no rótulo), avaliação, vendidos (`+5mil` → 5000), foto (`D_NQ_NP_2X_<id>-F.webp`), `international` (`cbt`) e destaque.
+- A categoria vem do filtro `category` do pedido: `category_path = (id,)`, ou `()` sem filtro.
+- Novos campos no `Offer` e no banco (migração 2): `item_type`, `extra_commission`, `pix_only`, `international`, `highlight`, `shipping_checked_at`.
+- **Testes** com as 4 fixtures de busca: 18 ofertas por página; um item conferido campo a campo em cada formato de chip; Pix; internacional; sem avaliação; payload desconhecido devolve `None`.
 
-### T2.6 Ancestrais de categoria
-- **Arquivo:** `collector/categories.py`. `category_path(leaf_id) -> tuple[str, ...]` via `https://api.mercadolibre.com/categories/{id}` (`path_from_root`), com cache numa tabela `categories` (migração 2).
-- Se a API falhar, devolve só `(leaf_id,)` e tenta de novo na próxima coleta.
-- **Testes** (respx): cache evita uma segunda chamada; falha devolve só a folha.
+### T2.6 Pix e internacional no criativo e nos filtros
+- `{preco}` e o card mostram "no Pix" quando `pix_only`.
+- Filtro `exclude_international` (padrão `false`).
+- **Testes:** legenda e card com Pix; filtro.
 
-### T2.7 Critério de cupom (só se T2.4 encontrar o dado)
-- `Offer.coupon` (bool), peso `coupon` (padrão 5), coluna `has_coupon` (migração) e a variável `{cupom}`.
-- **Testes:** a nota e o breakdown incluem o cupom.
+### T2.7 Frete grátis e Full pela página do produto
+- **T2.7a 👤 Páginas de exemplo:** no Brave logado, salve com Ctrl+S ("Página da Web, somente HTML") 3 produtos em `data/har/produto-*.html`: um com frete grátis e Full, um só com frete grátis e um sem nenhum dos dois.
+- **T2.7b Parser:** `collector/product_page.py`. `parse_shipping(html) -> Shipping(free_shipping, full) | None`, testado com as páginas de exemplo limpas de dados pessoais.
+- **T2.7c Nota em duas etapas:** `score_and_route` calcula a nota provisória com frete grátis e Full verdadeiros. Abaixo de `manual_review_at`, descarta. Acima, se `shipping_checked_at` estiver vazio ou tiver mais de 24 h, a oferta fica aguardando verificação (sem candidato ainda); senão, vale a nota final.
+  - Novo setting por nicho: `max_product_pages_per_hour` (padrão 60).
+  - **Testes:** descarte pela nota provisória; espera pela verificação; cache de 24 h; nota final após a verificação.
 
 ---
 
@@ -132,9 +138,15 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 - Migração: `offers.link_requested_at` e `offers.link_attempts`.
 - **Testes:** ordem por nota; não repete o pedido em 10 min; link reaproveitado entre nichos; três falhas viram `link_failed` com aviso.
 
+### T3.4b Verificação da página do produto
+- `GET /ext/enrich-requests`: a oferta aguardando verificação de maior nota provisória, não pedida nos últimos 10 min.
+- `POST /ext/product-page {mlb_id, html}`: `parse_shipping`, atualiza a oferta e roda `score_and_route` só para ela. Se `parse_shipping` devolver `None`, salva o HTML em `data/unparsed/` e avisa o admin (no máximo 1 por hora).
+- **Testes:** ordem; fluxo completo até virar candidato; HTML desconhecido.
+
 ### T3.5 Validação de link
 - **Arquivo:** `affiliate/validate.py`.
-- `is_valid_format`: regex para `mercadolivre.com(.br)?/(sec|social)/…`.
+- `is_valid_format`: regex para `https://meli.la/<id>` (formato real visto no mapeamento).
+- `GET /ext/link-requests` devolve o corpo pronto do `createLink` (`itemId`, `type`, `extraCommission`, `itemAddToList`, `tag` de `ML_AFFILIATE_TAG`, `urls`, `buyBoxWinner`). `POST /ext/links` também guarda o código de busca (`regex`), que vira `{codigo_busca}` na legenda.
 - `resolves_to(link, mlb_id)`: httpx segue até 5 redirects e procura o MLB na URL final.
 - **Testes** (respx): cadeia válida; MLB diferente; timeout devolve falso, sem exceção.
 
@@ -165,17 +177,18 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 - **Teste manual (checklist):** abrir a lista do portal, conferir no `/health`/logs que os payloads chegaram e que as ofertas aparecem no banco.
 
 ### T4.3 Ciclo de coleta
-- O alarme `collect` busca `/ext/config`.
-- Se estiver pausado ou fora da janela, só reagenda.
-- Senão, reaproveita ou abre a aba fixada da lista e recarrega a próxima URL da rotação. O próximo alarme é agendado com `nextDelayMs`.
-- Na navegação, `detectBlock` dispara o freio: para os alarmes, chama `POST /ext/alert` e salva o estado.
+- O wrapper de `fetch`/XHR guarda o último `x-csrf-token` e o `x-custom-origin` das chamadas da própria página.
+- O alarme `collect` busca `/ext/config`. Se estiver pausado ou fora da janela, só reagenda.
+- Senão, garante a aba fixada do portal e, para cada categoria e página, chama `hub/search` de dentro da aba (`chrome.scripting.executeScript`, world MAIN), com 5 a 15 s entre chamadas. Envia `{url, request_body, status, body}` ao `POST /ext/raw`.
+- 401/403: recarrega a aba uma vez para renovar o token; se falhar de novo, ou se `detectBlock` acusar algo, aciona o freio (para os alarmes, `POST /ext/alert` e salva o estado).
 
 ### T4.4 Geração de link
 - O alarme `links` consulta `GET /ext/link-requests` e atende no máximo um pedido, respeitando o `RateLimiter` e 30 a 90 s desde o último.
-- A execução segue a estratégia de T2.4:
-  - **endpoint:** `chrome.scripting.executeScript` na aba do portal (world MAIN) faz o mesmo `fetch` que o Gerador faz, com a sessão da página;
-  - **formulário:** preenche o campo do Gerador, clica e lê o resultado.
-- Resposta em `POST /ext/links`. Um 401/403/429 aciona o freio.
+- Faz o `POST createLink` de dentro da aba do portal com o corpo que veio do backend e manda `short_url`, `regex` e `total_error` para o `POST /ext/links`. Um 401/403/429 aciona o freio.
+
+### T4.4b Verificação da página do produto
+- O alarme `enrich` consulta `GET /ext/enrich-requests` e faz `fetch(url)` da página do produto de dentro da aba do portal (mesma origem), uma por vez, com 5 a 15 s entre buscas e o seu próprio `RateLimiter` (`max_product_pages_per_hour`).
+- Envia o HTML para o `POST /ext/product-page`. `detectBlock` no HTML (captcha/login) aciona o freio.
 
 ### T4.5 Popup e opções
 - **Opções:** URL do backend e token, salvos em `chrome.storage.local`.

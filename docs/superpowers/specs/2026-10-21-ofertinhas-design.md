@@ -125,7 +125,11 @@ niches:
 
 O caminho de ancestrais da categoria vem da API pública de categorias do ML (`/categories/{id}`), com cache no banco. Se a API não responder, a oferta casa só por keywords.
 
-**Critério extra: cupom.** Se o mapeamento do portal mostrar que a oferta tem cupom, entra o critério booleano `coupon` (peso padrão 5) e a variável `{cupom}` no texto. Se o portal não expuser esse dado, o critério fica de fora.
+**Cupom:** o portal não expõe cupom na lista, então esse critério fica de fora por enquanto.
+
+**Desconto só no Pix:** quando o rótulo de desconto da oferta diz "no Pix", a oferta é marcada (`pix_only`). O texto e o card mostram "no Pix" junto do preço, para não anunciar um preço que só vale com Pix como se fosse geral.
+
+**Internacional:** ofertas de compra internacional vêm marcadas (`international`). O filtro opcional `exclude_international` (padrão `false`) as tira de um nicho.
 
 **Comandos do bot (só no chat do admin):** `/corte`, `/peso`, `/pausar`, `/retomar`, `/fila`, `/top`, `/stats` e `/chatid`. `/pausar` e `/retomar` também valem para a extensão (`/pausar coleta`).
 
@@ -135,19 +139,25 @@ O caminho de ancestrais da categoria vem da API pública de categorias do ML (`/
 
 **Login:** feito à mão pelo usuário no Brave, uma única vez. A extensão nunca preenche login, senha nem código. No portal de afiliados, o Brave Shields pode ser desligado se atrapalhar.
 
-**Coleta:**
-- Um alarme (`chrome.alarms`) a cada `collect_every_min` (padrão 20) ± variação aleatória, só dentro da janela de horário, abre ou recarrega **uma aba fixada** com a lista de ofertas do portal.
-- Um content script no contexto da página (`world: "MAIN"`) envolve `fetch`/`XMLHttpRequest` e copia **as respostas que a própria página já pede** cujas URLs batem com os padrões configurados.
-- As cópias vão para o backend em `POST /ext/raw`. Não há requisições extras ao ML só para coletar.
-- O backend define os padrões de URL, as URLs da lista (podem rodar entre categorias) e os intervalos em `GET /ext/config`. Mudar isso não exige atualizar a extensão.
+**Coleta** (revisada após o mapeamento em `docs/notes/portal-mapping.md`):
+- A lista vem de `POST /affiliate-program/api/hub/search`, paginada de 18 em 18 e com filtro por categoria. A oferta não traz a categoria, e a página 1 não aparece como chamada separada. Por isso a coleta é **ativa, de dentro da aba fixada do portal**: a extensão faz as mesmas chamadas que a página faz quando a pessoa rola a lista ou troca o filtro.
+- A cada `collect_every_min` (padrão 20) ± variação aleatória, só dentro da janela de horário, a extensão chama `hub/search` para cada categoria dos nichos (`collect_pages_per_category`, padrão 3), com 5 a 15 s entre chamadas (~36 chamadas por hora com 4 categorias).
+- As chamadas usam o `x-csrf-token` que a página já manda nas próprias requisições. O wrapper de `fetch`/XHR (world MAIN) guarda o último token visto. Se der 401/403, a aba é recarregada uma vez; se falhar de novo, o freio é acionado.
+- Cada resposta vai para o backend em `POST /ext/raw`, junto com o corpo do pedido. A categoria do filtro vira o `category_path` da oferta, então o nicho é exato. Sem filtro, o nicho sai só por palavras-chave.
+- O backend define as categorias, as páginas e os intervalos em `GET /ext/config`. Mudar isso não exige atualizar a extensão.
+
+**Frete grátis e Full (página do produto):**
+- A lista do portal não traz esses dados, e a API pública de itens responde 403.
+- Cada oferta recebe primeiro uma nota provisória **supondo frete grátis e Full**, ou seja, a melhor que ela poderia ter. Se nem essa nota alcança `manual_review_at`, a oferta é descartada sem abrir a página do produto.
+- As demais vão para a fila de verificação (`GET /ext/enrich-requests`). A extensão busca a página do produto de dentro da aba do portal (mesma origem e mesma sessão), uma por vez, com 5 a 15 s entre buscas e até `max_product_pages_per_hour` (padrão 60). As de maior nota provisória vêm primeiro.
+- O HTML vai para `POST /ext/product-page`. O backend extrai frete grátis e Full, guarda o resultado (válido por 24 h) e calcula a nota final.
 
 **Link de afiliado:**
 - Um alarme a cada ~2 min consulta `GET /ext/link-requests` (ofertas `approved` sem link).
 - Atende **um pedido por vez**, com 30 a 90 s entre pedidos, até `max_links_per_hour` (padrão 30).
-- Preferência: chamar, de dentro da aba do portal, o mesmo endpoint que o Gerador de link usa, com a sessão da página.
-- Alternativa: preencher o formulário do Gerador e ler o resultado.
-- A escolha entre as duas sai do mapeamento do HAR.
-- O resultado volta em `POST /ext/links`. O backend valida o formato (`mercadolivre.com/sec/…` ou `/social/…`) e segue o redirect via HTTP até conferir que chega ao MLB certo. Depois de 3 falhas, marca `link_failed` e avisa o admin.
+- A extensão chama, de dentro da aba do portal, o mesmo endpoint do Gerador de link: `POST /affiliate-program/api/v2/affiliates/createLink` com `{itemId, type, extraCommission, itemAddToList, tag, urls: [url], buyBoxWinner}`. O backend monta esse corpo com os dados guardados da oferta e a `tag` do afiliado (`ML_AFFILIATE_TAG`).
+- A resposta traz o link curto **`https://meli.la/<id>`** e o código para colar no buscador do app (`regex`, por exemplo `QL81M2-HWKB`). O código fica disponível na legenda como `{codigo_busca}`.
+- O resultado volta em `POST /ext/links`. O backend valida o formato (`https://meli.la/<id>`) e segue o redirect via HTTP até conferir que chega ao MLB certo. Depois de 3 falhas, marca `link_failed` e avisa o admin.
 
 **Freio de segurança:** se a aba cair na tela de login, aparecer captcha ou chegar 401/403/429 do ML, a extensão:
 1. para todos os alarmes;
@@ -167,9 +177,11 @@ Não há retentativas automáticas contra o ML.
 
 | Rota | Uso |
 |---|---|
-| `GET /ext/config` | Padrões de URL a capturar, URLs da lista, intervalos, janela e pausa |
-| `POST /ext/raw` | `{url, status, body, captured_at}` → parse → upsert → ranking |
-| `GET /ext/link-requests` | Próximo pedido de link (`mlb_id`, `permalink`), ou vazio |
+| `GET /ext/config` | Categorias, páginas por categoria, intervalos, janela e pausa |
+| `POST /ext/raw` | `{url, request_body, status, body, captured_at}` → parse → upsert → nota provisória |
+| `GET /ext/enrich-requests` | Próxima página de produto a verificar (`mlb_id`, `url`), ou vazio |
+| `POST /ext/product-page` | `{mlb_id, html}` → frete grátis/Full → nota final |
+| `GET /ext/link-requests` | Próximo pedido de link com o corpo pronto do `createLink`, ou vazio |
 | `POST /ext/links` | `{mlb_id, link}` ou `{mlb_id, error}` |
 | `POST /ext/alert` | `{reason, url}` → pausa a coleta e avisa o admin |
 | `GET /health` | Estado do backend |
@@ -239,7 +251,8 @@ VPS e Docker, IA de imagem e de texto, múltiplas contas de afiliado, outras loj
 
 ## 15. Riscos e pontos a verificar
 
-- **Formato dos dados do portal e do Gerador de link:** é a primeira tarefa da etapa 2 (HAR).
+- **Formato dos dados do portal e do Gerador de link:** mapeados em `docs/notes/portal-mapping.md`. Falta mapear onde frete grátis e Full aparecem no HTML da página do produto, o que exige páginas de produto salvas pelo usuário.
+- **Volume de acessos à página do produto:** limitado por `max_product_pages_per_hour`, pela nota provisória e pelo cache de 24 h. Se a fila crescer demais, a verificação fica para as de maior nota.
 - **WhatsMiau.dev:** confirmar no primeiro teste o envio para JID de grupo e se `media` aceita base64.
 - **Termos do ML:** mesmo com uma sessão real e ritmo humano, automação pode contrariar os termos. O freio automático e o volume baixo reduzem, mas não eliminam, o risco.
 - **WhatsApp:** risco de restrição do número, que depende do volume e do tamanho dos grupos. Manter o ritmo moderado e aquecer os grupos aos poucos.
