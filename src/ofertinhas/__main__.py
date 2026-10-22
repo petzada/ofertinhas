@@ -26,9 +26,35 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args = parser.parse_args(argv)
+    if args.command == "capture":
+        if args.target == "product" and not args.url:
+            parser.error("capture product precisa da URL do produto")
+        return _capture(args.target, args.url)
     print(f"Comando '{args.command}' ainda não implementado.", file=sys.stderr)
     return 2
+
+
+def _capture(target: str, url: str | None) -> int:
+    import asyncio
+
+    from . import settings
+    from .capture import run_capture
+    from .models import TZ, utcnow
+
+    stamp = utcnow().astimezone(TZ).strftime("%Y%m%d-%H%M%S")
+    out = settings.data_dir() / "capture" / f"{stamp}-{target}"
+    print(
+        "Abrindo o navegador. Faça login se pedir e navegue pelas telas que importam.\n"
+        "Quando terminar, feche a janela do navegador.\n"
+        f"Gravando em {out}"
+    )
+    rec = asyncio.run(
+        run_capture(url or settings.portal_url(), out, settings.chrome_profile_dir())
+    )
+    print(f"Captura encerrada: {rec.responses} respostas JSON e {rec.pages} snapshots.")
+    return 0
 
 
 if __name__ == "__main__":
