@@ -83,10 +83,12 @@ ofertinhas/
 
 ## Fase 1: Núcleo (config, banco, ranking)
 
-### T1.1 Modelos
+### T1.1 Modelos ✅
 - **Arquivo:** `models.py`.
-- `OfferState` (enum): `collected, scored, pending, approved, rejected, discarded, linked, link_failed, rendered, queued, posted, expired`.
-- `Offer` (dataclass): `mlb_id, title, price, original_price, commission_pct, category_id, image_url, permalink, rating, sold_count, free_shipping, full, collected_at, state, niche, score, affiliate_link`.
+- **Feito diferente do previsto:** o produto (`Offer`) ficou separado da decisão por nicho (`Candidate`). Assim o mesmo produto pode estar postado num nicho e pendente em outro, o que deixa o `multi_niche` e o cooldown por nicho corretos.
+- `CandidateState` (enum): `pending, approved, rejected, discarded, linked, link_failed, rendered, queued, posted, expired`.
+- `Offer`: `mlb_id, title, price, original_price, commission_pct, category_path` (da raiz até a folha; o coletor preenche via API pública de categorias), `permalink, image_url, rating, sold_count, free_shipping, full, collected_at, affiliate_link`.
+- `Candidate`: `mlb_id, niche, state, score, breakdown, ref_price, decided_at, caption, card_path, notified_at`.
 - Propriedades: `discount_pct` e `commission_brl`.
 - **Testes:** `discount_pct` com e sem preço original; `commission_brl` arredondado.
 
@@ -116,9 +118,9 @@ ofertinhas/
 - **Arquivo:** `ranking/niches.py`. Função `match_niches(offer, cfg) -> list[str]`: primeiro categoria, depois keywords.
 - **Testes:** casa por categoria; casa por keyword; nenhum nicho; mais de um nicho.
 
-### T1.6 Nota
-- **Arquivo:** `ranking/scoring.py`. Função `score_batch(offers, niche_cfg) -> list[Score]`, com breakdown por critério.
-- Normalização: `min(v, cap) / min(max_lote, cap)`; `sold_count` em `log1p`; `freshness` com decaimento linear em 24 h; booleanos valem 0 ou 1.
+### T1.6 Nota ✅
+- **Arquivo:** `ranking/scoring.py`. Função `score_offer(offer, niche_cfg, now) -> Score`, com breakdown por critério.
+- **Feito diferente do previsto:** a normalização usa alvos absolutos (`targets`), e não o lote: `min(v, alvo) / alvo`; `sold_count` em `log1p`; `rating` de `rating_floor` a 5; `freshness` com decaimento linear; booleanos valem 0 ou 1.
 - **Testes:**
   - Uma oferta que vence em tudo tira 100.
   - Outlier acima do cap não achata as demais.

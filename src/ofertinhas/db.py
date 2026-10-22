@@ -277,7 +277,10 @@ def record_post(
                 (mlb_id, niche, channel, chat, status, sent_at, message_id, price, attempts, error)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (mlb_id, niche, channel, chat, status, _ts(sent_at), message_id, price, attempts, error),
+            (
+                mlb_id, niche, channel, chat, status, _ts(sent_at),
+                message_id, price, attempts, error,
+            ),
         )
 
 
