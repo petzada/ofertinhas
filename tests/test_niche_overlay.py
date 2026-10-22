@@ -12,7 +12,7 @@ from ofertinhas.preview import niche_preview
 
 NOW = datetime(2026, 10, 22, 15, tzinfo=UTC)
 S = CandidateState
-CFG = load_config_text("""
+CFG_TEXT = """
 multi_niche: true
 whatsapp_enabled: true
 defaults:
@@ -32,7 +32,8 @@ niches:
     filters:
       required_keywords: [jogo de cama, panela*, maquiagem, batom]
       blocked_keywords: [usado, masculino]
-""")
+"""
+CFG = load_config_text(CFG_TEXT)
 
 
 @pytest.fixture
@@ -45,7 +46,8 @@ def conn():
 def add(conn, mlb_id, title, category="MLB1574", now=NOW):
     db.upsert_offer(conn, Offer(
         mlb_id=mlb_id, title=title, price=50, original_price=100, commission_pct=25,
-        category_path=(category,), permalink="https://x", collected_at=now, rating=4.8,
+        category_path=(category,) if category else (), permalink="https://x", collected_at=now,
+        rating=4.8,
     ), now=now)
 
 
@@ -90,3 +92,16 @@ def test_preview_shows_what_would_enter_and_why_the_rest_stays_out(conn):
         "Jogo de Panelas Inox 5 Peças", "Batom Matte Vermelho"]
     assert report["left_out_sample"] == [
         {"title": "Lixeira Inox 30 Litros", "reason": "nenhum termo do nicho no título"}]
+
+
+def test_search_term_brings_offers_through_the_niche_filters(conn):
+    cfg = load_config_text(CFG_TEXT.replace(
+        "      blocked_keywords: [usado, masculino]",
+        "      blocked_keywords: [usado, masculino]\n    search_terms: [jogo de cama]"))
+    for mlb_id, title in [("MLB1", "Jogo de Cama Casal 400 Fios"),
+                          ("MLB2", "Lençol Avulso Solteiro"),  # sem termo do nicho
+                          ("MLB3", "Jogo de Cama Usado")]:  # bloqueado
+        add(conn, mlb_id, title, category=None)
+    score_and_route(conn, cfg, ["MLB1", "MLB2", "MLB3"], now=NOW, search="jogo de cama")
+    assert niches_of(conn, "MLB1") == ["noivas"]
+    assert niches_of(conn, "MLB2") == [] and niches_of(conn, "MLB3") == []

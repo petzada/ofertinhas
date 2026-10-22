@@ -150,3 +150,28 @@ def test_collector_validation():
 def test_unknown_niche():
     with pytest.raises(KeyError):
         load_config_text(MINIMAL).for_niche("pets")
+
+
+def test_search_terms_are_cleaned_and_feed_the_collector():
+    text = MINIMAL + """
+    search_terms: ["  jogo  de cama ", mala de viagem, jogo de cama]
+  noivas:
+    search_terms: [lembrancinha casamento, mala de viagem]  # só por termo: vale
+    whatsapp_group_jid: "1@g.us"
+"""
+    cfg = load_config_text(text)
+    assert cfg.for_niche("casa").search_terms == ["jogo de cama", "mala de viagem"]
+    assert cfg.collector_search_terms(paused=set()) == [
+        "jogo de cama", "mala de viagem", "lembrancinha casamento"]
+    assert cfg.collector_search_terms(paused={"casa"}) == [
+        "lembrancinha casamento", "mala de viagem"]
+
+
+@pytest.mark.parametrize("terms, error", [
+    ('[jogo de cama, "  "]', "termo de busca vazio"),
+    ("[" + ", ".join(f"termo {i}" for i in range(11)) + "]", "no máximo 10 termos"),
+    ("[" + "a" * 61 + "]", "mais de 60 letras"),
+])
+def test_search_terms_must_be_short_and_not_empty(terms, error):
+    with pytest.raises(ConfigError, match=error):
+        load_config_text(MINIMAL + f"    search_terms: {terms}\n")

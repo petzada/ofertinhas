@@ -22,6 +22,8 @@ class ConfigError(ValueError):
 
 # O nome do nicho vai no callback_data do Telegram (máx. 64 bytes) e não pode ter ":".
 NICHE_NAME = re.compile(r"[a-z0-9_-]{1,20}")
+MAX_SEARCH_TERMS = 10
+MAX_SEARCH_TERM_LEN = 60
 
 
 class _Strict(BaseModel):
@@ -162,6 +164,9 @@ class NicheConfig(Profile):
     template: str
     categories: list[str] = []
     keywords: list[str] = []
+    # Buscas por termo no portal, no rodízio da coleta: alcançam o que a 1ª página da
+    # categoria raiz não mostra (ex.: jogo de cama dentro de Casa).
+    search_terms: list[str] = []
     telegram_chat_id: int | None = None
     whatsapp_group_jid: str | None = None
     paused: bool = False
@@ -170,10 +175,24 @@ class NicheConfig(Profile):
         """Grupo(s) onde o nicho posta; nichos com o mesmo destino dividem a fila e o ritmo."""
         return self.telegram_chat_id, self.whatsapp_group_jid
 
+    @field_validator("search_terms")
+    @classmethod
+    def _clean_terms(cls, terms: list[str]) -> list[str]:
+        # Cada termo é uma chamada a mais no rodízio: lista curta.
+        cleaned = list(dict.fromkeys(" ".join(t.split()) for t in terms))
+        if len(cleaned) > MAX_SEARCH_TERMS:
+            raise ValueError(f"no máximo {MAX_SEARCH_TERMS} termos de busca por nicho")
+        if any(not t for t in cleaned):
+            raise ValueError("termo de busca vazio")
+        long = next((t for t in cleaned if len(t) > MAX_SEARCH_TERM_LEN), None)
+        if long:
+            raise ValueError(f"termo de busca com mais de {MAX_SEARCH_TERM_LEN} letras: {long}")
+        return cleaned
+
     @model_validator(mode="after")
     def _routing_and_channels(self):
-        if not self.categories and not self.keywords:
-            raise ValueError("defina categories ou keywords")
+        if not self.categories and not self.keywords and not self.search_terms:
+            raise ValueError("defina categories, keywords ou search_terms")
         unknown = [c for c in self.categories if c not in ROOT_CATEGORIES]
         if unknown:
             raise ValueError(
@@ -272,6 +291,14 @@ class AppConfig(_Strict):
         for name, raw in self.niches.items():
             if name not in paused:
                 seen.update(dict.fromkeys(raw.get("categories", [])))
+        return list(seen)
+
+    def collector_search_terms(self, paused: set[str]) -> list[str]:
+        """Termos de busca a coletar, na ordem da config, sem repetir e só de nichos ativos."""
+        seen: dict[str, None] = {}
+        for name in self.niches:
+            if name not in paused:
+                seen.update(dict.fromkeys(self.for_niche(name).search_terms))
         return list(seen)
 
     def for_niche(self, name: str, overrides: Mapping[str, Any] | None = None) -> NicheConfig:

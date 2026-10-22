@@ -37,6 +37,14 @@ async function callWithRecovery(inTab, reloadTab, state, kind, url, body) {
   return { result, reason };
 }
 
+/** Buscas do ciclo: as categorias e depois os termos (`searches`, sem filtro de categoria). */
+function searchTargets(cfg) {
+  return [
+    ...cfg.categories.map((category) => ({ category, search: "" })),
+    ...(cfg.searches ?? []).map((search) => ({ category: null, search })),
+  ];
+}
+
 function gate(cfg, now, ignoreWindow = false) {
   if (cfg.paused) return "paused";
   if (!ignoreWindow && !withinWindow(now, cfg.window)) return "outside";
@@ -52,10 +60,10 @@ export async function runCollection({
 
   const state = { reloaded: false };
   const totals = { offers: 0, newOffers: 0, requests: 0, errors: 0 };
-  for (const category of cfg.categories) {
+  for (const { category, search } of searchTargets(cfg)) {
     for (let pageIdx = 0; pageIdx < cfg.pages_per_category; pageIdx++) {
       if (totals.requests > 0) await sleep(randomBetween(cfg.request_gap_s, rng) * 1000);
-      const body = buildSearchBody(category, pageIdx * cfg.page_size);
+      const body = buildSearchBody(category, pageIdx * cfg.page_size, search);
       const { result, reason } = await callWithRecovery(
         inTab, reloadTab, state, "search", cfg.search_url, body,
       );
@@ -73,7 +81,7 @@ export async function runCollection({
       });
       totals.offers += out?.parsed ?? 0;
       totals.newOffers += out?.new ?? 0;
-      if (cardCount(result.json) < cfg.page_size) break; // acabou a categoria
+      if (cardCount(result.json) < cfg.page_size) break; // acabou a categoria ou o termo
     }
   }
   return { status: "ok", ...totals };

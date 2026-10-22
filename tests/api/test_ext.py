@@ -103,6 +103,44 @@ def test_config_skips_paused_niche_categories(env):
     assert "MLB1574" not in ids and "MLB1648" in ids
 
 
+def test_search_terms_share_the_rotation_with_categories(env):
+    env.state.cfg.collector.categories_per_cycle = 4
+    env.state.cfg.niches["casa"]["search_terms"] = ["jogo de cama", "mala de viagem"]
+    everything = [("category", c) for c in env.state.cfg.collector_categories(set())]
+    everything += [("search", "jogo de cama"), ("search", "mala de viagem")]
+
+    def turn():
+        reply = env.client.get("/ext/config?purpose=collect", headers=H).json()
+        return ([("category", c["id"]) for c in reply["categories"]]
+                + [("search", t) for t in reply["searches"]])
+
+    cycles = [turn() for _ in range(len(everything))]
+    assert all(len(c) == 4 for c in cycles)  # termos não aumentam as buscas por ciclo
+    assert set(x for c in cycles for x in c) == set(everything)
+
+
+def test_config_skips_search_terms_of_paused_niche(env):
+    env.state.cfg.niches["casa"]["search_terms"] = ["jogo de cama"]
+    env.state.cfg.collector.categories_per_cycle = 100
+    assert env.client.get("/ext/config", headers=H).json()["searches"] == ["jogo de cama"]
+    db.set_niche_override(env.conn, "casa", "paused", True)
+    assert env.client.get("/ext/config", headers=H).json()["searches"] == []
+
+
+def test_raw_from_search_term_routes_to_the_niche_that_searched(env):
+    env.state.cfg.niches["infantil"]["search_terms"] = ["kit berço"]
+    payload = raw_payload("hub-search-categoria-bebes.json")
+    payload["request_body"] = {"search": "kit berço", "sort": "relevance", "filters": [],
+                               "offset": 0}
+    out = env.client.post("/ext/raw", headers=H, json=payload).json()
+    assert out["parsed"] == 18 and sum(out["routed"].values()) > 0
+    niches = {c.niche for o in env.conn.execute("SELECT mlb_id FROM offers")
+              for c in db.candidates_for_offer(env.conn, o[0])}
+    assert niches == {"infantil"}
+    paths = [r[0] for r in env.conn.execute("SELECT DISTINCT category_path FROM offers")]
+    assert paths == ["[]"]  # a busca por termo não diz a categoria
+
+
 def test_raw_ingests_and_ranks(env):
     r = env.client.post("/ext/raw", headers=H,
                         json=raw_payload("hub-search-categoria-games-internacional.json"))

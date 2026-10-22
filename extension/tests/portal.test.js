@@ -17,6 +17,15 @@ describe("buildSearchBody", () => {
   it("sem categoria não filtra", () => {
     assert.deepEqual(buildSearchBody(null, 0).filters, []);
   });
+
+  it("busca por termo vai no campo `search`, sem filtro de categoria", () => {
+    assert.deepEqual(buildSearchBody(null, 0, "jogo de cama"), {
+      search: "jogo de cama",
+      sort: "relevance",
+      filters: [],
+      offset: 0,
+    });
+  });
 });
 
 describe("cardCount", () => {

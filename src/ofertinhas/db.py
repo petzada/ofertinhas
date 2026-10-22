@@ -132,7 +132,8 @@ def upsert_offer(conn: sqlite3.Connection, offer: Offer, now: datetime | None = 
     """Grava a oferta e devolve True se ela é nova.
 
     Na atualização, preserva a data em que foi vista pela primeira vez, o link de afiliado e
-    o frete/Full verificados na página do produto (a coleta não traz esses dados).
+    o frete/Full verificados na página do produto (a coleta não traz esses dados), e a
+    categoria quando a coleta veio sem filtro de categoria.
     """
     now = now or utcnow()
     previous = conn.execute(
@@ -170,6 +171,8 @@ def upsert_offer(conn: sqlite3.Connection, offer: Offer, now: datetime | None = 
             marks = ", ".join(f":{k}" for k in fields)
             conn.execute(f"INSERT INTO offers ({cols}) VALUES ({marks})", fields)
         else:
+            if not offer.category_path:
+                del fields["category_path"]  # busca por termo ou lista geral: mantém a conhecida
             sets = ", ".join(f"{k} = :{k}" for k in fields)
             conn.execute(
                 f"UPDATE offers SET {sets} WHERE mlb_id = :mlb_id",

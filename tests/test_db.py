@@ -225,3 +225,10 @@ def test_prune_drops_old_finished_work_and_keeps_what_rules_need(conn):
     assert db.get_setting(conn, "quota:casa:2027-01-19") and db.get_setting(conn, "override:casa")
     assert db.prune(conn, now, keep_days=60) == {
         "candidates": 0, "offers": 0, "price_history": 0, "settings": 0}
+
+
+def test_collection_without_category_keeps_the_known_one(conn):
+    db.upsert_offer(conn, offer(category_path=("MLB1574",)), now=T0)
+    db.upsert_offer(conn, offer(category_path=(), price=250.0), now=T0 + timedelta(hours=1))
+    stored = db.get_offer(conn, "MLB1")
+    assert stored.category_path == ("MLB1574",) and stored.price == 250.0

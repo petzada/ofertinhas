@@ -84,6 +84,37 @@ describe("runCollection", () => {
     assert.equal(calls.length, 3);
   });
 
+  it("busca os termos depois das categorias, sem filtro e com as mesmas páginas e pausas", async () => {
+    const calls = [];
+    const d = deps({
+      inTab: async (kind, url, body) => {
+        calls.push(body);
+        return { status: 200, json: page(body.search === "mala de viagem" ? 7 : 18) };
+      },
+    });
+    const cfg = config({
+      categories: [{ id: "MLB1574", name: "Casa" }],
+      searches: ["jogo de cama", "mala de viagem"],
+    });
+    const out = await runCollection({ cfg, backend: fakeBackend(), ...d });
+    assert.equal(out.status, "ok");
+    assert.deepEqual(calls.map((b) => [b.filters[0]?.value ?? null, b.search, b.offset]), [
+      ["MLB1574", "", 0], ["MLB1574", "", 18],
+      [null, "jogo de cama", 0], [null, "jogo de cama", 18],
+      [null, "mala de viagem", 0], // página incompleta encerra o termo
+    ]);
+    assert.equal(d.sleeps.length, calls.length - 1);
+  });
+
+  it("config sem `searches` (backend antigo) segue só com as categorias", async () => {
+    const calls = [];
+    const d = deps({ inTab: async (kind, url, body) => (calls.push(body), { status: 200, json: page(18) }) });
+    const cfg = config();
+    delete cfg.searches;
+    await runCollection({ cfg, backend: fakeBackend(), ...d });
+    assert.ok(calls.every((b) => b.search === "" && b.filters.length === 1));
+  });
+
   it("não faz nada pausada ou fora da janela", async () => {
     const inTab = async () => assert.fail("não deveria chamar o portal");
     assert.equal((await runCollection({ cfg: config({ paused: true }), backend: fakeBackend(),

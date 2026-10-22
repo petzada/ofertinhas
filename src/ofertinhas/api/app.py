@@ -113,8 +113,9 @@ def create_app(state: ApiState) -> FastAPI:
     async def health() -> dict:
         return {"ok": True, "version": __version__, "build": state.build}
 
-    def rotate(all_ids: list[str], advance: bool) -> list[str]:
-        """Próximas `categories_per_cycle` categorias; só a coleta faz o rodízio andar."""
+    def rotate(all_ids: list, advance: bool) -> list:
+        """Próximas `categories_per_cycle` categorias ou termos; só a coleta faz o rodízio
+        andar."""
         size = state.cfg.collector.categories_per_cycle
         if not all_ids or size >= len(all_ids):
             return all_ids
@@ -129,11 +130,15 @@ def create_app(state: ApiState) -> FastAPI:
         pause = db.get_setting(conn, db.EXTENSION_PAUSED_KEY)
         paused_niches = {n for n, c in niche_configs(conn, state.cfg).items() if c.paused}
         collecting = purpose == "collect"
-        ids = rotate(state.cfg.collector_categories(paused_niches), advance=collecting)
+        # Categorias e termos de busca dividem o mesmo rodízio: cada um é uma busca no portal.
+        targets = [("category", c) for c in state.cfg.collector_categories(paused_niches)]
+        targets += [("search", t) for t in state.cfg.collector_search_terms(paused_niches)]
+        turn = rotate(targets, advance=collecting)
         now = state.clock()
         if collecting:
             db.set_setting(conn, LAST_COLLECT_KEY, now.isoformat())
-        categories = [{"id": c, "name": ROOT_CATEGORIES[c]} for c in ids]
+        categories = [{"id": c, "name": ROOT_CATEGORIES[c]} for kind, c in turn
+                      if kind == "category"]
         if col.include_unfiltered:
             categories.append(None)
         return {
@@ -150,6 +155,7 @@ def create_app(state: ApiState) -> FastAPI:
             "portal_url": PORTAL_URL,
             "search_url": SEARCH_URL,
             "categories": categories,
+            "searches": [t for kind, t in turn if kind == "search"],  # sem filtro de categoria
             # pedido de coleta fora de hora (estoque curto); a extensão confere a cada 30 s
             "collect_now": not collecting and collect_now(
                 conn, state.cfg, group_stock(conn, state.cfg, now, state.dry_run), now,
@@ -174,7 +180,8 @@ def create_app(state: ApiState) -> FastAPI:
             )
             return {"parsed": 0, "unknown": True}
         new = sum(db.upsert_offer(conn, o, now=now) for o in offers)
-        routed = score_and_route(conn, state.cfg, [o.mlb_id for o in offers], now=now)
+        routed = score_and_route(conn, state.cfg, [o.mlb_id for o in offers], now=now,
+                                 search=(capture.request_body or {}).get("search"))
         return {
             "parsed": len(offers),
             "new": new,

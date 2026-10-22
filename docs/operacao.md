@@ -36,6 +36,30 @@ O PC e a nuvem rodam os mesmos jobs no mesmo calendário (`jobs.SCHEDULE`):
   `blocked_keywords`. As listas do nicho trocam as dos `defaults` inteiras, por isso os
   bloqueios gerais precisam ser repetidos.
 
+### Busca por termo (`search_terms`)
+
+A coleta por categoria lê só a 1ª página (18 ofertas) de cada categoria raiz, na ordem do
+portal. O que raramente sobe ao topo (jogo de cama dentro de Casa, mala de viagem,
+lembrancinha) quase nunca chega. Para isso, o nicho pode listar termos que a extensão busca
+no portal como uma pessoa digitaria na busca:
+
+```yaml
+niches:
+  noivas:
+    search_terms: [jogo de cama, lembrancinha casamento, mala de viagem]
+```
+
+- Cada termo é uma busca a mais no **mesmo rodízio** das categorias: `categories_per_cycle`
+  conta categorias e termos juntos, então o ciclo não faz mais chamadas ao ML, só demora mais
+  para dar a volta. Valem também `pages_per_category`, `request_gap_s` e a janela do coletor.
+- No máximo 10 termos por nicho, sem termo vazio e com até 60 letras. Termo repetido em
+  vários nichos é buscado uma vez só. Nicho pausado não tem os termos buscados.
+- A busca vai sem filtro de categoria, então a oferta não chega com categoria. Ela entra nos
+  nichos que têm o termo em `search_terms` (além dos que casarem por `keywords`), e passa
+  pelos filtros do nicho como qualquer outra: `required_keywords`, `blocked_keywords`, preço e
+  avaliação. Se a oferta já tinha categoria de uma coleta anterior, ela é mantida.
+- O `/admin/niche-preview` só olha as ofertas já coletadas. Ele não simula a busca por termo.
+
 **Novo grupo de nicho:** antes de ligar, teste o bloco do nicho nas ofertas já coletadas,
 sem postar nada:
 

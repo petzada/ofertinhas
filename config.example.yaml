@@ -11,6 +11,7 @@ collector:              # ritmo da extensão no portal de afiliados
   jitter_min: 10        # ± variação aleatória
   pages_per_category: 1 # 18 ofertas por página (as melhores da categoria ficam na 1ª)
   categories_per_cycle: 6  # rodízio: cada ciclo coleta 6 categorias, as próximas no ciclo seguinte
+                           # (os search_terms dos nichos entram no mesmo rodízio e contam aqui)
   request_gap_s: [5, 15]
   include_unfiltered: false  # true: também lê a lista geral (nicho só por keywords)
   window: ["05:30", "22:00"]  # coleta e links só nesse horário ("Coletar agora" vale sempre)
@@ -121,6 +122,9 @@ niches:
   # dos defaults inteiras: repita os bloqueios gerais. Teste antes com POST /admin/niche-preview.
   # noivas:
   #   categories: [MLB1574, MLB5726, MLB1246, MLB3937, MLB12404]
+  #   # Busca por termo no portal, no rodízio da coleta (até 10 termos): traz o que não sobe
+  #   # à 1ª página da categoria raiz. Os filtros abaixo continuam valendo para essas ofertas.
+  #   search_terms: [jogo de cama, lembrancinha casamento, mala de viagem]
   #   whatsapp_group_jid: "120363000000000009@g.us"
   #   filters:
   #     required_keywords: [jogo de cama, edredom, toalha*, panela*, faqueiro, maquiagem, batom]

@@ -117,8 +117,11 @@ def score_and_route(
     cfg: AppConfig,
     mlb_ids: Iterable[str],
     now: datetime | None = None,
+    search: str | None = None,
 ) -> Counter[CandidateState]:
     """Ranqueia as ofertas coletadas e decide o destino de cada uma por nicho.
+
+    `search`: termo da busca que trouxe as ofertas (ver `match_niches`).
 
     Sem `multi_niche`, a oferta vai só para o nicho de maior nota (empate: ordem da config)
     e fica bloqueada inteira enquanto estiver no fluxo ou em cooldown em qualquer nicho.
@@ -139,7 +142,7 @@ def score_and_route(
             continue
 
         scores: list[tuple[Score, Offer]] = []
-        for name in match_niches(offer, active):
+        for name in match_niches(offer, active, search):
             niche = all_niches[name]
             if not passes(offer, niche.filters)[0]:
                 continue

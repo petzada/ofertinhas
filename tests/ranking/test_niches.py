@@ -54,3 +54,25 @@ def test_no_match():
 
 def test_keyword_needs_whole_words():
     assert niches_of(offer(title="Fones bluetoothx")) == []
+
+
+def test_search_term_routes_offers_without_category():
+    cfg = load_config_text("""
+niches:
+  casa:
+    categories: [MLB1574]
+    telegram_chat_id: -1
+  noivas:
+    categories: [MLB1574]
+    search_terms: [Jogo de Cama, mala de viagem]
+    whatsapp_group_jid: "1@g.us"
+""")
+    niches = [cfg.for_niche(n) for n in cfg.niche_names()]
+    found = offer(title="Kit Lençol Queen 4 Peças", path=())
+    assert match_niches(found, niches, search="jogo de cama") == ["noivas"]
+    assert match_niches(found, niches, search="  JOGO  de cáma") == ["noivas"]  # normalizado
+    assert match_niches(found, niches, search="panela") == []
+    assert match_niches(found, niches) == []
+    # categoria conhecida: casa e noivas por categoria, sem repetir pelo termo
+    known = offer(path=("MLB1574",))
+    assert match_niches(known, niches, search="mala de viagem") == ["casa", "noivas"]
