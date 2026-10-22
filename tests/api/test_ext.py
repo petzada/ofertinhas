@@ -75,16 +75,18 @@ def test_config_lists_niche_categories_and_rhythm(env):
 
 
 def test_collect_config_rotates_categories(env):
-    env.state.cfg.collector.categories_per_cycle = 4  # o exemplo tem 6 categorias
+    env.state.cfg.collector.categories_per_cycle = 4
+    everything = env.state.cfg.collector_categories(set())
 
     def ids():
         reply = env.client.get("/ext/config?purpose=collect", headers=H).json()
         return [c["id"] for c in reply["categories"]]
 
-    first, second, third = ids(), ids(), ids()
-    assert first == ["MLB1574", "MLB5726", "MLB263532", "MLB1648"]
-    assert second == ["MLB1051", "MLB1000", "MLB1574", "MLB5726"]
-    assert third == ["MLB263532", "MLB1648", "MLB1051", "MLB1000"]
+    cycles = [ids() for _ in range(len(everything))]  # 4 por ciclo, em volta da lista
+    assert all(len(c) == 4 for c in cycles)
+    flat = [c for cycle in cycles for c in cycle]
+    assert flat == [everything[i % len(everything)] for i in range(len(flat))]
+    assert set(flat) == set(everything)
 
 
 def test_plain_config_does_not_advance_rotation(env):

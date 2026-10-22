@@ -52,7 +52,8 @@ defaults:
 
 niches:
   casa:
-    categories: [MLB1574, MLB5726, MLB263532]  # Casa e Decoração; Eletrodomésticos; Ferramentas
+    # Casa e Decoração; Eletrodomésticos; Ferramentas; Construção
+    categories: [MLB1574, MLB5726, MLB263532, MLB1500]
     keywords: [airfryer, organizador, cozinha]
     weights: {discount_pct: 35}
     auto_approve_at: 82
@@ -60,8 +61,35 @@ niches:
     telegram_chat_id: -1001234567890
     whatsapp_group_jid: "120363000000000001@g.us"
 
-  tech:
-    categories: [MLB1648, MLB1051, MLB1000]  # Informática; Celulares; Eletrônicos, Áudio e Vídeo
+  tech:  # comissões de eletrônicos são mais baixas: corte mais baixo para não esvaziar o nicho
+    # Informática; Celulares; Eletrônicos, Áudio e Vídeo; Games; Câmeras
+    categories: [MLB1648, MLB1051, MLB1000, MLB1144, MLB1039]
     keywords: [fone bluetooth, smartwatch, ssd]
     telegram_chat_id: -1001234567891
     whatsapp_group_jid: "120363000000000002@g.us"
+
+  # Os ids abaixo são de exemplo: troque pelos dos seus grupos (use /chatid no grupo).
+  beleza:
+    categories: [MLB1246, MLB264586]  # Beleza e Cuidado Pessoal; Saúde
+    keywords: [perfume, skincare, maquiagem]
+    telegram_chat_id: -1001234567892
+
+  moda:
+    categories: [MLB1430, MLB3937]  # Calçados, Roupas e Bolsas; Joias e Relógios
+    telegram_chat_id: -1001234567893
+
+  infantil:
+    categories: [MLB1384, MLB1132]  # Bebês; Brinquedos e Hobbies
+    telegram_chat_id: -1001234567894
+
+  pets:
+    categories: [MLB1071]  # Pet Shop
+    telegram_chat_id: -1001234567895
+
+  esporte:
+    categories: [MLB1276]  # Esportes e Fitness
+    telegram_chat_id: -1001234567896
+
+  auto:
+    categories: [MLB5672]  # Acessórios para Veículos
+    telegram_chat_id: -1001234567897

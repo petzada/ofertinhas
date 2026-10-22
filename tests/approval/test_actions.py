@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+﻿from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -113,7 +113,7 @@ def test_change_niche_rescores_and_moves(conn, cfg):
 def test_change_niche_validates(conn, cfg):
     seed(conn)
     with pytest.raises(ActionError):
-        actions.change_niche(conn, cfg, "MLB1", "casa", "pets", NOW)
+        actions.change_niche(conn, cfg, "MLB1", "casa", "inexistente", NOW)
     with pytest.raises(ActionError):
         actions.change_niche(conn, cfg, "MLB1", "casa", "casa", NOW)
 

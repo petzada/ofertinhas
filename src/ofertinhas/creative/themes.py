@@ -20,6 +20,14 @@ DEFAULT = Theme(label="ACHADINHOS DO DIA", bg="#FF5A1F", badge="#D7142B", price=
 THEMES = {
     "casa": Theme(label="ACHADINHOS • CASA", bg="#1F7A68", badge="#E8452C", price="#1F7A68"),
     "tech": Theme(label="ACHADINHOS • TECH", bg="#3B2F8F", badge="#FF3D71", price="#3B2F8F"),
+    "beleza": Theme(label="ACHADINHOS • BELEZA", bg="#B83280", badge="#E8452C", price="#B83280"),
+    "moda": Theme(label="ACHADINHOS • MODA", bg="#2D2D2D", badge="#E8452C", price="#2D2D2D"),
+    "infantil": Theme(label="ACHADINHOS • INFANTIL", bg="#2B8FD6", badge="#FF6B35",
+                      price="#1F6FAA"),
+    "pets": Theme(label="ACHADINHOS • PETS", bg="#8A5A3C", badge="#E8452C", price="#8A5A3C"),
+    "esporte": Theme(label="ACHADINHOS • ESPORTE", bg="#1E7B34", badge="#FF3D3D",
+                     price="#1E7B34"),
+    "auto": Theme(label="ACHADINHOS • AUTO", bg="#37474F", badge="#FF5A1F", price="#37474F"),
 }
 
 

@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+﻿from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -48,8 +48,9 @@ def test_corte_sets_thresholds(ctx):
     assert (casa.auto_approve_at, casa.manual_review_at) == (85, 65)
 
 
-@pytest.mark.parametrize("text", ["corte casa 60 70", "corte casa x 1", "corte pets 80 60",
-                                  "corte casa 80"])
+@pytest.mark.parametrize(
+    "text", ["corte casa 60 70", "corte casa x 1", "corte inexistente 80 60", "corte casa 80"]
+)
 def test_corte_invalid_keeps_settings(ctx, text):
     reply = run(ctx, text)
     assert "⚠️" in reply
