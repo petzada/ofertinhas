@@ -9,6 +9,7 @@ from datetime import datetime
 
 from .. import db
 from ..config import AppConfig
+from ..creative.format import TELEGRAM_CAPTION_LIMIT, to_telegram_html, visible_length
 from ..creative.text import caption_values, fill
 from ..models import Candidate, CandidateState, Offer
 from ..ranking.scoring import score_offer
@@ -60,14 +61,21 @@ def set_custom_caption(conn: sqlite3.Connection, mlb_id: str, niche: str, text: 
     template = text.strip()
     if "{link}" not in template:
         template += LINK_LINE
+    # Pior caso realista: título longo e link do tamanho dos reais.
     sample = Offer(
-        mlb_id=mlb_id, title="x", price=1.0, commission_pct=1.0, category_path=("x",),
-        permalink="x", affiliate_link="https://mercadolivre.com/sec/x",
+        mlb_id=mlb_id, title="X" * 60, price=99999.99, original_price=199999.99,
+        commission_pct=1.0, category_path=("x",), permalink="x", rating=5.0,
+        sold_count=999999, free_shipping=True, full=True,
+        affiliate_link="https://mercadolivre.com/sec/" + "x" * 12,
     )
     try:
-        fill(template, caption_values(sample))
+        rendered = fill(template, caption_values(sample))
     except (ValueError, IndexError) as e:
         raise ActionError(f"Texto inválido: {e}") from None
+    if visible_length(to_telegram_html(rendered)) > TELEGRAM_CAPTION_LIMIT:
+        raise ActionError(
+            f"Texto longo demais para a legenda do Telegram (máx. {TELEGRAM_CAPTION_LIMIT})."
+        )
     db.set_setting(conn, _caption_key(mlb_id, niche), template)
     return "✏️ Texto salvo. Ele será usado no lugar do modelo."
 

@@ -92,6 +92,12 @@ def test_custom_caption_rejects_unknown_variable(conn):
         actions.set_custom_caption(conn, "MLB1", "casa", "{precoo} {link}")
 
 
+def test_custom_caption_rejects_text_too_long_for_telegram(conn):
+    seed(conn)
+    with pytest.raises(ActionError, match="longo"):
+        actions.set_custom_caption(conn, "MLB1", "casa", "a" * 1000)
+
+
 def test_custom_caption_none_by_default(conn):
     assert actions.custom_caption(conn, "MLB1", "casa") is None
 
