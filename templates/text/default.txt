@@ -1,0 +1,41 @@
+🔥 *{titulo_curto}*
+
+{preco}
+{selos}
+⭐ {nota} • {vendidos}+ vendidos
+
+👉 {link}
+---
+🚨 ACHADINHO DO DIA 🚨
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+Corre antes que acabe 👇
+{link}
+---
+💥 Olha esse preço!
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota} com {vendidos}+ vendidos
+{selos}
+
+🛒 {link}
+---
+✨ *{titulo_curto}*
+
+💰 {preco}
+{selos}
+
+Garanta o seu aqui 👉 {link}
+---
+⚡ OFERTA RELÂMPAGO ⚡
+
+{titulo_curto}
+{preco}
+{selos}
+⭐ {nota}
+
+🔗 {link}

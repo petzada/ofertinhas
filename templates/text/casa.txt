@@ -1,0 +1,41 @@
+🏠 *{titulo_curto}*
+
+{preco}
+{selos}
+⭐ {nota} • {vendidos}+ vendidos
+
+👉 {link}
+---
+🏡 Achadinho pra casa!
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+Corre que é por tempo limitado 👇
+{link}
+---
+🧺 Sua casa merece!
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota} com {vendidos}+ vendidos
+{selos}
+
+🛒 {link}
+---
+✨ *{titulo_curto}*
+
+💰 {preco}
+{selos}
+
+Deixa a casa mais prática 👉 {link}
+---
+🔥 PREÇO BAIXO PRA CASA 🔥
+
+{titulo_curto}
+{preco}
+{selos}
+⭐ {nota}
+
+🔗 {link}

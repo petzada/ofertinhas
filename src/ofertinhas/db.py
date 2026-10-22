@@ -306,6 +306,22 @@ def posts_today(conn: sqlite3.Connection, chat: str, now: datetime) -> int:
     return row[0]
 
 
+# --- rodízio de modelos de texto -------------------------------------------
+
+
+def last_template_idx(conn: sqlite3.Connection, key: str) -> int | None:
+    row = conn.execute("SELECT template_idx FROM template_usage WHERE chat = ?", (key,)).fetchone()
+    return row[0] if row else None
+
+
+def record_template_use(conn: sqlite3.Connection, key: str, idx: int, now: datetime) -> None:
+    with conn:
+        conn.execute(
+            "INSERT OR REPLACE INTO template_usage (chat, template_idx, used_at) VALUES (?, ?, ?)",
+            (key, idx, _ts(now)),
+        )
+
+
 # --- configurações em tempo de execução ------------------------------------
 
 

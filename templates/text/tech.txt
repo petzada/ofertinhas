@@ -1,0 +1,41 @@
+💻 *{titulo_curto}*
+
+{preco}
+{selos}
+⭐ {nota} • {vendidos}+ vendidos
+
+👉 {link}
+---
+🎧 Achado tech do dia!
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+Antes que o estoque acabe 👇
+{link}
+---
+📱 Upgrade com desconto
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota} com {vendidos}+ vendidos
+{selos}
+
+🛒 {link}
+---
+⚙️ *{titulo_curto}*
+
+💰 {preco}
+{selos}
+
+Confira aqui 👉 {link}
+---
+⚡ OFERTA TECH RELÂMPAGO ⚡
+
+{titulo_curto}
+{preco}
+{selos}
+⭐ {nota}
+
+🔗 {link}
