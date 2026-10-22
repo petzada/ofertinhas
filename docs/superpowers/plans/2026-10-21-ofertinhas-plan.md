@@ -160,6 +160,11 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 - `RateLimiter(maxPerHour)`
 - **Testes** (`node --test`): todos os casos, incluindo a URL de login que vimos (`/login/identification`, `no-feasible-authenticators`).
 
+### ✅ T4.2–T4.5 (2026-10-22)
+- **Feito diferente do previsto:** a lógica ficou em módulos puros testados com node (`lib/cycle.js`, `lib/portal.js`, `lib/backend.js`). O `content-main.js` só observa o token CSRF das chamadas da própria página, e o `content-bridge.js` não foi necessário. As chamadas saem por `lib/inpage.js` via `chrome.scripting.executeScript` (world MAIN).
+- Novo comando `python -m ofertinhas api`: sobe só a API local, com os avisos no terminal, para testar a extensão antes do `run`.
+- Guia de instalação e teste manual: `docs/notes/extensao-teste.md`.
+
 ### T4.2 Manifesto e captura
 - `manifest.json` (MV3):
   - `permissions`: `alarms`, `storage`, `tabs`, `scripting`.

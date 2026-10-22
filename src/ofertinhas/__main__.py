@@ -14,6 +14,7 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--dry-run", action="store_true", help="envia tudo só para os destinos de teste"
     )
+    sub.add_parser("api", help="roda só a API local da extensão (avisos saem no terminal)")
     sub.add_parser("new-token", help="gera o token que a extensão usa para falar com o backend")
     sub.add_parser("whatsapp-groups", help="lista os grupos e JIDs da instância da WhatsMiau.dev")
     sample = sub.add_parser("render-sample", help="gera uma imagem de exemplo do nicho")
@@ -37,10 +38,49 @@ def main(argv: list[str] | None = None) -> int:
         return _har_extract(parser, args)
     if args.command == "new-token":
         return _new_token()
+    if args.command == "api":
+        return _api()
     if args.command == "render-sample":
         return _render_sample(args.niche)
     print(f"Comando '{args.command}' ainda não implementado.", file=sys.stderr)
     return 2
+
+
+def _api() -> int:
+    from . import db
+    from .api.app import ApiState, create_app
+    from .config import ConfigError, load_config
+    from .settings import Settings, SettingsError
+
+    try:
+        settings = Settings.load()
+        settings.require("EXTENSION_TOKEN")
+        if not settings.config_path.exists():
+            raise ConfigError(
+                f"não achei {settings.config_path.name}: copie config.example.yaml para "
+                "config.yaml e ajuste os nichos"
+            )
+        cfg = load_config(settings.config_path)
+    except (SettingsError, ConfigError) as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        return 1
+
+    import uvicorn
+
+    settings.data_dir.mkdir(parents=True, exist_ok=True)
+
+    async def notify(text: str) -> None:
+        print(f"[aviso ao admin] {text}", flush=True)
+
+    state = ApiState(
+        settings=settings,
+        conn=db.connect(settings.data_dir / "ofertinhas.db"),
+        cfg=cfg,
+        notify=notify,
+    )
+    print(f"API local em http://127.0.0.1:{settings.api_port} (Ctrl+C para parar)")
+    uvicorn.run(create_app(state), host="127.0.0.1", port=settings.api_port, log_level="info")
+    return 0
 
 
 def _render_sample(niche: str) -> int:
