@@ -40,9 +40,11 @@ class Settings:
     admin_chat_id: int | None
     whatsmiau_api_key: str | None
     whatsmiau_instance: str | None
+    ml_affiliate_tag: str | None = None  # etiqueta de afiliado usada no createLink
     whatsmiau_base_url: str = WHATSMIAU_BASE_URL
 
     _ENV_NAMES = {
+        "ML_AFFILIATE_TAG": "ml_affiliate_tag",
         "EXTENSION_TOKEN": "extension_token",
         "TELEGRAM_BOT_TOKEN": "telegram_bot_token",
         "ADMIN_CHAT_ID": "admin_chat_id",
@@ -62,6 +64,7 @@ class Settings:
             admin_chat_id=_int(env, "ADMIN_CHAT_ID"),
             whatsmiau_api_key=env.get("WHATSMIAU_API_KEY") or None,
             whatsmiau_instance=env.get("WHATSMIAU_INSTANCE") or None,
+            ml_affiliate_tag=env.get("ML_AFFILIATE_TAG") or None,
             whatsmiau_base_url=env.get("WHATSMIAU_BASE_URL") or WHATSMIAU_BASE_URL,
         )
 

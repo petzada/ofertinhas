@@ -1,0 +1,28 @@
+"""Categorias raiz aceitas pelo filtro `category` do portal de afiliados (hub/search)."""
+
+ROOT_CATEGORIES = {
+    "MLB5672": "Acessórios para Veículos",
+    "MLB271599": "Agro",
+    "MLB1368": "Arte, Papelaria e Armarinho",
+    "MLB1384": "Bebês",
+    "MLB1246": "Beleza e Cuidado Pessoal",
+    "MLB1132": "Brinquedos e Hobbies",
+    "MLB1430": "Calçados, Roupas e Bolsas",
+    "MLB1039": "Câmeras e Acessórios",
+    "MLB1574": "Casa, Móveis e Decoração",
+    "MLB1051": "Celulares e Telefones",
+    "MLB1500": "Construção",
+    "MLB5726": "Eletrodomésticos",
+    "MLB1000": "Eletrônicos, Áudio e Vídeo",
+    "MLB1276": "Esportes e Fitness",
+    "MLB263532": "Ferramentas",
+    "MLB12404": "Festas e Lembrancinhas",
+    "MLB1144": "Games",
+    "MLB1499": "Indústria e Comércio",
+    "MLB1648": "Informática",
+    "MLB1182": "Instrumentos Musicais",
+    "MLB3937": "Joias e Relógios",
+    "MLB1196": "Livros, Revistas e Comics",
+    "MLB1071": "Pet Shop",
+    "MLB264586": "Saúde",
+}

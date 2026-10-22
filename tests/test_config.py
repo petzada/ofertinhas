@@ -92,6 +92,26 @@ def test_niche_name_format(bad):
         load_config_text(MINIMAL.replace("  casa:", f"  {bad!r}:"))
 
 
+def test_niche_categories_must_be_portal_root_categories():
+    with pytest.raises(ConfigError, match="MLB5726123"):
+        load_config_text(MINIMAL.replace("MLB1574", "MLB5726123"))
+
+
+def test_collector_defaults_and_categories_from_active_niches():
+    cfg = load_config(EXAMPLE)
+    assert cfg.collector.every_min == 20 and cfg.collector.pages_per_category == 3
+    cats = cfg.collector_categories(paused=set())
+    assert cats[:3] == ["MLB1574", "MLB5726", "MLB263532"]
+    assert len(cats) == len(set(cats))
+    assert "MLB1574" not in cfg.collector_categories(paused={"casa"})
+
+
+def test_collector_validation():
+    text = MINIMAL + "collector:\n  request_gap_s: [20, 5]\n"
+    with pytest.raises(ConfigError, match="request_gap_s"):
+        load_config_text(text)
+
+
 def test_unknown_niche():
     with pytest.raises(KeyError):
         load_config_text(MINIMAL).for_niche("pets")

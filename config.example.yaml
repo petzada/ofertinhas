@@ -4,6 +4,16 @@
 
 multi_niche: false  # true: a oferta vai para todos os nichos que casar, não só o de maior nota
 
+collector:              # ritmo da extensão no portal de afiliados
+  every_min: 20         # um ciclo de coleta a cada ~20 min
+  jitter_min: 5         # ± variação aleatória
+  pages_per_category: 3 # 18 ofertas por página
+  request_gap_s: [5, 15]
+  include_unfiltered: false  # true: também lê a lista geral (nicho só por keywords)
+  window: ["08:00", "23:00"]
+  max_links_per_hour: 30
+  link_gap_s: [30, 90]
+
 defaults:
   weights:               # importância relativa de cada critério (a soma é normalizada para 100)
     commission_pct: 35   # % de comissão do afiliado

@@ -86,6 +86,19 @@ def test_collection_does_not_overwrite_checked_shipping(conn):
     assert stored.price == 250.0
 
 
+def test_link_request_bookkeeping(conn):
+    db.upsert_offer(conn, offer(), now=T0)
+    db.mark_link_requested(conn, "MLB1", T0)
+    assert db.get_offer(conn, "MLB1").link_requested_at == T0
+    assert db.record_link_failure(conn, "MLB1") == 1
+    assert db.record_link_failure(conn, "MLB1") == 2
+    db.set_affiliate_link(conn, "MLB1", "https://meli.la/abc", search_code="QL81M2-HWKB")
+    stored = db.get_offer(conn, "MLB1")
+    assert stored.affiliate_link == "https://meli.la/abc"
+    assert stored.search_code == "QL81M2-HWKB"
+    assert stored.link_attempts == 0
+
+
 def test_empty_category_path_is_allowed(conn):
     db.upsert_offer(conn, offer(category_path=()), now=T0)
     assert db.get_offer(conn, "MLB1").category_path == ()

@@ -4,6 +4,7 @@
 {selos}
 ⭐ {nota} • {vendidos}+ vendidos
 
+🔎 No app, busque: {codigo_busca}
 👉 {link}
 ---
 🏡 Achadinho pra casa!

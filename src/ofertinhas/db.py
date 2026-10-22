@@ -86,6 +86,11 @@ MIGRATIONS = [
     ALTER TABLE offers ADD COLUMN highlight TEXT;
     ALTER TABLE offers ADD COLUMN shipping_checked_at TEXT;
     """,
+    """
+    ALTER TABLE offers ADD COLUMN search_code TEXT;
+    ALTER TABLE offers ADD COLUMN link_requested_at TEXT;
+    ALTER TABLE offers ADD COLUMN link_attempts INTEGER NOT NULL DEFAULT 0;
+    """,
 ]
 
 
@@ -194,6 +199,9 @@ def _offer_from_row(row: sqlite3.Row) -> Offer:
         shipping_checked_at=_dt(row["shipping_checked_at"]),
         collected_at=_dt(row["collected_at"]),
         affiliate_link=row["affiliate_link"],
+        search_code=row["search_code"],
+        link_requested_at=_dt(row["link_requested_at"]),
+        link_attempts=row["link_attempts"],
         last_seen_at=_dt(row["updated_at"]),
     )
 
@@ -225,9 +233,33 @@ def set_shipping(
         )
 
 
-def set_affiliate_link(conn: sqlite3.Connection, mlb_id: str, link: str) -> None:
+def set_affiliate_link(
+    conn: sqlite3.Connection, mlb_id: str, link: str, search_code: str | None = None
+) -> None:
     with conn:
-        conn.execute("UPDATE offers SET affiliate_link = ? WHERE mlb_id = ?", (link, mlb_id))
+        conn.execute(
+            "UPDATE offers SET affiliate_link = ?, search_code = ?, link_attempts = 0 "
+            "WHERE mlb_id = ?",
+            (link, search_code, mlb_id),
+        )
+
+
+def mark_link_requested(conn: sqlite3.Connection, mlb_id: str, now: datetime) -> None:
+    with conn:
+        conn.execute(
+            "UPDATE offers SET link_requested_at = ? WHERE mlb_id = ?", (_ts(now), mlb_id)
+        )
+
+
+def record_link_failure(conn: sqlite3.Connection, mlb_id: str) -> int:
+    """Soma uma tentativa de link falha e devolve o total."""
+    with conn:
+        conn.execute(
+            "UPDATE offers SET link_attempts = link_attempts + 1 WHERE mlb_id = ?", (mlb_id,)
+        )
+    return conn.execute(
+        "SELECT link_attempts FROM offers WHERE mlb_id = ?", (mlb_id,)
+    ).fetchone()[0]
 
 
 # --- candidatos ------------------------------------------------------------

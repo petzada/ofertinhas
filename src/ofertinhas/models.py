@@ -65,7 +65,10 @@ class Offer:
     full: bool = False
     shipping_checked_at: datetime | None = None
     collected_at: datetime = field(default_factory=utcnow)  # primeira vez vista
-    affiliate_link: str | None = None
+    affiliate_link: str | None = None  # https://meli.la/<id>
+    search_code: str | None = None  # código para colar no buscador do app do ML
+    link_requested_at: datetime | None = None
+    link_attempts: int = 0
     last_seen_at: datetime | None = None  # última coleta em que apareceu (vem do banco)
 
     @property

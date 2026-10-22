@@ -4,6 +4,7 @@
 {selos}
 ⭐ {nota} • {vendidos}+ vendidos
 
+🔎 No app, busque: {codigo_busca}
 👉 {link}
 ---
 🚨 ACHADINHO DO DIA 🚨

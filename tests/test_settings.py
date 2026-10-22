@@ -19,6 +19,12 @@ def test_from_env_parses_values(tmp_path):
     assert s.config_path.name == "config.yaml"
 
 
+def test_affiliate_tag():
+    assert Settings.from_env({"ML_AFFILIATE_TAG": "minhatag"}).ml_affiliate_tag == "minhatag"
+    with pytest.raises(SettingsError, match="ML_AFFILIATE_TAG"):
+        Settings.from_env({}).require("ML_AFFILIATE_TAG")
+
+
 def test_missing_values_are_none():
     s = Settings.from_env({})
     assert s.extension_token is None and s.admin_chat_id is None

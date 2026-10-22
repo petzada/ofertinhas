@@ -53,6 +53,7 @@ def caption_values(offer: Offer) -> dict[str, str]:
         "nota": f"{offer.rating:.1f}".replace(".", ",") if offer.rating else "",
         "vendidos": _thousands(offer.sold_count) if offer.sold_count else "",
         "link": offer.affiliate_link,
+        "codigo_busca": offer.search_code or "",
     }
 
 

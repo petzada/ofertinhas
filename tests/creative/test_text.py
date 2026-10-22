@@ -38,6 +38,11 @@ def test_values_with_discount_and_badges():
     assert v["link"] == LINK
 
 
+def test_search_code_value():
+    assert caption_values(offer(search_code="QL81M2-HWKB"))["codigo_busca"] == "QL81M2-HWKB"
+    assert caption_values(offer())["codigo_busca"] == ""
+
+
 def test_values_with_pix_only_discount():
     v = caption_values(offer(pix_only=True))
     assert v["preco"] == "De ~R$ 499,90~ por *R$ 299,90 no Pix* (40% OFF)"

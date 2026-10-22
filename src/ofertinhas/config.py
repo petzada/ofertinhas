@@ -13,6 +13,8 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
+from .collector.categories import ROOT_CATEGORIES
+
 
 class ConfigError(ValueError):
     pass
@@ -24,6 +26,13 @@ NICHE_NAME = re.compile(r"[a-z0-9_-]{1,20}")
 
 class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+def _reject_unquoted_times(v):
+    # YAML 1.1 lê 23:00 sem aspas como número sexagesimal (1380).
+    if isinstance(v, list | tuple) and any(isinstance(x, int) for x in v):
+        raise ValueError('horários da janela precisam de aspas no YAML: ["08:00", "23:00"]')
+    return v
 
 
 class Weights(_Strict):
@@ -78,12 +87,7 @@ class Pacing(_Strict):
     max_posts_per_day: int = Field(25, ge=1)
     whatsapp_between_groups_s: tuple[int, int] = (30, 90)
 
-    @field_validator("window", mode="before")
-    @classmethod
-    def _window_needs_quotes(cls, v):
-        if isinstance(v, list | tuple) and any(isinstance(x, int) for x in v):
-            raise ValueError('horários da janela precisam de aspas no YAML: ["08:00", "23:00"]')
-        return v
+    _window_needs_quotes = field_validator("window", mode="before")(_reject_unquoted_times)
 
     @model_validator(mode="after")
     def _ranges(self):
@@ -128,8 +132,41 @@ class NicheConfig(Profile):
     def _routing_and_channels(self):
         if not self.categories and not self.keywords:
             raise ValueError("defina categories ou keywords")
+        unknown = [c for c in self.categories if c not in ROOT_CATEGORIES]
+        if unknown:
+            raise ValueError(
+                f"categorias que o portal não filtra: {', '.join(unknown)} "
+                "(use só categorias raiz; veja collector/categories.py)"
+            )
         if self.telegram_chat_id is None and not self.whatsapp_group_jid:
             raise ValueError("defina ao menos um canal (telegram_chat_id ou whatsapp_group_jid)")
+        return self
+
+
+class CollectorConfig(_Strict):
+    """Ritmo da extensão no portal (entregue a ela em /ext/config)."""
+
+    every_min: int = Field(20, ge=5)
+    jitter_min: int = Field(5, ge=0)
+    pages_per_category: int = Field(3, ge=1, le=10)
+    request_gap_s: tuple[int, int] = (5, 15)  # entre chamadas de busca
+    include_unfiltered: bool = False  # também busca a lista geral (nicho só por keywords)
+    window: tuple[time, time] = (time(8, 0), time(23, 0))
+    max_links_per_hour: int = Field(30, ge=1)
+    link_gap_s: tuple[int, int] = (30, 90)  # entre links gerados
+
+    _window_needs_quotes = field_validator("window", mode="before")(_reject_unquoted_times)
+
+    @model_validator(mode="after")
+    def _ranges(self):
+        for name in ("request_gap_s", "link_gap_s"):
+            low, high = getattr(self, name)
+            if not 0 <= low <= high:
+                raise ValueError(f"{name} deve ser [mínimo, máximo]")
+        if self.window[0] >= self.window[1]:
+            raise ValueError("window: o início deve ser antes do fim")
+        if self.jitter_min >= self.every_min:
+            raise ValueError("jitter_min deve ser menor que every_min")
         return self
 
 
@@ -137,6 +174,7 @@ class AppConfig(_Strict):
     defaults: dict[str, Any] = {}
     niches: dict[str, dict[str, Any]]
     multi_niche: bool = False  # oferta vai para todos os nichos que casar, não só o de maior nota
+    collector: CollectorConfig = CollectorConfig()
 
     @model_validator(mode="after")
     def _validate_layers(self):
@@ -165,6 +203,14 @@ class AppConfig(_Strict):
 
     def niche_names(self) -> list[str]:
         return list(self.niches)
+
+    def collector_categories(self, paused: set[str]) -> list[str]:
+        """Categorias a coletar, na ordem da config, sem repetir e só de nichos ativos."""
+        seen: dict[str, None] = {}
+        for name, raw in self.niches.items():
+            if name not in paused:
+                seen.update(dict.fromkeys(raw.get("categories", [])))
+        return list(seen)
 
     def for_niche(self, name: str, overrides: Mapping[str, Any] | None = None) -> NicheConfig:
         if name not in self.niches:
