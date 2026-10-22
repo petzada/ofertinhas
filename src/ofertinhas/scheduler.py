@@ -53,6 +53,7 @@ def build_scheduler(
         scheduler.add_job(
             guarded(name, job, conn, notify, clock),
             id=name,
+            name=name,
             max_instances=1,
             coalesce=True,
             **TRIGGERS[name],
