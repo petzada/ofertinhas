@@ -267,3 +267,70 @@ async def test_force_can_pick_one_offer(conn, tmp_path):
                                sleep=no_sleep, force=True, only_mlb="MLB2")
     assert posted == ["MLB2"]
     assert db.get_candidate(conn, "MLB1", "casa").state is S.RENDERED
+
+
+SPLIT = """
+whatsapp_enabled: true
+defaults:
+  pacing: {{min_interval_min: 45, jitter_min: 0, window: ["06:00", "22:00"], max_posts_per_day: 32}}
+  whatsapp_pacing: {{min_interval_min: 75, jitter_min: 0, window: ["08:00", "18:00"],
+                    max_posts_per_day: 10}}
+niches:
+  casa:
+    categories: [MLB1574]
+    telegram_chat_id: {group}
+    whatsapp_group_jid: "{jid}"
+  pets:
+    categories: [MLB1071]
+    whatsapp_group_jid: "120363000000000002@g.us"
+"""
+
+
+def split_cfg():
+    return load_config_text(SPLIT.format(group=GROUP, jid=JID))
+
+
+def sp_time(hour, minute=0):
+    return datetime(2026, 10, 22, hour + 3, minute, tzinfo=UTC)  # São Paulo = UTC-3
+
+
+async def test_each_channel_has_its_own_window(conn, tmp_path):
+    seed(conn, tmp_path, "MLB1", seen=sp_time(6, 50), score=90)
+    seed(conn, tmp_path, "MLB2", seen=sp_time(6, 50), score=80)
+    tg, wa = FakeTelegram(), FakeWhatsApp()
+    assert await run(conn, split_cfg(), tg, wa, now=sp_time(7)) == ["MLB1"]  # 7h: só Telegram
+    assert wa.sent == []
+    assert await run(conn, split_cfg(), tg, wa, now=sp_time(8)) == ["MLB2", "MLB1"]
+    assert [j for j, _, _ in wa.sent] == [JID]  # 8h: o WhatsApp abre com a melhor do período
+    assert wa.sent[0][2].startswith("🔥 *Air Fryer*")
+
+
+async def test_whatsapp_gets_the_best_of_the_period_once(conn, tmp_path):
+    for mlb, score in (("MLB1", 90), ("MLB2", 80), ("MLB3", 70)):
+        seed(conn, tmp_path, mlb, seen=sp_time(8, 50), score=score)
+    tg, wa = FakeTelegram(), FakeWhatsApp()
+    await run(conn, split_cfg(), tg, wa, now=sp_time(9))  # TG e WA: MLB1
+    await run(conn, split_cfg(), tg, wa, now=sp_time(9, 45))  # TG: MLB2; WA espera 75 min
+    await run(conn, split_cfg(), tg, wa, now=sp_time(10, 15))  # WA: MLB2, que já foi ao TG
+    assert [c for c, _, _ in tg.sent] == [str(GROUP)] * 2
+    assert len(wa.sent) == 2
+    sent_wa = [r[0] for r in conn.execute(
+        "SELECT mlb_id FROM posts WHERE channel = 'whatsapp' ORDER BY sent_at")]
+    assert sent_wa == ["MLB1", "MLB2"]
+    assert db.get_candidate(conn, "MLB3", "casa").state is S.RENDERED  # fica para o Telegram
+
+
+async def test_whatsapp_does_not_repeat_an_offer(conn, tmp_path):
+    seed(conn, tmp_path, "MLB1", seen=sp_time(8, 50))
+    tg, wa = FakeTelegram(), FakeWhatsApp()
+    await run(conn, split_cfg(), tg, wa, now=sp_time(9))
+    assert await run(conn, split_cfg(), tg, wa, now=sp_time(10, 30)) == []
+    assert len(wa.sent) == 1
+
+
+async def test_whatsapp_only_group_takes_the_offer_out_of_the_queue(conn, tmp_path):
+    seed(conn, tmp_path, "MLB9", niche="pets", seen=sp_time(8, 50))
+    wa = FakeWhatsApp()
+    assert await run(conn, split_cfg(), FakeTelegram(), wa, now=sp_time(9)) == ["MLB9"]
+    assert wa.sent[0][0] == "120363000000000002@g.us"
+    assert db.get_candidate(conn, "MLB9", "pets").state is S.POSTED

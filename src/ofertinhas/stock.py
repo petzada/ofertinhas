@@ -97,7 +97,8 @@ def group_stock(conn: sqlite3.Connection, cfg: AppConfig, now: datetime,
         if tg_chat is None and wa_jid is None:
             continue
         key = pacing_key(tg_chat, wa_jid, dry_run)
-        pacing = niches[0].pacing
+        pacing = niches[0].pacing if tg_chat is not None else (
+            niches[0].whatsapp_pacing or niches[0].pacing)
         posts_today = db.posts_today(conn, key, now)
         slots = post_slots(now, db.last_post_at(conn, key), posts_today, pacing,
                            db.get_setting(conn, f"jitter:{key}", 0.0))

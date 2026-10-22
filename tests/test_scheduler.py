@@ -85,3 +85,17 @@ def test_keep_awake_uses_windows_flags():
     keep_awake(True, set_state=calls.append)
     keep_awake(False, set_state=calls.append)
     assert calls == [0x80000000 | 0x00000001, 0x80000000]
+
+
+def test_wake_tasks_wake_the_pc_and_run_the_session():
+    from pathlib import Path
+
+    from ofertinhas.winops import wake_tasks_script
+
+    script = wake_tasks_script(Path(r"C:\p\.venv\Scripts\python.exe"), Path(r"C:\p"),
+                               ["05:30", "17:00"], 45)
+    assert r"'C:\p\.venv\Scripts\pythonw.exe'" in script
+    assert "'-m ofertinhas wake-session --minutes 45'" in script
+    assert "-WakeToRun" in script and "-StartWhenAvailable" in script
+    assert "-TaskName 'Ofertinhas coleta 05h30'" in script
+    assert "-Daily -At '17:00'" in script

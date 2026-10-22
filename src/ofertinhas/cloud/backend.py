@@ -145,7 +145,9 @@ class CloudBackend:
                 "WHERE o.affiliate_link IS NOT NULL AND o.link_requested_at IS NOT NULL "
                 "ORDER BY o.link_requested_at DESC LIMIT 5"
             )
+            last_collect = self.conn.execute("SELECT MAX(updated_at) FROM offers").fetchone()[0]
             return {"dry_run": self.dry_run, "last_tick": db.get_setting(self.conn, LAST_TICK_KEY),
+                    "last_collect": last_collect,
                     "candidates": db.count_candidates(self.conn),
                     "recent_posts": [dict(zip(r.keys(), r, strict=True)) for r in recent],
                     "latest_links": [dict(zip(r.keys(), r, strict=True)) for r in latest_links]}

@@ -135,7 +135,8 @@ class Profile(_Strict):
     repost_cooldown_days: int = Field(7, ge=0)
     repost_price_drop_pct: float = Field(10, ge=0, le=100)
     max_offer_age_hours: float = Field(6, gt=0)  # sem reaparecer na coleta, expira
-    pacing: Pacing = Pacing()
+    pacing: Pacing = Pacing()  # Telegram (e WhatsApp, se `whatsapp_pacing` não for definido)
+    whatsapp_pacing: Pacing | None = None  # ritmo e janela próprios do WhatsApp
 
     @model_validator(mode="after")
     def _thresholds(self):

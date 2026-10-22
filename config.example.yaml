@@ -41,8 +41,8 @@ defaults:
     require_full: false
     blocked_keywords: [usado, recondicionado, réplica, seminovo]
   rules:                 # decide pela oferta; a nota só ordena quem pega a cota do dia
-    # mais de 39% de desconto E mais de 20% de comissão: link automático
-    auto: {min_discount_pct: 39, min_commission_pct: 20, strict: true}
+    # mais de 39% de desconto E mais de 19% de comissão: link automático
+    auto: {min_discount_pct: 39, min_commission_pct: 19, strict: true}
     # 30% de desconto E 15% de comissão pra cima: card para você aprovar; o resto é descartado
     review: {min_discount_pct: 30, min_commission_pct: 15}
   auto_approve_at: 80    # cortes por nota: só valem se `rules` for removido
@@ -52,12 +52,17 @@ defaults:
   repost_cooldown_days: 7
   repost_price_drop_pct: 10  # dentro do cooldown, só reposta se o preço cair isso
   max_offer_age_hours: 6     # oferta que não reaparece na coleta nesse tempo não é postada
-  pacing:
-    min_interval_min: 25
-    jitter_min: 5
-    window: ["08:00", "23:00"]  # com aspas: sem elas o YAML lê 23:00 como número
-    max_posts_per_day: 25
+  pacing:                    # Telegram: a melhor oferta pronta a cada 30 a 60 min
+    min_interval_min: 45
+    jitter_min: 15                  # 45 ± 15 min, sorteado a cada post
+    window: ["06:00", "22:00"]  # com aspas: sem elas o YAML lê 22:00 como número
+    max_posts_per_day: 32
     whatsapp_between_groups_s: [30, 90]
+  whatsapp_pacing:           # WhatsApp: a melhor oferta do período a cada 60 a 90 min
+    min_interval_min: 75
+    jitter_min: 15                  # 75 ± 15 min
+    window: ["08:00", "18:00"]
+    max_posts_per_day: 10
 
 niches:
   casa:

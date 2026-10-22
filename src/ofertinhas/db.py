@@ -394,6 +394,14 @@ def last_post_at(conn: sqlite3.Connection, chat: str) -> datetime | None:
     return _dt(row[0])
 
 
+def sent_to_chat_since(conn: sqlite3.Connection, mlb_id: str, chat: str, since: datetime) -> bool:
+    row = conn.execute(
+        "SELECT 1 FROM posts WHERE mlb_id = ? AND chat = ? AND status = 'sent' AND sent_at >= ?",
+        (mlb_id, chat, _ts(since)),
+    ).fetchone()
+    return row is not None
+
+
 def posts_today(conn: sqlite3.Connection, chat: str, now: datetime) -> int:
     """Posts enviados no chat no dia corrente do horário de São Paulo."""
     start = now.astimezone(TZ).replace(hour=0, minute=0, second=0, microsecond=0)

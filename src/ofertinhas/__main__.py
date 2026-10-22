@@ -34,6 +34,16 @@ def build_parser() -> argparse.ArgumentParser:
         "keep-awake",
         help="impede o Windows de suspender (com o backend na nuvem, a coleta depende do Brave)",
     )
+    wake = sub.add_parser(
+        "wake-session", help="abre o Brave (se fechado) e mantém o PC acordado durante a coleta"
+    )
+    wake.add_argument("--minutes", type=int, default=45)
+    tasks = sub.add_parser(
+        "install-wake-tasks", help="cria no Agendador do Windows as sessões diárias de coleta"
+    )
+    tasks.add_argument("--at", action="append", metavar="HH:MM",
+                       help="horário da sessão; pode repetir (padrão: 05:30, 11:30 e 17:00)")
+    tasks.add_argument("--minutes", type=int, default=45)
 
     har = sub.add_parser("har-extract", help="gera fixtures sem dados sensíveis a partir de um HAR")
     har.add_argument("har_path", type=Path)
@@ -74,24 +84,56 @@ def main(argv: list[str] | None = None) -> int:
         return _render_sample(args.niche)
     if args.command == "keep-awake":
         return _keep_awake()
+    if args.command == "wake-session":
+        return _wake_session(args.minutes)
+    if args.command == "install-wake-tasks":
+        return _install_wake_tasks(args.at, args.minutes)
     print(f"Comando '{args.command}' ainda não implementado.", file=sys.stderr)
     return 2
 
 
-def _keep_awake() -> int:
+def _keep_awake(minutes: int | None = None) -> int:
+    """Sem `minutes`, até Ctrl+C; com `minutes`, solta o PC para suspender depois disso."""
     import time
 
     from .winops import keep_awake
 
     keep_awake(True)
-    print("O Windows não vai suspender enquanto esta janela estiver aberta (Ctrl+C encerra).")
+    if minutes is None:
+        print("O Windows não vai suspender enquanto esta janela estiver aberta (Ctrl+C encerra).")
     try:
-        while True:
-            time.sleep(3600)
+        if minutes is None:
+            _sleep_forever()
+        else:
+            time.sleep(minutes * 60)
     except KeyboardInterrupt:
         pass
     finally:
         keep_awake(False)
+    return 0
+
+
+def _sleep_forever() -> None:
+    import time
+
+    while True:
+        time.sleep(3600)
+
+
+def _wake_session(minutes: int) -> int:
+    """Sessão de coleta do Agendador: o Brave aberto coleta e gera os links para a nuvem."""
+    from .winops import open_brave
+
+    open_brave()
+    return _keep_awake(minutes)
+
+
+def _install_wake_tasks(times: list[str] | None, minutes: int) -> int:
+    from .winops import WAKE_TIMES, install_wake_tasks
+
+    print(install_wake_tasks(Path(sys.executable), Path.cwd(), times or WAKE_TIMES, minutes))
+    print("O PC só sai da suspensão nesses horários com os temporizadores de ativação "
+          "permitidos (Opções de energia → Suspender → Permitir temporizadores de ativação).")
     return 0
 
 
