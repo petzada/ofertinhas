@@ -11,9 +11,10 @@ from pathlib import Path
 from PIL import Image
 
 from . import db
+from .approval.actions import custom_caption
 from .config import AppConfig, NicheConfig, Profile
 from .creative.image import render_card
-from .creative.text import render_caption
+from .creative.text import caption_values, fill, render_caption
 from .creative.themes import theme_for
 from .models import ACTIVE_STATES, COOLDOWN_STATES, Candidate, CandidateState, Offer, utcnow
 from .ranking.filters import passes
@@ -125,7 +126,11 @@ async def render_linked(
             template = (
                 cfg.for_niche(cand.niche).template if cand.niche in cfg.niches else cand.niche
             )
-            caption = render_caption(conn, offer, template, cand.niche, templates_dir, now=now)
+            custom = custom_caption(conn, cand.mlb_id, cand.niche)
+            if custom:
+                caption = fill(custom, caption_values(offer))
+            else:
+                caption = render_caption(conn, offer, template, cand.niche, templates_dir, now=now)
             png = render_card(offer, theme_for(cand.niche), await fetch_image(offer.image_url))
             path = cards_dir / f"{cand.mlb_id}-{cand.niche}.png"
             path.write_bytes(png)

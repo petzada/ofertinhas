@@ -93,6 +93,16 @@ async def test_one_broken_candidate_does_not_block_others(conn, templates, tmp_p
     assert db.get_candidate(conn, "MLB1", "casa").state is CandidateState.LINKED
 
 
+async def test_custom_caption_from_bot_wins_over_template(conn, templates, tmp_path):
+    from ofertinhas.approval.actions import set_custom_caption
+
+    seed(conn)
+    set_custom_caption(conn, "MLB1", "casa", "Meu texto: {preco_por}")
+    await render_linked(conn, load_config(EXAMPLE), tmp_path / "cards", templates, fake_image,
+                        now=NOW)
+    assert db.get_candidate(conn, "MLB1", "casa").caption == f"Meu texto: 299,90\n\n👉 {LINK}"
+
+
 async def test_unknown_niche_uses_default_template(conn, templates, tmp_path):
     seed(conn, niche="pets")
     await render_linked(conn, load_config(EXAMPLE), tmp_path / "cards", templates, fake_image,

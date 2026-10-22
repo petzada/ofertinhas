@@ -237,6 +237,11 @@ def get_candidate(conn: sqlite3.Connection, mlb_id: str, niche: str) -> Candidat
     return _candidate_from_row(row) if row else None
 
 
+def delete_candidate(conn: sqlite3.Connection, mlb_id: str, niche: str) -> None:
+    with conn:
+        conn.execute("DELETE FROM candidates WHERE mlb_id = ? AND niche = ?", (mlb_id, niche))
+
+
 def candidates_for_offer(conn: sqlite3.Connection, mlb_id: str) -> list[Candidate]:
     rows = conn.execute("SELECT * FROM candidates WHERE mlb_id = ?", (mlb_id,))
     return [_candidate_from_row(r) for r in rows]
