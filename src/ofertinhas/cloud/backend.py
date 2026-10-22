@@ -5,6 +5,7 @@ ficam no R2 e o bot recebe updates por webhook. O relógio dos jobs é o Cron do
 chama `tick` a cada minuto.
 """
 
+import json
 import logging
 import secrets
 from collections.abc import Callable, Mapping
@@ -134,10 +135,13 @@ class CloudBackend:
             return {"ok": True}
 
         @app.get("/admin/status", dependencies=[Depends(app.state.require_token)])
-        async def admin_status() -> dict:
+        async def admin_status(posts: int = 6) -> dict:
             recent = self.conn.execute(
                 "SELECT mlb_id, niche, channel, chat, status, sent_at, error FROM posts "
-                "ORDER BY sent_at DESC LIMIT 6"
+                "ORDER BY sent_at DESC LIMIT ?", (min(posts, 200),),
+            )
+            alerts = self.conn.execute(
+                "SELECT key, value_json FROM settings WHERE key LIKE 'alert:%' ORDER BY key"
             )
             latest_links = self.conn.execute(
                 "SELECT c.mlb_id, c.niche, c.state, o.link_requested_at, o.updated_at AS last_seen "
@@ -150,6 +154,7 @@ class CloudBackend:
                     "last_collect": last_collect,
                     "candidates": db.count_candidates(self.conn),
                     "recent_posts": [dict(zip(r.keys(), r, strict=True)) for r in recent],
+                    "alerts": {r["key"]: json.loads(r["value_json"]) for r in alerts},
                     "latest_links": [dict(zip(r.keys(), r, strict=True)) for r in latest_links]}
 
         @app.post("/admin/post-now", dependencies=[Depends(app.state.require_token)])

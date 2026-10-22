@@ -86,13 +86,13 @@ def _next_in_group(
         db.save_candidate(conn, dataclasses.replace(cand, state=S.EXPIRED))
 
 
-def _best_for_whatsapp(
+def _whatsapp_choices(
     conn: sqlite3.Connection, niches: list[NicheConfig], now: datetime, chat: str,
     only_mlb: str | None = None,
-) -> tuple[Candidate, NicheConfig] | None:
-    """A melhor oferta fresca do grupo (pronta ou já postada no Telegram) que ainda não foi a
-    este chat do WhatsApp dentro do cooldown de repost."""
-    best = None
+) -> list[tuple[Candidate, NicheConfig]]:
+    """Ofertas frescas do grupo (prontas ou já postadas no Telegram) que ainda não foram a
+    este chat do WhatsApp dentro do cooldown de repost, da melhor para a pior."""
+    choices = []
     for niche in niches:
         max_age = timedelta(hours=niche.max_offer_age_hours)
         since = now - timedelta(days=niche.repost_cooldown_days)
@@ -107,10 +107,9 @@ def _best_for_whatsapp(
                     continue
                 if db.sent_to_chat_since(conn, cand.mlb_id, chat, since):
                     continue
-                rank = (cand.notified_at is not None, -cand.score)
-                if best is None or rank < best[0]:
-                    best = (rank, cand, niche)
-    return (best[1], best[2]) if best else None
+                choices.append(((cand.notified_at is not None, -cand.score), cand, niche))
+    choices.sort(key=lambda c: c[0])
+    return [(cand, niche) for _, cand, niche in choices]
 
 
 def _due(conn: sqlite3.Connection, key: str, pacing: Pacing, now: datetime, dry_run: bool,
@@ -206,7 +205,13 @@ async def _telegram_turn(conn, members, tg_chat, wa_jid, *, telegram, store, adm
         caption = f"🧪 <b>TESTE • {niche.name}</b>\n\n{caption}"
     target = str(admin_chat_id) if dry_run else str(tg_chat)
     try:
-        message_id = await telegram.send_photo(target, await store.load(cand.card_path), caption)
+        png = await store.load(cand.card_path)
+    except FileNotFoundError:
+        log.warning("card de %s/%s sumiu; vai ser gerado de novo", cand.mlb_id, cand.niche)
+        db.save_candidate(conn, dataclasses.replace(cand, state=S.LINKED, card_path=None))
+        return None
+    try:
+        message_id = await telegram.send_photo(target, png, caption)
     except TelegramError as e:
         db.record_post(conn, mlb_id=cand.mlb_id, niche=niche.name, channel="telegram",
                        chat=key, status="failed", sent_at=now, error=str(e))
@@ -233,7 +238,16 @@ async def _whatsapp_turn(conn, members, wa_target, *, whatsapp, card_host, store
     pacing = members[0].whatsapp_pacing or members[0].pacing
     if not _due(conn, key, pacing, now, dry_run, force):
         return None
-    found = _best_for_whatsapp(conn, members, now, key, only_mlb)
+    found = None
+    for cand, niche in _whatsapp_choices(conn, members, now, key, only_mlb):
+        try:  # o card de uma oferta postada pelo PC antes da virada pode não estar no R2
+            png = await store.load(cand.card_path)
+        except FileNotFoundError:
+            log.warning("sem card de %s/%s para o WhatsApp; vai a próxima", cand.mlb_id,
+                        cand.niche)
+            continue
+        found = cand, niche
+        break
     if found is None:
         return None
     cand, niche = found
@@ -242,7 +256,6 @@ async def _whatsapp_turn(conn, members, wa_target, *, whatsapp, card_host, store
     if dry_run:
         caption = f"🧪 *TESTE • {niche.name}*\n\n{caption}"
     try:
-        png = await store.load(cand.card_path)
         media_url = await card_host.upload(f"cards/{cand.mlb_id}-{cand.niche}.png", png)
         await whatsapp.send_presence(wa_target)
         await sleep(rng.uniform(*WHATSAPP_TYPING_S))

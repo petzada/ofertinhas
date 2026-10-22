@@ -1,3 +1,4 @@
+import dataclasses
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -334,3 +335,25 @@ async def test_whatsapp_only_group_takes_the_offer_out_of_the_queue(conn, tmp_pa
     assert await run(conn, split_cfg(), FakeTelegram(), wa, now=sp_time(9)) == ["MLB9"]
     assert wa.sent[0][0] == "120363000000000002@g.us"
     assert db.get_candidate(conn, "MLB9", "pets").state is S.POSTED
+
+
+async def test_whatsapp_skips_an_offer_whose_card_is_missing(conn, tmp_path):
+    seed(conn, tmp_path, "MLB1", seen=sp_time(8, 50), score=95)  # postada pelo PC antes da
+    db.save_candidate(conn, dataclasses.replace(  # virada: o card ficou no disco de lá
+        db.get_candidate(conn, "MLB1", "casa"), state=S.POSTED, decided_at=sp_time(7),
+        card_path=str(tmp_path / "sumiu.png")))
+    seed(conn, tmp_path, "MLB2", seen=sp_time(8, 50), score=80)
+    db.record_post(conn, mlb_id="MLB2", niche="casa", channel="telegram", chat=str(GROUP),
+                   status="sent", sent_at=sp_time(8, 50))  # Telegram ainda não está na vez
+    wa = FakeWhatsApp()
+    assert await run(conn, split_cfg(), FakeTelegram(), wa, now=sp_time(9)) == ["MLB2"]
+    assert len(wa.sent) == 1
+
+
+async def test_telegram_sends_an_offer_back_to_render_when_its_card_is_missing(conn, tmp_path):
+    seed(conn, tmp_path, "MLB1")
+    (tmp_path / "MLB1.png").unlink()
+    tg = FakeTelegram()
+    assert await run(conn, cfg(), tg) == []
+    cand = db.get_candidate(conn, "MLB1", "casa")
+    assert cand.state is S.LINKED and cand.card_path is None and tg.sent == []
