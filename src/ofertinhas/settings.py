@@ -27,6 +27,14 @@ def _int(env: Mapping[str, str], name: str, default: int | None = None) -> int |
         raise SettingsError(f"{name} precisa ser um número inteiro: {value!r}") from None
 
 
+def _whatsapp_target(value: str | None) -> str | None:
+    """JID como veio; número de telefone só com os dígitos (+55 11 9... → 55119...)."""
+    if not value or not value.strip():
+        return None
+    value = value.strip()
+    return value if "@" in value else "".join(c for c in value if c.isdigit()) or None
+
+
 @dataclass(frozen=True)
 class Settings:
     data_dir: Path
@@ -45,6 +53,8 @@ class Settings:
     r2_bucket: str | None = None
     r2_public_url: str | None = None
     r2_api_token: str | None = None
+    # Em dry-run, o WhatsApp vai só para cá (número com DDI e DDD ou JID), nunca para o grupo.
+    whatsapp_test_jid: str | None = None
 
     _ENV_NAMES = {
         "ML_AFFILIATE_TAG": "ml_affiliate_tag",
@@ -73,6 +83,7 @@ class Settings:
             r2_bucket=env.get("R2_BUCKET") or None,
             r2_public_url=env.get("R2_PUBLIC_URL") or None,
             r2_api_token=env.get("R2_API_TOKEN") or None,
+            whatsapp_test_jid=_whatsapp_target(env.get("WHATSAPP_TEST_JID")),
         )
 
     @classmethod

@@ -30,6 +30,10 @@ def build_parser() -> argparse.ArgumentParser:
     sample = sub.add_parser("render-sample", help="gera uma imagem de exemplo do nicho")
     sample.add_argument("niche")
     sub.add_parser("install-task", help="inicia o backend ao fazer logon no Windows")
+    sub.add_parser(
+        "keep-awake",
+        help="impede o Windows de suspender (com o backend na nuvem, a coleta depende do Brave)",
+    )
 
     har = sub.add_parser("har-extract", help="gera fixtures sem dados sensíveis a partir de um HAR")
     har.add_argument("har_path", type=Path)
@@ -68,8 +72,27 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "render-sample":
         return _render_sample(args.niche)
+    if args.command == "keep-awake":
+        return _keep_awake()
     print(f"Comando '{args.command}' ainda não implementado.", file=sys.stderr)
     return 2
+
+
+def _keep_awake() -> int:
+    import time
+
+    from .winops import keep_awake
+
+    keep_awake(True)
+    print("O Windows não vai suspender enquanto esta janela estiver aberta (Ctrl+C encerra).")
+    try:
+        while True:
+            time.sleep(3600)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        keep_awake(False)
+    return 0
 
 
 def _api() -> int:

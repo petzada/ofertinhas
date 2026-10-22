@@ -98,6 +98,30 @@ async def test_status_shows_the_last_tick(backend):
     assert status["last_tick"]["ran"] == ["expire", "render", "publish", "notify_pending"]
 
 
+def test_post_now_needs_token_and_waits_for_a_running_publish(backend):
+    client = TestClient(backend.app)
+    assert client.post("/admin/post-now").status_code == 401
+    assert client.post("/admin/post-now", headers=H).json() == {"dry_run": True, "posted": []}
+    backend._running.add("publish")
+    assert client.post("/admin/post-now", headers=H).status_code == 409
+
+
+def test_import_replaces_a_cloud_decision_with_the_local_cooldown(backend):
+    from ofertinhas.cloud.history import import_rows
+    from ofertinhas.models import Candidate, CandidateState, Offer
+
+    now = backend.clock()
+    db.upsert_offer(backend.conn, Offer(mlb_id="MLB1", title="x", price=10, commission_pct=20,
+                                        category_path=(), permalink="https://x"), now=now)
+    db.save_candidate(backend.conn, Candidate(mlb_id="MLB1", niche="casa",
+                                              state=CandidateState.RENDERED, score=50,
+                                              breakdown={}, ref_price=10, decided_at=now))
+    local = dict(mlb_id="MLB1", niche="casa", state="posted", score=50, breakdown_json="{}",
+                 ref_price=10, decided_at=now.isoformat())
+    import_rows(backend.conn, {"candidates": [local]})
+    assert db.get_candidate(backend.conn, "MLB1", "casa").state is CandidateState.POSTED
+
+
 async def test_tick_skips_a_job_still_running(backend):
     backend._running.add("publish")
     assert "publish" not in await backend.tick()

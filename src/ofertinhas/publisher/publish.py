@@ -4,8 +4,10 @@ Nichos com o mesmo destino (mesmo grupo do Telegram/WhatsApp) dividem a fila e o
 é da melhor oferta pronta entre eles, com as aprovadas à mão na frente. O post sai no Telegram
 e, com `whatsapp_enabled`, em seguida no WhatsApp.
 
-Em modo de teste (`dry_run`), o Telegram vai para o chat do admin com o selo de teste, o
-WhatsApp não é usado e o ritmo é contado à parte (`dry-run:<grupo>`).
+Em modo de teste (`dry_run`), o Telegram vai para o chat do admin com o selo de teste e o
+ritmo é contado à parte (`dry-run:<grupo>`). O WhatsApp só é usado no teste se houver um
+destino de teste (`whatsapp_test_jid`, por exemplo a conversa com o próprio número); nunca
+vai para o grupo.
 """
 
 import asyncio
@@ -74,8 +76,13 @@ async def publish_due(
     rng: random.Random | None = None,
     sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
     card_store: CardStore | None = None,
+    whatsapp_test_jid: str | None = None,
+    force: bool = False,
 ) -> list[str]:
     """Posta no máximo uma oferta por grupo e devolve os MLB postados.
+
+    `force` é o post avulso pedido pelo admin: ignora janela, intervalo e espera após falha
+    só desta vez (o post conta no ritmo e no limite do dia como qualquer outro).
 
     Sem `card_store`, o `card_path` da candidata é um arquivo em disco."""
     from ..pipeline import niche_configs  # evita import circular
@@ -90,12 +97,13 @@ async def publish_due(
     for (tg_chat, wa_jid), members in groups.items():
         primary = str(tg_chat) if tg_chat is not None else wa_jid
         key = f"dry-run:{primary}" if dry_run else primary
-        use_whatsapp = bool(cfg.whatsapp_enabled and wa_jid and whatsapp and not dry_run)
+        wa_target = whatsapp_test_jid if dry_run else wa_jid
+        use_whatsapp = bool(cfg.whatsapp_enabled and wa_jid and whatsapp and wa_target)
         if tg_chat is None and not use_whatsapp and not dry_run:
             continue
 
         retry_at = db.get_setting(conn, f"retry_at:{key}")
-        if retry_at and now < datetime.fromisoformat(retry_at):
+        if retry_at and now < datetime.fromisoformat(retry_at) and not force:
             continue
         pacing = members[0].pacing
         if dry_run:  # teste vale a qualquer hora; nos grupos, post de madrugada ninguém vê
@@ -104,7 +112,7 @@ async def publish_due(
             now, db.last_post_at(conn, key), db.posts_today(conn, key, now), pacing,
             db.get_setting(conn, f"jitter:{key}", 0.0),
         )
-        if not allowed:
+        if not (allowed or force):
             continue
         found = _next_in_group(conn, members, now)
         if found is None:
@@ -143,18 +151,23 @@ async def publish_due(
             )
         elif use_whatsapp:
             # Sem Telegram no grupo, o WhatsApp é quem conta para o ritmo.
-            wa_chat = key if tg_chat is None else wa_jid
+            if tg_chat is None:
+                wa_chat = key
+            else:
+                wa_chat = f"dry-run:{wa_target}" if dry_run else wa_jid
+            caption = to_whatsapp(cand.caption)
+            if dry_run:
+                caption = f"🧪 *TESTE • {niche.name}*\n\n{caption}"
             try:
                 media_url = await card_host.upload(f"cards/{cand.mlb_id}-{cand.niche}.png", png)
-                await whatsapp.send_presence(wa_jid)
+                await whatsapp.send_presence(wa_target)
                 await sleep(rng.uniform(*WHATSAPP_TYPING_S))
-                message_id = await whatsapp.send_image(wa_jid, media_url,
-                                                       to_whatsapp(cand.caption))
+                message_id = await whatsapp.send_image(wa_target, media_url, caption)
             except (WhatsAppError, CardHostError) as e:
                 db.record_post(conn, mlb_id=cand.mlb_id, niche=niche.name, channel="whatsapp",
                                chat=wa_chat, status="failed", sent_at=now, error=str(e))
                 await notify_throttled(
-                    conn, notify, f"publish-fail-wa:{wa_jid}",
+                    conn, notify, f"publish-fail-wa:{wa_target}",
                     f"⚠️ Não consegui postar no WhatsApp ({niche.name}): {e}.", now, ALERT_EVERY,
                 )
             else:

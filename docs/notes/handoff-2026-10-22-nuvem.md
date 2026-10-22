@@ -5,7 +5,28 @@ Projeto: `C:\Users\Marcio\Desktop\ofertinhas` (Git, branch `main`, último commi
 
 ---
 
-## 0. Atualização: etapa 2 implantada em dry-run (22/10, tarde)
+## 00. Virada feita: a nuvem está em produção (22/10, ~04h45)
+
+- **Modo:** `DRY_RUN = "false"`. O `run` local foi parado, o webhook do bot aponta para o
+  Worker (`set_webhook.py`) e a extensão usa a nuvem (`backendUrl` no
+  `extension/config.local.json`).
+- **Histórico:** importado com `import_history.py` (40 decisões em cooldown, 14 posts e os
+  ajustes do bot). Na importação, as decisões locais substituem as da nuvem.
+- **Post de verificação:** saiu às 07:41 UTC nos dois grupos oficiais pelo
+  `POST /admin/post-now`, um post avulso que ignora janela e intervalo uma vez.
+- **Acompanhamento:** `GET /admin/status`, com token, mostra o último tick do Cron, as contagens
+  por estado e os últimos posts por canal.
+- **Teste do WhatsApp:** com `DRY_RUN = "true"`, o WhatsApp vai só para `WHATSAPP_TEST_JID`
+  (conversa do próprio número), nunca para o grupo.
+- **Regra confirmada pelo usuário:** automática com desconto > 39% e comissão > 20%.
+- **Depende do PC:** coleta e links continuam na extensão do Brave. O
+  `python -m ofertinhas keep-awake` impede o Windows de suspender; a etapa 3 (Agendador
+  abrindo o Brave) ainda falta, assim como a 4 (mensagem fixada) e a 5 (apagar o
+  `ofertinhas-spike-card` e atualizar a spec e o plano).
+- **Para voltar ao PC:** `python set_webhook.py --delete`, `backendUrl` de volta para
+  `http://127.0.0.1:8765` e `python -m ofertinhas run`.
+
+## 0. Etapa 2 implantada em dry-run (22/10, madrugada)
 
 - **Banco escolhido:** SQLite do Durable Object (o usuário escolheu).
 - **Worker `ofertinhas`** publicado em `https://ofertinhas.marciopetigrosso.workers.dev`, com

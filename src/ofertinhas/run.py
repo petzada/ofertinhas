@@ -78,6 +78,7 @@ async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
         bot=application.bot, telegram=telegram, whatsapp=whatsapp,
         cards=card_host(settings, http), fetch_image=fetch_image, notify=notify,
         admin_chat_id=settings.admin_chat_id, dry_run=dry_run,
+        whatsapp_test_jid=settings.whatsapp_test_jid,
     )
     scheduler = build_scheduler(jobs, conn, notify, utcnow)
     server = uvicorn.Server(uvicorn.Config(
@@ -92,7 +93,9 @@ async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
             await application.updater.start_polling()
             scheduler.start()
             mode = "🧪 MODO DE TESTE: todo post vem só para este chat" if dry_run else "posts reais"
-            if dry_run or not cfg.whatsapp_enabled:
+            if dry_run and settings.whatsapp_test_jid and whatsapp and cfg.whatsapp_enabled:
+                wa_state = "só no chat de teste"
+            elif dry_run or not cfg.whatsapp_enabled:
                 wa_state = "travado"
             else:
                 wa_state = "ligado" if whatsapp else "sem chave da WhatsMiau no .env"

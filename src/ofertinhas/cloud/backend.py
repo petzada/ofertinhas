@@ -22,6 +22,7 @@ from ..config import load_config
 from ..creative.image import fetch_product_image
 from ..jobs import guarded, make_jobs
 from ..models import utcnow
+from ..publisher.publish import publish_due
 from ..publisher.telegram import TelegramSender
 from ..publisher.whatsapp import WhatsAppSender
 from ..settings import Settings
@@ -65,7 +66,10 @@ class CloudBackend:
         if settings.whatsmiau_api_key and settings.whatsmiau_instance:
             self.whatsapp = WhatsAppSender(http, settings.whatsmiau_base_url,
                                            settings.whatsmiau_api_key, settings.whatsmiau_instance)
-        card_host = R2CardHost(bucket, settings.r2_public_url) if settings.r2_public_url else None
+        self.card_host = card_host = (
+            R2CardHost(bucket, settings.r2_public_url) if settings.r2_public_url else None
+        )
+        self.card_store = R2Cards(bucket)
         self.bot = bot or Bot(settings.telegram_bot_token)
         self._bot_ready = bot is not None
         self.bot_deps = BotDeps(conn=conn, cfg=cfg, admin_chat_id=settings.admin_chat_id,
@@ -77,8 +81,9 @@ class CloudBackend:
         self.jobs = make_jobs(
             conn=conn, cfg=cfg, templates_dir=bundle_dir / "templates", bot=self.bot,
             telegram=self.telegram, whatsapp=self.whatsapp, cards=card_host,
-            card_store=R2Cards(bucket), fetch_image=fetch_image, notify=self.notify,
+            card_store=self.card_store, fetch_image=fetch_image, notify=self.notify,
             admin_chat_id=settings.admin_chat_id, dry_run=self.dry_run, clock=clock,
+            whatsapp_test_jid=settings.whatsapp_test_jid,
         )
         self._running: set[str] = set()
         self.app = self._build_app()
@@ -121,8 +126,31 @@ class CloudBackend:
 
         @app.get("/admin/status", dependencies=[Depends(app.state.require_token)])
         async def admin_status() -> dict:
+            recent = self.conn.execute(
+                "SELECT mlb_id, niche, channel, chat, status, sent_at, error FROM posts "
+                "ORDER BY sent_at DESC LIMIT 6"
+            )
             return {"dry_run": self.dry_run, "last_tick": db.get_setting(self.conn, LAST_TICK_KEY),
-                    "candidates": db.count_candidates(self.conn)}
+                    "candidates": db.count_candidates(self.conn),
+                    "recent_posts": [dict(zip(r.keys(), r, strict=True)) for r in recent]}
+
+        @app.post("/admin/post-now", dependencies=[Depends(app.state.require_token)])
+        async def admin_post_now() -> dict:
+            """Um post avulso por grupo agora, fora da janela e do intervalo."""
+            if "publish" in self._running:  # o job do minuto está postando: sem post duplo
+                raise HTTPException(status_code=409, detail="postagem em andamento")
+            self._running.add("publish")
+            try:
+                posted = await publish_due(
+                    self.conn, self.cfg, telegram=self.telegram, whatsapp=self.whatsapp,
+                    card_host=self.card_host, admin_chat_id=self.settings.admin_chat_id,
+                    dry_run=self.dry_run, now=self.clock(), notify=self.notify,
+                    card_store=self.card_store,
+                    whatsapp_test_jid=self.settings.whatsapp_test_jid, force=True,
+                )
+            finally:
+                self._running.discard("publish")
+            return {"dry_run": self.dry_run, "posted": posted}
 
         @app.post("/admin/import", dependencies=[Depends(app.state.require_token)])
         async def admin_import(request: Request) -> dict:

@@ -11,9 +11,9 @@ class_name = "Ofertinhas"
 tag = "v1"
 new_sqlite_classes = ["Ofertinhas"]
 
-# Teste por padrão: os posts vão para o chat do admin. Na virada, mude para "false".
+# "true": os posts vão só para o chat do admin (e o WhatsApp para WHATSAPP_TEST_JID).
 [vars]
-DRY_RUN = "true"
+DRY_RUN = "false"
 
 # Jobs de minuto em minuto (render, publish, cards de aprovação; expiração a cada 15 min).
 [triggers]

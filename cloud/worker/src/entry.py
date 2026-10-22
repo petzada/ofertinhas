@@ -23,6 +23,7 @@ ENV_NAMES = (
     "EXTENSION_TOKEN", "EXTENSION_ORIGIN", "TELEGRAM_BOT_TOKEN", "ADMIN_CHAT_ID",
     "ML_AFFILIATE_TAG", "WHATSMIAU_API_KEY", "WHATSMIAU_INSTANCE", "WHATSMIAU_BASE_URL",
     "R2_PUBLIC_URL", "TELEGRAM_WEBHOOK_SECRET", "DRY_RUN",
+    "WHATSAPP_TEST_JID",
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")

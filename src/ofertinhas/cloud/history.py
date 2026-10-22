@@ -3,6 +3,9 @@
 Vão só as ofertas postadas ou rejeitadas ainda em cooldown (para não repostar), os posts
 recentes e as cotas (para o ritmo e os limites do dia continuarem de onde pararam) e os
 ajustes feitos pelo bot (`/pausar`, `/peso`, `/corte`). Reimportar não duplica.
+
+As decisões locais (postada/rejeitada) substituem a da nuvem para a mesma oferta e nicho: a
+nuvem pode já ter ranqueado de novo uma oferta que o PC postou há poucos dias.
 """
 
 import re
@@ -40,11 +43,13 @@ def import_rows(conn, data: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
             if not cols or not all(IDENT.fullmatch(c) for c in cols):
                 raise ValueError(f"coluna inválida em {table}: {cols}")
             before = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            verb = "INSERT OR REPLACE" if table == "candidates" else "INSERT OR IGNORE"
             conn.execute(
-                f"INSERT OR IGNORE INTO {table} ({', '.join(cols)}) "
+                f"{verb} INTO {table} ({', '.join(cols)}) "
                 f"VALUES ({', '.join('?' for _ in cols)})",
                 [row[c] for c in cols],
             )
-            inserted += conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] - before
+            after = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            inserted += after - before if verb == "INSERT OR IGNORE" else 1
         counts[table] = inserted
     return counts

@@ -108,10 +108,12 @@ def seed(conn, tmp_path, mlb_id="MLB1", niche="casa", score=90.0, seen=NOW, stat
     ))
 
 
-async def run(conn, config, tg, wa=None, dry_run=False, now=NOW, notes=None, host=None):
+async def run(conn, config, tg, wa=None, dry_run=False, now=NOW, notes=None, host=None,
+              wa_test=None):
     return await publish_due(conn, config, telegram=tg, whatsapp=wa,
                              card_host=host or FakeCardHost(), admin_chat_id=ADMIN,
-                             dry_run=dry_run, now=now, notify=notes or Notes(), sleep=no_sleep)
+                             dry_run=dry_run, now=now, notify=notes or Notes(), sleep=no_sleep,
+                             whatsapp_test_jid=wa_test)
 
 
 async def test_real_mode_posts_to_telegram_group(conn, tmp_path):
@@ -154,6 +156,25 @@ async def test_dry_run_goes_to_admin_and_never_to_whatsapp(conn, tmp_path):
     assert chat == str(ADMIN) and caption.startswith("🧪 <b>TESTE • casa</b>")
     assert wa.sent == []
     assert db.last_post_at(conn, str(GROUP)) is None  # teste não conta no ritmo real
+
+
+async def test_dry_run_whatsapp_goes_only_to_the_test_chat(conn, tmp_path):
+    seed(conn, tmp_path)
+    tg, wa = FakeTelegram(), FakeWhatsApp()
+    posted = await run(conn, cfg(wa=True), tg, wa, dry_run=True, wa_test="5511900000000")
+    assert posted == ["MLB1"]
+    jid, _, caption = wa.sent[0]
+    assert jid == "5511900000000" and wa.presence == ["5511900000000"]
+    assert caption.startswith("🧪 *TESTE • casa*")
+    assert db.last_post_at(conn, JID) is None  # o grupo real não conta o teste
+    assert db.last_post_at(conn, "dry-run:5511900000000") == NOW
+
+
+async def test_dry_run_test_chat_still_needs_whatsapp_enabled(conn, tmp_path):
+    seed(conn, tmp_path)
+    wa = FakeWhatsApp()
+    await run(conn, cfg(wa=False), FakeTelegram(), wa, dry_run=True, wa_test="5511900000000")
+    assert wa.sent == []
 
 
 async def test_niches_sharing_a_group_share_queue_and_pace(conn, tmp_path):
@@ -222,3 +243,16 @@ async def test_nothing_ready_nothing_sent(conn, tmp_path):
     tg = FakeTelegram()
     assert await run(conn, cfg(), tg) == []
     assert tg.sent == []
+
+
+async def test_force_posts_outside_the_window_and_interval(conn, tmp_path):
+    three_am = datetime(2026, 10, 22, 6, tzinfo=UTC)  # 03:00 em São Paulo
+    seed(conn, tmp_path, "MLB1", seen=three_am)
+    seed(conn, tmp_path, "MLB2", seen=three_am)
+    tg = FakeTelegram()
+    assert await run(conn, cfg(), tg, now=three_am) == []
+    posted = await publish_due(conn, cfg(), telegram=tg, card_host=FakeCardHost(),
+                               admin_chat_id=ADMIN, dry_run=False, now=three_am,
+                               notify=Notes(), sleep=no_sleep, force=True)
+    assert len(posted) == 1 and tg.sent[0][0] == str(GROUP)
+    assert db.posts_today(conn, str(GROUP), three_am) == 1  # conta no limite do dia

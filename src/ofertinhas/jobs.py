@@ -37,6 +37,7 @@ def make_jobs(
     card_store: CardStore | None = None,
     whatsapp=None,
     cards=None,
+    whatsapp_test_jid: str | None = None,
     clock: Callable[[], datetime] = utcnow,
 ) -> dict[str, Callable[[], Awaitable[object]]]:
     """Com `data_dir` (PC), os cards ficam em disco e há backup diário do SQLite; na nuvem,
@@ -53,7 +54,8 @@ def make_jobs(
     async def publish():
         posted = await publish_due(conn, cfg, telegram=telegram, whatsapp=whatsapp,
                                    card_host=cards, admin_chat_id=admin_chat_id,
-                                   dry_run=dry_run, now=clock(), notify=notify, card_store=store)
+                                   dry_run=dry_run, now=clock(), notify=notify, card_store=store,
+                                   whatsapp_test_jid=whatsapp_test_jid)
         if posted:
             log.info("postadas: %s", ", ".join(posted))
         return posted
