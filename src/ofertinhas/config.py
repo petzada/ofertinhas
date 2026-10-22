@@ -103,6 +103,7 @@ class Profile(_Strict):
     manual_review_at: float = Field(60, ge=0, le=100)
     repost_cooldown_days: int = Field(7, ge=0)
     repost_price_drop_pct: float = Field(10, ge=0, le=100)
+    max_offer_age_hours: float = Field(6, gt=0)  # sem reaparecer na coleta, expira
     pacing: Pacing = Pacing()
 
     @model_validator(mode="after")

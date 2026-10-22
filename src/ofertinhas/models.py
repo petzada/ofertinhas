@@ -58,6 +58,7 @@ class Offer:
     full: bool = False
     collected_at: datetime = field(default_factory=utcnow)  # primeira vez vista
     affiliate_link: str | None = None
+    last_seen_at: datetime | None = None  # última coleta em que apareceu (vem do banco)
 
     @property
     def category_id(self) -> str:

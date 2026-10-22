@@ -32,6 +32,7 @@ defaults:
   manual_review_at: 60   # entre este valor e o de cima: vai para o seu Telegram
   repost_cooldown_days: 7
   repost_price_drop_pct: 10  # dentro do cooldown, só reposta se o preço cair isso
+  max_offer_age_hours: 6     # oferta que não reaparece na coleta nesse tempo não é postada
   pacing:
     min_interval_min: 25
     jitter_min: 5

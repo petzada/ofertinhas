@@ -168,6 +168,7 @@ def _offer_from_row(row: sqlite3.Row) -> Offer:
         full=bool(row["is_full"]),
         collected_at=_dt(row["collected_at"]),
         affiliate_link=row["affiliate_link"],
+        last_seen_at=_dt(row["updated_at"]),
     )
 
 
