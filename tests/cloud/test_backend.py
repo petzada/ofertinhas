@@ -16,6 +16,7 @@ ROOT = Path(__file__).parents[2]
 TOKEN = "tok"
 SECRET = "segredo-do-webhook"
 H = {"X-Ofertinhas-Token": TOKEN}
+ADMIN = {"X-Ofertinhas-Admin": "adm"}
 
 
 class FakeBucket:
@@ -40,7 +41,8 @@ def bundle(tmp_path):
 @pytest.fixture
 def backend(bundle):
     clock = {"now": datetime(2026, 10, 22, 15, 0, tzinfo=UTC)}
-    env = {"EXTENSION_TOKEN": TOKEN, "TELEGRAM_BOT_TOKEN": "1:x", "ADMIN_CHAT_ID": "777",
+    env = {"EXTENSION_TOKEN": TOKEN, "ADMIN_TOKEN": "adm", "TELEGRAM_BOT_TOKEN": "1:x",
+           "ADMIN_CHAT_ID": "777",
            "TELEGRAM_WEBHOOK_SECRET": SECRET, "R2_PUBLIC_URL": "https://pub.r2.dev"}
     conn = db.connect(":memory:")
     b = CloudBackend(env, conn, FakeBucket(), bundle, httpx.AsyncClient(),
@@ -78,9 +80,10 @@ def test_import_needs_token_and_skips_duplicates(backend):
     rows = {"posts": [{"id": 1, "mlb_id": "MLB1", "niche": "casa", "channel": "telegram",
                        "chat": "-100", "status": "sent", "sent_at": "2026-10-22T12:00:00+00:00"}]}
     assert client.post("/admin/import", json=rows).status_code == 401
-    assert client.post("/admin/import", json=rows, headers=H).json() == {
+    assert client.post("/admin/import", json=rows, headers=ADMIN).json() == {
         "imported": {"offers": 0, "candidates": 0, "posts": 1, "settings": 0}}
-    assert client.post("/admin/import", json=rows, headers=H).json()["imported"]["posts"] == 0
+    imported = client.post("/admin/import", json=rows, headers=ADMIN).json()["imported"]
+    assert imported["posts"] == 0
     assert db.posts_today(backend.conn, "-100", backend.clock()) == 1
 
 
@@ -92,7 +95,7 @@ async def test_tick_runs_minute_jobs_and_expire_every_15_min(backend):
 
 async def test_status_shows_the_last_tick(backend):
     await backend.tick()
-    status = TestClient(backend.app).get("/admin/status", headers=H).json()
+    status = TestClient(backend.app).get("/admin/status", headers=ADMIN).json()
     assert status["dry_run"] is True
     assert status["last_tick"]["at"] == "2026-10-22T15:00:00+00:00"
     assert status["last_tick"]["ran"] == ["expire", "publish", "stock_alert",
@@ -102,9 +105,11 @@ async def test_status_shows_the_last_tick(backend):
 def test_post_now_needs_token_and_waits_for_a_running_publish(backend):
     client = TestClient(backend.app)
     assert client.post("/admin/post-now").status_code == 401
-    assert client.post("/admin/post-now", headers=H).json() == {"dry_run": True, "posted": []}
+    assert client.post("/admin/post-now", headers=H).status_code == 401  # token da extensão
+    assert client.post("/admin/post-now", headers=ADMIN).json() == {
+        "dry_run": True, "posted": []}
     backend._running.add("publish")
-    assert client.post("/admin/post-now", headers=H).status_code == 409
+    assert client.post("/admin/post-now", headers=ADMIN).status_code == 409
 
 
 def test_import_replaces_a_cloud_decision_with_the_local_cooldown(backend):
@@ -166,10 +171,47 @@ def test_history_export_brings_cooldown_offers_and_recent_posts(backend):
 def test_post_x_needs_the_keys(backend):
     client = TestClient(backend.app)
     assert client.post("/admin/post-x").status_code == 401
-    assert client.post("/admin/post-x", headers=H).status_code == 409
+    assert client.post("/admin/post-x", headers=ADMIN).status_code == 409
 
 
 def test_stats_reports_the_day(backend):
-    stats = TestClient(backend.app).get("/admin/stats", headers=H).json()
+    stats = TestClient(backend.app).get("/admin/stats", headers=ADMIN).json()
     assert stats["offers_seen_today"] == 0 and stats["links_by_hour"] == []
     assert TestClient(backend.app).get("/admin/stats").status_code == 401
+
+
+def test_admin_routes_are_closed_without_admin_token(bundle):
+    env = {"EXTENSION_TOKEN": TOKEN, "TELEGRAM_BOT_TOKEN": "1:x", "ADMIN_CHAT_ID": "777"}
+    conn = db.connect(":memory:")
+    b = CloudBackend(env, conn, FakeBucket(), bundle, httpx.AsyncClient(), bot=FakeBot())
+    client = TestClient(b.app)
+    assert client.get("/admin/status", headers=H).status_code == 401
+    assert client.get("/admin/status", headers={"X-Ofertinhas-Admin": ""}).status_code == 401
+    conn.close()
+
+
+async def test_tick_pins_the_status_and_prunes_at_their_times(backend):
+    from unittest.mock import AsyncMock
+
+    backend.telegram.send_message = AsyncMock(return_value="50")
+    backend.telegram.pin_message = AsyncMock()
+    backend.clock_state["now"] = datetime(2026, 10, 22, 11, 0, tzinfo=UTC)  # 08:00 em SP
+    assert "status" in await backend.tick()
+    backend.telegram.pin_message.assert_awaited_once_with(777, "50")
+    backend.clock_state["now"] = datetime(2026, 10, 22, 7, 30, tzinfo=UTC)  # 04:30 em SP
+    ran = await backend.tick()
+    assert "prune" in ran and "backup" not in ran
+
+
+def test_build_info_comes_from_the_bundle(bundle):
+    (bundle / "version.json").write_text('{"commit": "abc1234def", "dirty": false, '
+                                         '"config_sha": "1a2b3c4d5e6f"}', encoding="utf-8")
+    env = {"EXTENSION_TOKEN": TOKEN, "ADMIN_TOKEN": "adm", "TELEGRAM_BOT_TOKEN": "1:x",
+           "ADMIN_CHAT_ID": "777"}
+    conn = db.connect(":memory:")
+    b = CloudBackend(env, conn, FakeBucket(), bundle, httpx.AsyncClient(), bot=FakeBot())
+    client = TestClient(b.app)
+    assert client.get("/health", headers=H).json()["build"]["commit"] == "abc1234def"
+    assert client.get("/admin/status", headers=ADMIN).json()["build"]["config_sha"] \
+        == "1a2b3c4d5e6f"
+    conn.close()

@@ -14,6 +14,10 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument(
         "--dry-run", action="store_true", help="envia tudo só para os destinos de teste"
     )
+    run.add_argument(
+        "--take-over", action="store_true",
+        help="plano B: roda mesmo com a nuvem no ar (desligue-a antes; ver docs/operacao.md)",
+    )
     setup = sub.add_parser("setup", help="cria config.yaml, .env e a config da extensão")
     setup.add_argument("--tag", help="sua etiqueta de afiliado do Mercado Livre")
     sub.add_parser("api", help="roda só a API local da extensão (avisos saem no terminal)")
@@ -38,12 +42,15 @@ def build_parser() -> argparse.ArgumentParser:
         "wake-session", help="abre o Brave (se fechado) e mantém o PC acordado durante a coleta"
     )
     wake.add_argument("--minutes", type=int, default=45)
+    wake.add_argument("--max-minutes", type=int, default=120,
+                      help="estende a sessão enquanto a nuvem pedir coleta ou links, até isso")
     tasks = sub.add_parser(
         "install-wake-tasks", help="cria no Agendador do Windows as sessões diárias de coleta"
     )
     tasks.add_argument("--at", action="append", metavar="HH:MM",
                        help="horário da sessão; pode repetir (padrão: 05:30, 11:30 e 17:00)")
     tasks.add_argument("--minutes", type=int, default=45)
+    tasks.add_argument("--max-minutes", type=int, default=120)
 
     har = sub.add_parser("har-extract", help="gera fixtures sem dados sensíveis a partir de um HAR")
     har.add_argument("har_path", type=Path)
@@ -65,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "api":
         return _api()
     if args.command == "run":
-        return _run(args.dry_run)
+        return _run(args.dry_run, args.take_over)
     if args.command == "recut":
         return _recut()
     if args.command == "telegram-setup":
@@ -85,9 +92,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "keep-awake":
         return _keep_awake()
     if args.command == "wake-session":
-        return _wake_session(args.minutes)
+        return _wake_session(args.minutes, args.max_minutes)
     if args.command == "install-wake-tasks":
-        return _install_wake_tasks(args.at, args.minutes)
+        return _install_wake_tasks(args.at, args.minutes, args.max_minutes)
     print(f"Comando '{args.command}' ainda não implementado.", file=sys.stderr)
     return 2
 
@@ -120,20 +127,24 @@ def _sleep_forever() -> None:
         time.sleep(3600)
 
 
-def _wake_session(minutes: int) -> int:
-    """Sessão de coleta do Agendador: o Brave aberto coleta e gera os links para a nuvem."""
-    from .winops import open_brave
+def _wake_session(minutes: int, max_minutes: int) -> int:
+    """Sessão de coleta do Agendador: o Brave aberto coleta e gera os links para a nuvem. Depois
+    de `minutes`, continua enquanto a nuvem ainda pedir coleta ou links (até `max_minutes`)."""
+    from .winops import cloud_busy, hold_awake, open_brave
 
     open_brave()
-    return _keep_awake(minutes)
+    extension_config = Path(__file__).resolve().parents[2] / "extension" / "config.local.json"
+    hold_awake(minutes, max_minutes, lambda: cloud_busy(extension_config))
+    return 0
 
 
-def _install_wake_tasks(times: list[str] | None, minutes: int) -> int:
+def _install_wake_tasks(times: list[str] | None, minutes: int, max_minutes: int) -> int:
     from .winops import WAKE_TIMES, install_wake_tasks
 
-    print(install_wake_tasks(Path(sys.executable), Path.cwd(), times or WAKE_TIMES, minutes))
+    print(install_wake_tasks(Path(sys.executable), Path.cwd(), times or WAKE_TIMES, minutes,
+                             max_minutes))
     print("O PC só sai da suspensão nesses horários com os temporizadores de ativação "
-          "permitidos (Opções de energia → Suspender → Permitir temporizadores de ativação).")
+          "permitidos (Opções de energia > Suspender > Permitir temporizadores de ativação).")
     return 0
 
 
@@ -174,11 +185,11 @@ def _api() -> int:
     return 0
 
 
-def _run(dry_run: bool) -> int:
+def _run(dry_run: bool, take_over: bool) -> int:
     import asyncio
 
     from .config import ConfigError, load_config
-    from .run import run, setup_logging
+    from .run import CloudActive, run, setup_logging
     from .settings import Settings, SettingsError
 
     try:
@@ -190,7 +201,11 @@ def _run(dry_run: bool) -> int:
         print(f"Erro: {e}", file=sys.stderr)
         return 1
     setup_logging(settings.data_dir)
-    asyncio.run(run(settings, cfg, dry_run))
+    try:
+        asyncio.run(run(settings, cfg, dry_run, take_over))
+    except CloudActive as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        return 1
     return 0
 
 

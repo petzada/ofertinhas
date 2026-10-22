@@ -20,9 +20,33 @@ from .creative.themes import theme_for
 from .models import ACTIVE_STATES, COOLDOWN_STATES, TZ, Candidate, CandidateState, Offer, utcnow
 from .ranking.filters import passes
 from .ranking.niches import match_niches
+from .ranking.pricecheck import PriceVerdict, check_price
 from .ranking.scoring import Score, score_offer
 
 log = logging.getLogger(__name__)
+INFLATED_KEY = "price_check:{date}"  # {"inflated": n, "last": [{mlb_id, reason}]} do dia
+INFLATED_KEEP = 10
+
+
+def checked_offer(conn: sqlite3.Connection, offer: Offer, niche: Profile,
+                  now: datetime) -> PriceVerdict:
+    """A oferta com o desconto conferido no histórico de preços (ver ranking/pricecheck)."""
+    check = niche.price_check
+    if not check.enabled:
+        return PriceVerdict(offer)
+    since = now - timedelta(days=check.lookback_days)
+    return check_price(offer, db.price_points(conn, offer.mlb_id, since), check)
+
+
+def _record_inflated(conn: sqlite3.Connection, flagged: dict[str, str], now: datetime) -> None:
+    if not flagged:
+        return
+    key = INFLATED_KEY.format(date=now.astimezone(TZ).date().isoformat())
+    day = db.get_setting(conn, key) or {"inflated": 0, "last": []}
+    day["inflated"] += len(flagged)
+    day["last"] = ([{"mlb_id": m, "reason": r} for m, r in flagged.items()]
+                   + day["last"])[:INFLATED_KEEP]
+    db.set_setting(conn, key, day)
 
 
 def niche_configs(conn: sqlite3.Connection, cfg: AppConfig) -> dict[str, NicheConfig]:
@@ -104,6 +128,7 @@ def score_and_route(
     active = [n for n in all_niches.values() if not n.paused]
     fallback_rules = Profile(**cfg.defaults)  # para candidatos de nichos removidos da config
     routes: list[tuple[Score, Offer]] = []
+    inflated: dict[str, str] = {}
 
     for offer in db.get_offers(conn, mlb_ids):
         existing = {c.niche: c for c in db.candidates_for_offer(conn, offer.mlb_id)}
@@ -113,19 +138,24 @@ def score_and_route(
         ):
             continue
 
-        scores: list[Score] = []
+        scores: list[tuple[Score, Offer]] = []
         for name in match_niches(offer, active):
             niche = all_niches[name]
             if not passes(offer, niche.filters)[0]:
                 continue
             if not eligible_again(existing.get(name), offer, niche, now):
                 continue
-            scores.append(score_offer(offer, niche, now))
+            verdict = checked_offer(conn, offer, niche, now)
+            if verdict.inflated and offer.mlb_id not in inflated:
+                inflated[offer.mlb_id] = verdict.reason
+                log.info("%s: desconto inflado (%s)", offer.mlb_id, verdict.reason)
+            scores.append((score_offer(verdict.offer, niche, now), verdict.offer))
         if not scores:
             continue
         if not cfg.multi_niche:
-            scores = [max(scores, key=lambda s: s.score)]
-        routes.extend((s, offer) for s in scores)
+            scores = [max(scores, key=lambda route: route[0].score)]
+        routes.extend(scores)
+    _record_inflated(conn, inflated, now)
 
     # As melhores do lote ocupam as vagas da cota primeiro.
     counts: Counter[CandidateState] = Counter()
@@ -177,7 +207,8 @@ def reapply_cutoffs(
                 quota.take("review", niche.max_review_per_day)
         free = [c for c in cands if c.notified_at is None]
         for cand in sorted(free, key=lambda c: c.score, reverse=True):
-            new = decide_with_quota(cand.score, niche, quota, db.get_offer(conn, cand.mlb_id))
+            offer = checked_offer(conn, db.get_offer(conn, cand.mlb_id), niche, now).offer
+            new = decide_with_quota(cand.score, niche, quota, offer)
             if new is not cand.state:
                 db.save_candidate(conn, dataclasses.replace(cand, state=new, decided_at=now))
                 changes[f"{cand.state.value}→{new.value}"] += 1

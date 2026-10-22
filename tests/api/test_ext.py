@@ -207,5 +207,21 @@ def test_stock_reports_ready_waiting_and_until_when(env):
     assert (data["ready"], data["waiting_links"]) == (0, 0)
     assert data["groups"] and set(data["groups"][0]) == {
         "ready", "waiting_links", "reserve", "target", "posts_today", "max_posts", "ends_at",
-        "ends_at_with_links"}
+        "ends_at_with_links", "short"}
     assert env.client.get("/ext/stock").status_code == 401
+
+
+def test_collect_now_when_stock_is_short_and_last_collect_is_old(env):
+    # banco vazio ao meio-dia: todo grupo está abaixo do alvo e nunca houve coleta
+    assert env.client.get("/ext/stock", headers=H).json()["collect_now"] is True
+    assert env.client.get("/ext/config", headers=H).json()["collect_now"] is True
+    started = env.client.get("/ext/config?purpose=collect", headers=H).json()
+    assert started["collect_now"] is False  # a própria coleta não pede outra
+    assert env.client.get("/ext/config", headers=H).json()["collect_now"] is False
+    env.now = NOW + timedelta(minutes=31)  # passou o collect_now_gap_min (30)
+    assert env.client.get("/ext/config", headers=H).json()["collect_now"] is True
+
+
+def test_collect_now_respects_the_pause(env):
+    db.set_setting(env.conn, db.EXTENSION_PAUSED_KEY, {"reason": "captcha"})
+    assert env.client.get("/ext/config", headers=H).json()["collect_now"] is False

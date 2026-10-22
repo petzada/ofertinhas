@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ofertinhas",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Coleta ofertas do portal de afiliados do Mercado Livre e gera links para o backend local do Ofertinhas.",
   "minimum_chrome_version": "111",
   "permissions": ["alarms", "storage", "tabs", "scripting"],

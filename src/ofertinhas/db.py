@@ -10,10 +10,13 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from .models import TZ, Candidate, CandidateState, Offer, utcnow
+from .models import ACTIVE_STATES, TZ, Candidate, CandidateState, Offer, utcnow
 
 # Setting com {reason, url, at} enquanto a extensão estiver pausada; ausente = ativa.
 EXTENSION_PAUSED_KEY = "extension_paused"
+# Settings com a data (AAAA-MM-DD) no fim da chave: cota e descontos inflados do dia.
+DAILY_KEY_PREFIXES = ("quota:", "price_check:")
+DAILY_KEEP_DAYS = 14
 
 MIGRATIONS = [
     """
@@ -91,6 +94,9 @@ MIGRATIONS = [
     ALTER TABLE offers ADD COLUMN link_requested_at TEXT;
     ALTER TABLE offers ADD COLUMN link_attempts INTEGER NOT NULL DEFAULT 0;
     """,
+    """
+    ALTER TABLE price_history ADD COLUMN original_price REAL;
+    """,
 ]
 
 
@@ -130,7 +136,7 @@ def upsert_offer(conn: sqlite3.Connection, offer: Offer, now: datetime | None = 
     """
     now = now or utcnow()
     previous = conn.execute(
-        "SELECT price FROM offers WHERE mlb_id = ?", (offer.mlb_id,)
+        "SELECT price, original_price FROM offers WHERE mlb_id = ?", (offer.mlb_id,)
     ).fetchone()
     fields = dict(
         title=offer.title,
@@ -169,12 +175,31 @@ def upsert_offer(conn: sqlite3.Connection, offer: Offer, now: datetime | None = 
                 f"UPDATE offers SET {sets} WHERE mlb_id = :mlb_id",
                 fields | {"mlb_id": offer.mlb_id},
             )
-        if previous is None or previous["price"] != offer.price:
+        if (previous is None or previous["price"] != offer.price
+                or previous["original_price"] != offer.original_price):
             conn.execute(
-                "INSERT INTO price_history (mlb_id, price, seen_at) VALUES (?, ?, ?)",
-                (offer.mlb_id, offer.price, _ts(now)),
+                "INSERT INTO price_history (mlb_id, price, original_price, seen_at) "
+                "VALUES (?, ?, ?, ?)",
+                (offer.mlb_id, offer.price, offer.original_price, _ts(now)),
             )
     return previous is None
+
+
+def price_points(
+    conn: sqlite3.Connection, mlb_id: str, since: datetime
+) -> list[tuple[datetime, float, float | None]]:
+    """(desde quando, preço, preço "de") que valeram a partir de `since`, em ordem.
+
+    O histórico só grava mudanças, então inclui o último registro de antes de `since`: é o
+    preço que estava valendo quando a janela começou."""
+    rows = conn.execute(
+        "SELECT seen_at, price, original_price FROM price_history WHERE mlb_id = ? AND "
+        "seen_at >= (SELECT COALESCE(MAX(seen_at), '') FROM price_history "
+        "            WHERE mlb_id = ? AND seen_at < ?) "
+        "ORDER BY seen_at",
+        (mlb_id, mlb_id, _ts(since)),
+    )
+    return [(_dt(r["seen_at"]), r["price"], r["original_price"]) for r in rows]
 
 
 def _offer_from_row(row: sqlite3.Row) -> Offer:
@@ -461,3 +486,56 @@ def set_niche_override(conn: sqlite3.Connection, niche: str, path: str, value: A
         node = node.setdefault(key, {})
     node[leaf] = value
     set_setting(conn, f"override:{niche}", overrides)
+
+
+# --- limpeza ---------------------------------------------------------------
+
+
+def prune(conn: sqlite3.Connection, now: datetime, keep_days: int) -> dict[str, int]:
+    """Apaga o que passou de `keep_days` e não serve mais a nenhuma regra.
+
+    - candidatas fora do fluxo (descartadas, expiradas, postadas, recusadas) decididas antes
+      do corte; quem chama garante `keep_days` maior que o cooldown de repost;
+    - ofertas que não aparecem na coleta desde o corte e não têm mais candidata;
+    - histórico de preços anterior ao corte, menos o registro que valia no corte (base da
+      conferência de desconto, ver `price_points`);
+    - settings do dia (cota, descontos inflados) com mais de `DAILY_KEEP_DAYS` dias.
+    Os posts ficam: são poucos e guardam o histórico de envio.
+    """
+    cutoff = _ts(now - timedelta(days=keep_days))
+    active = sorted(s.value for s in ACTIVE_STATES)
+    marks = ", ".join("?" for _ in active)
+    old_day = (now.astimezone(TZ) - timedelta(days=DAILY_KEEP_DAYS)).date().isoformat()
+    gone = "updated_at < ? AND mlb_id NOT IN (SELECT mlb_id FROM candidates)"
+    removed = {}
+    with conn:
+        removed["candidates"] = _delete(
+            conn, "candidates", f"decided_at < ? AND state NOT IN ({marks})", (cutoff, *active))
+        _delete(conn, "price_history",
+                f"mlb_id IN (SELECT mlb_id FROM offers WHERE {gone})", (cutoff,))
+        removed["offers"] = _delete(conn, "offers", gone, (cutoff,))
+        removed["price_history"] = _delete(
+            conn, "price_history",
+            "seen_at < (SELECT MAX(h.seen_at) FROM price_history h "
+            "WHERE h.mlb_id = price_history.mlb_id AND h.seen_at < ?)", (cutoff,))
+        stale = [
+            row["key"] for row in conn.execute(
+                "SELECT key FROM settings WHERE "
+                + " OR ".join("key LIKE ?" for _ in DAILY_KEY_PREFIXES),
+                [f"{prefix}%" for prefix in DAILY_KEY_PREFIXES],
+            )
+            if row["key"].rsplit(":", 1)[-1] < old_day
+        ]
+        for key in stale:
+            conn.execute("DELETE FROM settings WHERE key = ?", (key,))
+        removed["settings"] = len(stale)
+    return removed
+
+
+def _delete(conn: sqlite3.Connection, table: str, where: str, params: tuple) -> int:
+    """DELETE que devolve quantas linhas saíram (o SQLite do Durable Object não tem
+    `rowcount`)."""
+    count = conn.execute(f"SELECT COUNT(*) FROM {table} WHERE {where}", params).fetchone()[0]
+    if count:
+        conn.execute(f"DELETE FROM {table} WHERE {where}", params)
+    return count

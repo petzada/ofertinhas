@@ -1,7 +1,16 @@
 # Ofertinhas — Design
 
 **Data:** 2026-10-21 · **Revisão 2:** 2026-10-22
-**Status:** revisão 2 aguardando aprovação
+**Status:** revisão 2 implementada; produção migrada para a nuvem (ver nota abaixo)
+
+> **Estado em 2026-10-22 (revisão 3, na prática):** o backend saiu do PC e roda em produção
+> num Worker da Cloudflare (SQLite de Durable Object, cards no R2, bot por webhook). A
+> extensão no Brave continua coletando e gerando links, agora em sessões do Agendador do
+> Windows e quando a nuvem pede (`collect_now`). O `run` local virou plano B. Também
+> entraram a conferência de desconto inflado, a limpeza diária do banco, o status fixado
+> no chat do admin, o token de admin separado e o deploy versionado. O que vale hoje está
+> em [docs/operacao.md](../../operacao.md); o histórico da migração, em
+> [docs/notes/handoff-2026-10-22-nuvem.md](../../notes/handoff-2026-10-22-nuvem.md).
 
 > **Por que a revisão 2:** nas duas tentativas de captura, o login foi bloqueado no navegador automatizado (Playwright). O Google recusou o "Entrar com Google" e o Mercado Livre respondeu "limite de tentativas" logo após a verificação de navegador. Por isso a coleta e a geração de link saem do Playwright e passam para uma **extensão no Brave do usuário, já logado**. Também saem o VPS e o Docker: tudo roda no computador do usuário. O WhatsApp passa a ser só chamadas à **API da WhatsMiau.dev** (serviço pago do usuário, nada é hospedado por nós).
 

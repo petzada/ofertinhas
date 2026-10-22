@@ -33,3 +33,9 @@ fallthrough = true
 type = "Text"
 globs = ["**/*.yaml"]
 fallthrough = true
+
+# Commit e hash do config (gravado pelo deploy.py; aparece no /health e no /admin/status).
+[[rules]]
+type = "Text"
+globs = ["**/bundle/version.json"]
+fallthrough = true

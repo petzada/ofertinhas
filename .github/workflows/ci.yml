@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: pip
       - run: pip install -e ".[dev]"
       - run: ruff check .
@@ -20,14 +20,22 @@ jobs:
   test:
     needs: lint
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.13 é a do .venv e a mínima do Worker (cloud/worker/pyproject.toml); 3.12 é a
+        # mínima do pacote.
+        python-version: ["3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: pip
       - run: sudo apt-get update && sudo apt-get install -y libzbar0
       - run: pip install -e ".[dev]"
+      # inclui tests/cloud/test_bundle.py: monta o bundle do Worker e o importa sem as
+      # dependências que só existem no PC
       - run: pytest
 
   extension:

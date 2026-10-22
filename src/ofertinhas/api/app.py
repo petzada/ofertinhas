@@ -25,9 +25,11 @@ from ..config import AppConfig
 from ..models import utcnow
 from ..pipeline import niche_configs, score_and_route
 from ..settings import Settings
-from ..stock import group_stock, niches_needing_links
+from ..status import LAST_COLLECT_KEY, last_collect
+from ..stock import collect_now, group_stock, niches_needing_links
 
 TOKEN_HEADER = "X-Ofertinhas-Token"
+ADMIN_HEADER = "X-Ofertinhas-Admin"
 PORTAL_URL = "https://www.mercadolivre.com.br/afiliados/hub?is_affiliate=true"
 SEARCH_URL = (
     "https://www.mercadolivre.com.br/affiliate-program/api/hub/search"
@@ -49,6 +51,7 @@ class ApiState:
     # (nome, json) → onde ficou; sem isso, grava em data_dir/unparsed (na nuvem, vai ao R2)
     save_unparsed: Callable[[str, str], Awaitable[str]] | None = None
     dry_run: bool = False  # o estoque é contado no ritmo do modo em que os posts saem
+    build: dict | None = None  # commit e hash do config (ver buildinfo)
 
 
 class RawCapture(BaseModel):
@@ -69,6 +72,11 @@ class Alert(BaseModel):
     url: str | None = None
 
 
+def _check(token: str | None, expected: str | None) -> None:
+    if not expected or not token or not secrets.compare_digest(token, expected):
+        raise HTTPException(status_code=401, detail="token inválido")
+
+
 def create_app(state: ApiState) -> FastAPI:
     app = FastAPI(title="Ofertinhas", docs_url=None, redoc_url=None, openapi_url=None)
     if state.settings.extension_origin:
@@ -82,9 +90,13 @@ def create_app(state: ApiState) -> FastAPI:
     async def require_token(
         token: str | None = Header(default=None, alias=TOKEN_HEADER),
     ) -> None:
-        expected = state.settings.extension_token
-        if not expected or not token or not secrets.compare_digest(token, expected):
-            raise HTTPException(status_code=401, detail="token inválido")
+        _check(token, state.settings.extension_token)
+
+    async def require_admin(
+        token: str | None = Header(default=None, alias=ADMIN_HEADER),
+    ) -> None:
+        """Rotas de admin: só o ADMIN_TOKEN; sem ele configurado, recusa tudo."""
+        _check(token, state.settings.admin_token)
 
     router = APIRouter(dependencies=[Depends(require_token)])
     conn = state.conn
@@ -99,7 +111,7 @@ def create_app(state: ApiState) -> FastAPI:
 
     @router.get("/health")
     async def health() -> dict:
-        return {"ok": True, "version": __version__}
+        return {"ok": True, "version": __version__, "build": state.build}
 
     def rotate(all_ids: list[str], advance: bool) -> list[str]:
         """Próximas `categories_per_cycle` categorias; só a coleta faz o rodízio andar."""
@@ -116,7 +128,11 @@ def create_app(state: ApiState) -> FastAPI:
         col = state.cfg.collector
         pause = db.get_setting(conn, db.EXTENSION_PAUSED_KEY)
         paused_niches = {n for n, c in niche_configs(conn, state.cfg).items() if c.paused}
-        ids = rotate(state.cfg.collector_categories(paused_niches), advance=purpose == "collect")
+        collecting = purpose == "collect"
+        ids = rotate(state.cfg.collector_categories(paused_niches), advance=collecting)
+        now = state.clock()
+        if collecting:
+            db.set_setting(conn, LAST_COLLECT_KEY, now.isoformat())
         categories = [{"id": c, "name": ROOT_CATEGORIES[c]} for c in ids]
         if col.include_unfiltered:
             categories.append(None)
@@ -134,6 +150,11 @@ def create_app(state: ApiState) -> FastAPI:
             "portal_url": PORTAL_URL,
             "search_url": SEARCH_URL,
             "categories": categories,
+            # pedido de coleta fora de hora (estoque curto); a extensão confere a cada 30 s
+            "collect_now": not collecting and collect_now(
+                conn, state.cfg, group_stock(conn, state.cfg, now, state.dry_run), now,
+                last_collect(conn)),
+            "collect_now_gap_min": col.collect_now_gap_min,
         }
 
     @router.post("/ext/raw")
@@ -205,8 +226,10 @@ def create_app(state: ApiState) -> FastAPI:
     @router.get("/ext/stock")
     async def ext_stock() -> dict:
         """Estoque de cada grupo e até quando ele dura, para o popup da extensão."""
-        groups = group_stock(conn, state.cfg, state.clock(), state.dry_run)
+        now = state.clock()
+        groups = group_stock(conn, state.cfg, now, state.dry_run)
         return {
+            "collect_now": collect_now(conn, state.cfg, groups, now, last_collect(conn)),
             "ready": sum(g.ready for g in groups),
             "waiting_links": sum(g.waiting_links for g in groups),
             "reserve": sum(g.reserve for g in groups),
@@ -220,5 +243,6 @@ def create_app(state: ApiState) -> FastAPI:
 
     app.include_router(router)
     app.state.ofertinhas = state
-    app.state.require_token = require_token  # para rotas extras da nuvem
+    app.state.require_token = require_token
+    app.state.require_admin = require_admin  # para as rotas /admin/* da nuvem
     return app

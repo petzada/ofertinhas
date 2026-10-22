@@ -80,6 +80,14 @@ class Filters(_Strict):
         return self
 
 
+class PriceCheck(_Strict):
+    """Confere o desconto anunciado com o histórico de preços da coleta (ranking/pricecheck)."""
+
+    enabled: bool = True
+    lookback_days: int = Field(30, ge=1)  # janela do histórico, como a regra de 30 dias
+    tolerance_pct: float = Field(5, ge=0, le=50)  # oscilação normal que não conta como truque
+
+
 class Pacing(_Strict):
     min_interval_min: int = Field(25, ge=1)
     jitter_min: int = Field(5, ge=0)
@@ -126,6 +134,7 @@ class Profile(_Strict):
     weights: Weights = Weights()
     targets: Targets = Targets()
     filters: Filters = Filters()
+    price_check: PriceCheck = PriceCheck()
     auto_approve_at: float = Field(80, ge=0, le=100)
     manual_review_at: float = Field(60, ge=0, le=100)
     rules: Rules | None = None  # se definido, decide no lugar dos cortes por nota
@@ -190,6 +199,9 @@ class CollectorConfig(_Strict):
     # `stock_hours` horas (+ `stock_extra` de folga). O resto das aprovadas espera na reserva.
     stock_hours: float = Field(6, gt=0)
     stock_extra: int = Field(2, ge=0)
+    # Estoque abaixo do alvo mesmo com todas as aprovadas: a nuvem pede uma coleta fora de
+    # hora (`collect_now` no /ext/config), no máximo uma a cada `collect_now_gap_min`.
+    collect_now_gap_min: int = Field(30, ge=5)
 
     _window_needs_quotes = field_validator("window", mode="before")(_reject_unquoted_times)
 
@@ -214,6 +226,8 @@ class AppConfig(_Strict):
     whatsapp_enabled: bool = False  # trava: nada é enviado ao WhatsApp enquanto for false
     x_enabled: bool = False  # trava do X: com true, cada post do Telegram também sai no X
     brand: str = Field("Ofertas 2KAI", min_length=1, max_length=30)  # topo do card
+    # Limpeza diária: ofertas, decisões e histórico de preço mais velhos que isso saem do banco.
+    retention_days: int = Field(60, ge=14)
 
     @model_validator(mode="after")
     def _validate_layers(self):
@@ -230,7 +244,13 @@ class AppConfig(_Strict):
         except ValidationError as e:
             raise ConfigError(f"defaults: {_describe(e)}") from None
         for name in self.niches:
-            self.for_niche(name)
+            niche = self.for_niche(name)
+            if self.retention_days <= max(niche.repost_cooldown_days,
+                                          niche.price_check.lookback_days):
+                raise ConfigError(
+                    f"retention_days ({self.retention_days}) precisa ser maior que o cooldown "
+                    f"de repost e a janela do price_check do nicho '{name}'"
+                )
         return self
 
     @classmethod

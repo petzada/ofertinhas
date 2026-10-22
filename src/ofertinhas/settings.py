@@ -60,6 +60,9 @@ class Settings:
     x_api_secret: str | None = None
     x_access_token: str | None = None
     x_access_token_secret: str | None = None
+    # Rotas /admin/* da nuvem (postar agora, importar histórico): token próprio, para quem
+    # tiver o token da extensão (que fica no navegador) não poder postar nem apagar nada.
+    admin_token: str | None = None
 
     @property
     def x_keys(self) -> tuple[str, str, str, str] | None:
@@ -70,6 +73,7 @@ class Settings:
     _ENV_NAMES = {
         "ML_AFFILIATE_TAG": "ml_affiliate_tag",
         "EXTENSION_TOKEN": "extension_token",
+        "ADMIN_TOKEN": "admin_token",
         "TELEGRAM_BOT_TOKEN": "telegram_bot_token",
         "ADMIN_CHAT_ID": "admin_chat_id",
         "WHATSMIAU_API_KEY": "whatsmiau_api_key",
@@ -99,6 +103,7 @@ class Settings:
             x_api_secret=env.get("X_API_SECRET") or None,
             x_access_token=env.get("X_ACCESS_TOKEN") or None,
             x_access_token_secret=env.get("X_ACCESS_TOKEN_SECRET") or None,
+            admin_token=env.get("ADMIN_TOKEN") or None,
         )
 
     @classmethod

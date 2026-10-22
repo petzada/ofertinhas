@@ -63,6 +63,8 @@ def test_build_scheduler_registers_every_job(conn):
     assert {j.id for j in scheduler.get_jobs()} == {
         "notify_pending", "render", "publish", "expire", "backup",
     }
+    backup = scheduler.get_job("backup").trigger.triggers[0]
+    assert str(backup.fields[5]) == "4" and str(backup.fields[6]) == "0"  # 04:00
 
 
 def test_backup_rotates_keeping_seven(tmp_path):
@@ -93,9 +95,46 @@ def test_wake_tasks_wake_the_pc_and_run_the_session():
     from ofertinhas.winops import wake_tasks_script
 
     script = wake_tasks_script(Path(r"C:\p\.venv\Scripts\python.exe"), Path(r"C:\p"),
-                               ["05:30", "17:00"], 45)
+                               ["05:30", "17:00"], 45, 120)
     assert r"'C:\p\.venv\Scripts\pythonw.exe'" in script
-    assert "'-m ofertinhas wake-session --minutes 45'" in script
+    assert "'-m ofertinhas wake-session --minutes 45 --max-minutes 120'" in script
+    assert "-ExecutionTimeLimit (New-TimeSpan -Minutes 135)" in script
     assert "-WakeToRun" in script and "-StartWhenAvailable" in script
     assert "-TaskName 'Ofertinhas coleta 05h30'" in script
     assert "-Daily -At '17:00'" in script
+
+
+def test_wake_session_holds_while_the_cloud_is_busy():
+    from ofertinhas.winops import hold_awake
+
+    slept, states, answers = [], [], iter([True, True, False])
+    total = hold_awake(45, 120, lambda: next(answers), sleep=slept.append, awake=states.append)
+    assert total == 55 and slept == [45 * 60, 300, 300] and states == [True, False]
+
+
+def test_wake_session_stops_at_the_ceiling():
+    from ofertinhas.winops import hold_awake
+
+    slept = []
+    total = hold_awake(45, 52, lambda: True, sleep=slept.append, awake=lambda _: None)
+    assert total == 52 and slept == [45 * 60, 300, 120]
+
+
+def test_cloud_busy_reads_the_stock(tmp_path):
+    import json
+    from types import SimpleNamespace
+
+    from ofertinhas.winops import cloud_busy
+
+    conf = tmp_path / "config.local.json"
+    conf.write_text(json.dumps({"backendUrl": "https://x.dev/", "token": "t"}), encoding="utf-8")
+    calls = []
+
+    def get(url, headers, timeout):
+        calls.append((url, headers))
+        return SimpleNamespace(raise_for_status=lambda: None,
+                               json=lambda: {"collect_now": False, "waiting_links": 3})
+
+    assert cloud_busy(conf, get) is True
+    assert calls == [("https://x.dev/ext/stock", {"X-Ofertinhas-Token": "t"})]
+    assert cloud_busy(tmp_path / "nao-existe.json", get) is False

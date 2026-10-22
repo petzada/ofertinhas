@@ -1,13 +1,14 @@
 // Service worker da extensão: liga a lógica de lib/ às APIs do navegador.
 // - alarme "collect": um ciclo de coleta, reagendado com variação aleatória;
-// - alarme "links": a cada 30 s, no máximo um link de afiliado;
+// - alarme "links": a cada 30 s, no máximo um link de afiliado (e a coleta pedida pela nuvem,
+//   `collect_now`, quando o estoque está curto);
 // - freio: qualquer sinal de bloqueio pausa tudo e avisa o backend (que avisa no Telegram).
 
 import { Backend } from "./lib/backend.js";
 import { runCollection, runLinkStep } from "./lib/cycle.js";
 import { postInPage } from "./lib/inpage.js";
 import { RateLimiter } from "./lib/ratelimit.js";
-import { nextDelayMs } from "./lib/schedule.js";
+import { nextDelayMs, shouldCollectNow } from "./lib/schedule.js";
 import { TabGate } from "./lib/tabgate.js";
 
 const DEFAULT_BACKEND = "http://127.0.0.1:8765";
@@ -167,6 +168,9 @@ async function linkStep() {
     const { state } = await load();
     const api = await backend();
     const cfg = await api.get("/ext/config");
+    if (!collecting && shouldCollectNow(cfg, state.lastCollect?.at, Date.now())) {
+      collect(); // estoque curto na nuvem: coleta agora, sem esperar o alarme
+    }
     const limiter = RateLimiter.fromJSON(state.linkLimiter ?? { stamps: [] });
     limiter.maxPerHour = cfg.max_links_per_hour;
     const tab = portalTab(cfg.portal_url);

@@ -19,10 +19,12 @@ from telegram import Bot
 from .. import db
 from ..api.app import ApiState, create_app
 from ..approval.bot import BotDeps
+from ..buildinfo import describe, load_build
 from ..config import load_config
 from ..creative.image import fetch_product_image
-from ..jobs import guarded, make_jobs
+from ..jobs import SCHEDULE, guarded, is_due, make_jobs
 from ..models import TZ, utcnow
+from ..pipeline import INFLATED_KEY
 from ..publisher.publish import publish_due, x_thread
 from ..publisher.telegram import TelegramSender
 from ..publisher.whatsapp import WhatsAppSender
@@ -35,9 +37,9 @@ from .webhook import handle_update
 
 log = logging.getLogger("ofertinhas")
 WEBHOOK_HEADER = "X-Telegram-Bot-Api-Secret-Token"
-# job → de quantos em quantos minutos roda (o Cron chama o tick a cada minuto). O "render"
-# fica de fora: o card é desenhado no Worker de entrada (ver cloud/draw.py e cloud/render.py).
-JOB_EVERY_MIN = {"expire": 15, "publish": 1, "stock_alert": 5, "notify_pending": 1}
+# Jobs que o tick não roda: o card é desenhado no Worker de entrada (ver cloud/draw.py e
+# cloud/render.py) e o banco conta com a recuperação do Durable Object em vez de backup.
+OUTSIDE_TICK = {"render", "backup"}
 LAST_TICK_KEY = "cron:last_tick"
 
 
@@ -61,6 +63,7 @@ class CloudBackend:
         settings.require("EXTENSION_TOKEN", "TELEGRAM_BOT_TOKEN", "ADMIN_CHAT_ID")
         self.conn = conn
         self.cfg = cfg = load_config(bundle_dir / "config.yaml")
+        self.build = load_build(bundle_dir)
         self.clock = clock
         self.dry_run = is_dry_run(env)
         self.webhook_secret = env.get("TELEGRAM_WEBHOOK_SECRET") or None
@@ -90,6 +93,7 @@ class CloudBackend:
             card_store=self.card_store, fetch_image=fetch_image, notify=self.notify,
             admin_chat_id=settings.admin_chat_id, dry_run=self.dry_run, clock=clock,
             whatsapp_test_jid=settings.whatsapp_test_jid, x=self.x,
+            version=describe(self.build),
         )
         self._running: set[str] = set()
         self.app = self._build_app()
@@ -120,7 +124,8 @@ class CloudBackend:
     def _build_app(self):
         app = create_app(ApiState(settings=self.settings, conn=self.conn, cfg=self.cfg,
                                   notify=self.notify, clock=self.clock,
-                                  save_unparsed=self._save_unparsed, dry_run=self.dry_run))
+                                  save_unparsed=self._save_unparsed, dry_run=self.dry_run,
+                                  build=self.build))
 
         @app.post("/tg/{secret}")
         async def telegram_webhook(secret: str, request: Request) -> dict:
@@ -136,7 +141,7 @@ class CloudBackend:
                 log.exception("falha ao tratar o update %s", update.get("update_id"))
             return {"ok": True}
 
-        @app.get("/admin/status", dependencies=[Depends(app.state.require_token)])
+        @app.get("/admin/status", dependencies=[Depends(app.state.require_admin)])
         async def admin_status(posts: int = 6) -> dict:
             recent = self.conn.execute(
                 "SELECT mlb_id, niche, channel, chat, status, sent_at, error FROM posts "
@@ -152,14 +157,15 @@ class CloudBackend:
                 "ORDER BY o.link_requested_at DESC LIMIT 5"
             )
             last_collect = self.conn.execute("SELECT MAX(updated_at) FROM offers").fetchone()[0]
-            return {"dry_run": self.dry_run, "last_tick": db.get_setting(self.conn, LAST_TICK_KEY),
+            return {"dry_run": self.dry_run, "build": self.build,
+                    "last_tick": db.get_setting(self.conn, LAST_TICK_KEY),
                     "last_collect": last_collect,
                     "candidates": db.count_candidates(self.conn),
                     "recent_posts": [dict(zip(r.keys(), r, strict=True)) for r in recent],
                     "alerts": {r["key"]: json.loads(r["value_json"]) for r in alerts},
                     "latest_links": [dict(zip(r.keys(), r, strict=True)) for r in latest_links]}
 
-        @app.get("/admin/stats", dependencies=[Depends(app.state.require_token)])
+        @app.get("/admin/stats", dependencies=[Depends(app.state.require_admin)])
         async def admin_stats() -> dict:
             """Volume do dia (horário de SP): coletas, links, posts e a idade do estoque."""
             now = self.clock()
@@ -189,13 +195,15 @@ class CloudBackend:
                     "SELECT c.state, COUNT(*) AS n FROM candidates c JOIN offers o "
                     "ON o.mlb_id = c.mlb_id WHERE o.link_requested_at >= ? GROUP BY c.state",
                     start),
+                "inflated_today": db.get_setting(
+                    self.conn, INFLATED_KEY.format(date=now.astimezone(TZ).date().isoformat())),
                 "rendered_age": rows(
                     "SELECT c.mlb_id, c.decided_at, c.ref_price, o.price, o.updated_at "
                     "FROM candidates c JOIN offers o ON o.mlb_id = c.mlb_id "
                     "WHERE c.state = 'rendered' ORDER BY c.decided_at"),
             }
 
-        @app.post("/admin/post-now", dependencies=[Depends(app.state.require_token)])
+        @app.post("/admin/post-now", dependencies=[Depends(app.state.require_admin)])
         async def admin_post_now(mlb_id: str | None = None) -> dict:
             """Um post avulso por grupo agora, fora da janela e do intervalo; com `mlb_id`,
             só essa oferta (precisa estar com o card pronto)."""
@@ -215,7 +223,7 @@ class CloudBackend:
                 self._running.discard("publish")
             return {"dry_run": self.dry_run, "posted": posted}
 
-        @app.post("/admin/post-x", dependencies=[Depends(app.state.require_token)])
+        @app.post("/admin/post-x", dependencies=[Depends(app.state.require_admin)])
         async def admin_post_x(mlb_id: str | None = None) -> dict:
             """Thread só no X com a última oferta que saiu no Telegram (ou `mlb_id`): valida o X
             sem post extra nos grupos."""
@@ -241,7 +249,7 @@ class CloudBackend:
             ).fetchone()
             return dict(zip(last.keys(), last, strict=True))
 
-        @app.post("/admin/import", dependencies=[Depends(app.state.require_token)])
+        @app.post("/admin/import", dependencies=[Depends(app.state.require_admin)])
         async def admin_import(request: Request) -> dict:
             return {"imported": import_rows(self.conn, await request.json())}
 
@@ -253,7 +261,8 @@ class CloudBackend:
         now = self.clock()
         db.set_setting(self.conn, LAST_TICK_KEY, {"at": now.isoformat(), "ran": [],
                                                    "skipped": sorted(self._running)})
-        due = [n for n, every in JOB_EVERY_MIN.items() if now.minute % every == 0]
+        due = [n for n, spec in SCHEDULE.items()
+               if n in self.jobs and n not in OUTSIDE_TICK and is_due(spec, now)]
         ran = []
         for name in due:
             if name in self._running:

@@ -43,6 +43,10 @@ defaults:
     require_free_shipping: false
     require_full: false
     blocked_keywords: [usado, recondicionado, réplica, seminovo]
+  price_check:           # desconto inflado, conferido no histórico de preços da coleta
+    enabled: true
+    lookback_days: 30    # se o preço já foi menor nesse período, a "promoção" vale 0% de desconto
+    tolerance_pct: 5     # e se o "de" subiu, o desconto é contado sobre o "de" antigo
   rules:                 # decide pela oferta; a nota só ordena quem pega a cota do dia
     # mais de 39% de desconto E mais de 19% de comissão: link automático
     auto: {min_discount_pct: 39, min_commission_pct: 19, strict: true}

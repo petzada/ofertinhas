@@ -1,22 +1,24 @@
-"""Jobs periódicos do backend, cada um isolado: se um falha, os outros seguem."""
+"""Jobs periódicos do backend no PC, nos horários do `SCHEDULE` (o mesmo da nuvem)."""
 
 import sqlite3
 from collections.abc import Awaitable, Callable
 from datetime import datetime
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.combining import OrTrigger
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
-from .jobs import guarded
+from .jobs import SCHEDULE, At, Every, at_times, guarded
 
-# id → gatilho do APScheduler
-TRIGGERS = {
-    "notify_pending": {"trigger": "interval", "minutes": 1},
-    "render": {"trigger": "interval", "minutes": 1},
-    "publish": {"trigger": "interval", "minutes": 1},
-    "expire": {"trigger": "interval", "minutes": 15},
-    "stock_alert": {"trigger": "interval", "minutes": 5},
-    "backup": {"trigger": "cron", "hour": 4, "minute": 0},
-}
+TIMEZONE = "America/Sao_Paulo"
+
+
+def trigger(spec: Every | At):
+    if isinstance(spec, Every):
+        return IntervalTrigger(minutes=spec.minutes, timezone=TIMEZONE)
+    return OrTrigger([CronTrigger(hour=t.hour, minute=t.minute, timezone=TIMEZONE)
+                      for t in at_times(spec)])
 
 
 def build_scheduler(
@@ -25,7 +27,7 @@ def build_scheduler(
     notify: Callable[[str], Awaitable[None]],
     clock: Callable[[], datetime],
 ) -> AsyncIOScheduler:
-    scheduler = AsyncIOScheduler(timezone="America/Sao_Paulo")
+    scheduler = AsyncIOScheduler(timezone=TIMEZONE)
     for name, job in jobs.items():
         scheduler.add_job(
             guarded(name, job, conn, notify, clock),
@@ -33,6 +35,6 @@ def build_scheduler(
             name=name,
             max_instances=1,
             coalesce=True,
-            **TRIGGERS[name],
+            trigger=trigger(SCHEDULE[name]),
         )
     return scheduler

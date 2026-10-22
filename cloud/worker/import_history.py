@@ -20,14 +20,14 @@ DEFAULT_URL = "https://ofertinhas.marciopetigrosso.workers.dev"
 
 def main() -> int:
     url = (sys.argv[1] if len(sys.argv) > 1 else DEFAULT_URL).rstrip("/")
-    token = dotenv_values(ROOT / ".env")["EXTENSION_TOKEN"]
+    token = dotenv_values(ROOT / ".env")["ADMIN_TOKEN"]
     conn = sqlite3.connect(ROOT / "data" / "ofertinhas.db")
     conn.row_factory = sqlite3.Row
     data = export_rows(conn, utcnow())
     conn.close()
     print("exportado:", {table: len(rows) for table, rows in data.items()})
     response = httpx.post(f"{url}/admin/import", json=data, timeout=120,
-                          headers={"X-Ofertinhas-Token": token})
+                          headers={"X-Ofertinhas-Admin": token})
     print("nuvem:", response.status_code, response.text[:300])
     return 0 if response.is_success else 1
 

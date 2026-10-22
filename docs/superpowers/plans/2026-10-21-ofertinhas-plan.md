@@ -3,6 +3,15 @@
 **Spec:** [2026-10-21-ofertinhas-design.md](../specs/2026-10-21-ofertinhas-design.md) (revisão 2)
 **Data:** 2026-10-21 · **Revisão 2:** 2026-10-22 (extensão no Brave + tudo local, sem VPS)
 
+> **Estado em 2026-10-22 (plano concluído; produção na nuvem):** o backend saiu do PC e roda em produção
+> num Worker da Cloudflare (SQLite de Durable Object, cards no R2, bot por webhook). A
+> extensão no Brave continua coletando e gerando links, agora em sessões do Agendador do
+> Windows e quando a nuvem pede (`collect_now`). O `run` local virou plano B. Também
+> entraram a conferência de desconto inflado, a limpeza diária do banco, o status fixado
+> no chat do admin, o token de admin separado e o deploy versionado. O que vale hoje está
+> em [docs/operacao.md](../../operacao.md); o histórico da migração, em
+> [docs/notes/handoff-2026-10-22-nuvem.md](../../notes/handoff-2026-10-22-nuvem.md).
+
 ## Como executar este plano
 
 - **Testes antes do código:** cada tarefa começa pelo teste que falha. Depois vem a implementação mínima até passar e, por fim, um commit.

@@ -5,6 +5,18 @@ Projeto: `C:\Users\Marcio\Desktop\ofertinhas` (Git, branch `main`, último commi
 
 ---
 
+## 000. Etapas 3, 4 e 5 concluídas (22/10, tarde)
+
+- **Etapa 3:** as tarefas do Agendador (`Ofertinhas coleta 05h30/11h30/17h00`) agora estendem
+  a sessão enquanto a nuvem pede coleta ou link (`--max-minutes 120`). A nuvem pede coleta
+  fora de hora pelo `collect_now` do `/ext/config`, que a extensão confere a cada 30 s.
+  Fechar o Brave depois ficou de fora, porque o navegador é de uso pessoal.
+- **Etapa 4:** o job `status` edita a mensagem fixada no chat do admin às 08h, 13h e 20h.
+- **Etapa 5:** o Worker `ofertinhas-spike-card` e a pasta `cloud/spike-card/` foram apagados.
+  A spec e o plano apontam para `docs/operacao.md`.
+- **Também:** `ADMIN_TOKEN` separado, `deploy.py` versionado, teste do bundle no CI, limpeza
+  diária (`prune`) e conferência de desconto inflado (`price_check`).
+
 ## 00. Virada feita: a nuvem está em produção (22/10, ~04h45)
 
 - **Modo:** `DRY_RUN = "false"`. O `run` local foi parado, o webhook do bot aponta para o

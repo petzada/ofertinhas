@@ -260,6 +260,31 @@ def test_rules_decide_instead_of_score(conn, discount, commission, expected):
     assert state(conn) is expected
 
 
+def test_inflated_discount_is_discarded_and_counted(conn):
+    db.set_niche_override(conn, "casa", "rules", RULES["rules"])
+    db.set_niche_override(conn, "tech", "paused", True)
+    old = Offer(mlb_id="MLB1", title="Produto", price=60, original_price=70,
+                commission_pct=25, category_path=("MLB1574",), permalink="https://x")
+    db.upsert_offer(conn, old, now=NOW - timedelta(days=5))
+    add(conn, commission=25, price=55, original_price=100)  # "de" 70 virou 100 em 5 dias
+    score_and_route(conn, cfg(), ["MLB1"], now=NOW)
+    assert state(conn) is S.DISCARDED  # 21% sobre o "de" antigo, não 45%
+    day = db.get_setting(conn, "price_check:2026-10-22")
+    assert day["inflated"] == 1 and day["last"][0]["mlb_id"] == "MLB1"
+
+
+def test_real_price_drop_keeps_the_rule(conn):
+    db.set_niche_override(conn, "casa", "rules", RULES["rules"])
+    db.set_niche_override(conn, "tech", "paused", True)
+    old = Offer(mlb_id="MLB1", title="Produto", price=90, original_price=100,
+                commission_pct=25, category_path=("MLB1574",), permalink="https://x")
+    db.upsert_offer(conn, old, now=NOW - timedelta(days=5))
+    add(conn, commission=25, price=55, original_price=100)
+    score_and_route(conn, cfg(), ["MLB1"], now=NOW)
+    assert state(conn) is S.APPROVED
+    assert db.get_setting(conn, "price_check:2026-10-22") is None
+
+
 def test_reapply_cutoffs_uses_rules(conn):
     from ofertinhas.pipeline import reapply_cutoffs
 

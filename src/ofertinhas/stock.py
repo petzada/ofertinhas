@@ -39,6 +39,12 @@ class GroupStock:
     ends_at: datetime | None  # primeiro horário de post do dia sem oferta; None = cobre o dia
     ends_at_with_links: datetime | None  # o mesmo, depois que os links que faltam saírem
 
+    @property
+    def short(self) -> bool:
+        """Nem com todas as aprovadas (as que têm link e as que esperam) chega ao alvo: faltam
+        ofertas, não links, e só uma coleta resolve."""
+        return self.ready + self.waiting_links + self.reserve < self.target
+
     def as_dict(self) -> dict:
         def iso(dt: datetime | None) -> str | None:
             return dt.isoformat() if dt else None
@@ -46,6 +52,7 @@ class GroupStock:
         return {"ready": self.ready, "waiting_links": self.waiting_links,
                 "reserve": self.reserve, "target": self.target,
                 "posts_today": self.posts_today, "max_posts": self.max_posts,
+                "short": self.short,
                 "ends_at": iso(self.ends_at), "ends_at_with_links": iso(self.ends_at_with_links)}
 
 
@@ -120,6 +127,18 @@ def group_stock(conn: sqlite3.Connection, cfg: AppConfig, now: datetime,
             ends_at_with_links=_covered_until(slots, ready + waiting[:needed]),
         ))
     return report
+
+
+def collect_now(conn: sqlite3.Connection, cfg: AppConfig, groups: list[GroupStock],
+                now: datetime, last_collect: datetime | None) -> bool:
+    """A extensão deve coletar já: algum grupo está curto, a coleta não está pausada e a última
+    começou há mais de `collect_now_gap_min` (o rodízio traz outras categorias a cada vez)."""
+    if db.get_setting(conn, db.EXTENSION_PAUSED_KEY) is not None:
+        return False
+    gap = timedelta(minutes=cfg.collector.collect_now_gap_min)
+    if last_collect is not None and now - last_collect < gap:
+        return False
+    return any(g.short for g in groups)
 
 
 def niches_needing_links(conn: sqlite3.Connection, cfg: AppConfig, now: datetime,

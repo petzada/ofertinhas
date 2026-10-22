@@ -112,6 +112,21 @@ def test_price_history_only_on_change(conn):
     assert prices == [300.0, 250.0]
 
 
+def test_price_history_records_original_price_changes(conn):
+    db.upsert_offer(conn, offer(), now=T0)
+    db.upsert_offer(conn, offer(original_price=600.0), now=T0 + timedelta(hours=1))
+    points = db.price_points(conn, "MLB1", T0 - timedelta(days=1))
+    assert [(p, o) for _, p, o in points] == [(300.0, 500.0), (300.0, 600.0)]
+
+
+def test_price_points_include_the_price_in_force_when_the_window_starts(conn):
+    db.upsert_offer(conn, offer(price=200.0), now=T0 - timedelta(days=40))
+    db.upsert_offer(conn, offer(price=210.0), now=T0 - timedelta(days=35))
+    db.upsert_offer(conn, offer(price=300.0), now=T0)
+    points = db.price_points(conn, "MLB1", T0 - timedelta(days=30))
+    assert [p for _, p, _ in points] == [210.0, 300.0]
+
+
 def test_upsert_keeps_affiliate_link_and_candidates(conn):
     db.upsert_offer(conn, offer(), now=T0)
     db.set_affiliate_link(conn, "MLB1", "https://mercadolivre.com/sec/abc")
@@ -184,3 +199,29 @@ def test_niche_override_by_dotted_path(conn):
         "auto_approve_at": 85,
     }
     assert db.niche_overrides(conn, "tech") == {}
+
+
+def test_prune_drops_old_finished_work_and_keeps_what_rules_need(conn):
+    now = T0 + timedelta(days=90)
+    db.upsert_offer(conn, offer(mlb_id="MLB1"), now=T0)  # sumiu, descartada há 90 dias
+    db.save_candidate(conn, candidate(mlb_id="MLB1", state=CandidateState.DISCARDED))
+    db.upsert_offer(conn, offer(mlb_id="MLB2"), now=T0)  # velha, mas ainda no fluxo
+    db.save_candidate(conn, candidate(mlb_id="MLB2", state=CandidateState.APPROVED))
+    db.upsert_offer(conn, offer(mlb_id="MLB3", price=200.0), now=T0)  # vista hoje de novo
+    db.upsert_offer(conn, offer(mlb_id="MLB3", price=210.0), now=T0 + timedelta(days=10))
+    db.upsert_offer(conn, offer(mlb_id="MLB3", price=220.0), now=now)
+    db.set_setting(conn, "quota:casa:2026-07-01", {"auto": 1, "review": 0})
+    db.set_setting(conn, "quota:casa:2027-01-19", {"auto": 1, "review": 0})
+    db.set_setting(conn, "override:casa", {"paused": True})
+
+    removed = db.prune(conn, now, keep_days=60)
+
+    assert removed == {"candidates": 1, "offers": 1, "price_history": 1, "settings": 1}
+    assert db.get_offer(conn, "MLB1") is None
+    assert db.get_candidate(conn, "MLB2", "casa").state is CandidateState.APPROVED
+    # o preço que valia no corte (210) fica, para a conferência de desconto
+    assert [p for _, p, _ in db.price_points(conn, "MLB3", now - timedelta(days=30))] == [
+        210.0, 220.0]
+    assert db.get_setting(conn, "quota:casa:2027-01-19") and db.get_setting(conn, "override:casa")
+    assert db.prune(conn, now, keep_days=60) == {
+        "candidates": 0, "offers": 0, "price_history": 0, "settings": 0}

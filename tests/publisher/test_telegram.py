@@ -74,3 +74,23 @@ async def test_send_message(sender):
     route = respx.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage").mock(return_value=ok(7))
     assert await sender.send_message(5, "oi") == "7"
     assert route.calls.last.request.read()
+
+
+@respx.mock
+async def test_edit_message_ignores_not_modified(sender):
+    url = f"https://api.telegram.org/bot{TOKEN}/editMessageText"
+    respx.post(url).mock(return_value=httpx.Response(
+        400, json={"ok": False, "description": "Bad Request: message is not modified"}))
+    await sender.edit_message(5, "7", "igual")
+    respx.post(url).mock(return_value=httpx.Response(
+        400, json={"ok": False, "description": "Bad Request: message to edit not found"}))
+    with pytest.raises(TelegramError):
+        await sender.edit_message(5, "7", "outro")
+
+
+@respx.mock
+async def test_pin_message_is_silent(sender):
+    route = respx.post(f"https://api.telegram.org/bot{TOKEN}/pinChatMessage").mock(
+        return_value=httpx.Response(200, json={"ok": True, "result": True}))
+    await sender.pin_message(5, "7")
+    assert b'"disable_notification":true' in route.calls.last.request.read().replace(b" ", b"")

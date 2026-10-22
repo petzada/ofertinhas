@@ -60,8 +60,26 @@ class TelegramSender:
         )
         return str(result["message_id"])
 
-    async def send_message(self, chat_id: int | str, text_html: str) -> str:
+    async def send_message(self, chat_id: int | str, text_html: str,
+                           silent: bool = False) -> str:
         result = await self._call(
-            "sendMessage", json={"chat_id": chat_id, "text": text_html, "parse_mode": "HTML"}
+            "sendMessage", json={"chat_id": chat_id, "text": text_html, "parse_mode": "HTML",
+                                 "disable_notification": silent},
         )
         return str(result["message_id"])
+
+    async def edit_message(self, chat_id: int | str, message_id: str, text_html: str) -> None:
+        """Troca o texto; o mesmo texto de antes ("message is not modified") não é erro."""
+        try:
+            await self._call("editMessageText", json={
+                "chat_id": chat_id, "message_id": int(message_id), "text": text_html,
+                "parse_mode": "HTML",
+            })
+        except TelegramError as e:
+            if "not modified" not in str(e):
+                raise
+
+    async def pin_message(self, chat_id: int | str, message_id: str) -> None:
+        await self._call("pinChatMessage", json={
+            "chat_id": chat_id, "message_id": int(message_id), "disable_notification": True,
+        })

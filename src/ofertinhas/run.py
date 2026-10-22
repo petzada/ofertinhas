@@ -1,4 +1,11 @@
-"""Processo principal: API da extensão + bot do Telegram + jobs, no mesmo loop asyncio."""
+"""Backend no PC: API da extensão + bot do Telegram + jobs, no mesmo loop asyncio.
+
+Produção é a nuvem (`ofertinhas.cloud`, Worker da Cloudflare). Este caminho fica para
+desenvolvimento e como plano B documentado em docs/operacao.md: os jobs e o calendário são
+os mesmos (`jobs.make_jobs` e `jobs.SCHEDULE`); muda só onde rodam. Como o polling do bot
+apaga o webhook da nuvem e os dois postariam nos grupos, o `run` se recusa a começar com
+o webhook ativo (ver `cloud_webhook`).
+"""
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -10,6 +17,7 @@ import uvicorn
 from . import db
 from .api.app import ApiState, create_app
 from .approval.bot import BotDeps, build_application
+from .buildinfo import describe, local_build
 from .config import AppConfig
 from .creative.image import fetch_product_image
 from .jobs import make_jobs
@@ -23,7 +31,20 @@ from .settings import Settings
 from .winops import keep_awake
 
 log = logging.getLogger("ofertinhas")
-TEMPLATES_DIR = Path(__file__).resolve().parents[2] / "templates" / "text"
+PROJECT = Path(__file__).resolve().parents[2]
+TEMPLATES_DIR = PROJECT / "templates" / "text"
+
+
+class CloudActive(RuntimeError):
+    """O bot está com webhook: a nuvem está no ar."""
+
+
+async def cloud_webhook(http: httpx.AsyncClient, bot_token: str) -> str | None:
+    """URL do webhook do bot, se houver (é a nuvem recebendo os updates)."""
+    response = await http.get(f"https://api.telegram.org/bot{bot_token}/getWebhookInfo",
+                              timeout=20)
+    url = response.json().get("result", {}).get("url")
+    return url or None
 
 
 def setup_logging(data_dir: Path) -> None:
@@ -56,10 +77,18 @@ def card_host(settings: Settings, http: httpx.AsyncClient) -> CardHost | None:
                     settings.r2_public_url)
 
 
-async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
+async def run(settings: Settings, cfg: AppConfig, dry_run: bool,
+              take_over: bool = False) -> None:
+    http = httpx.AsyncClient()
+    if not take_over and await cloud_webhook(http, settings.telegram_bot_token):
+        await http.aclose()
+        raise CloudActive(
+            "a nuvem está no ar (o bot tem webhook). Rodar aqui tiraria o bot dela e os dois "
+            "postariam nos grupos. Para voltar ao PC, siga docs/operacao.md (plano B) e use "
+            "--take-over."
+        )
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     conn = db.connect(settings.data_dir / "ofertinhas.db")
-    http = httpx.AsyncClient()
     telegram = TelegramSender(http, settings.telegram_bot_token)
     whatsapp = whatsapp_sender(settings, http)
 
@@ -81,6 +110,7 @@ async def run(settings: Settings, cfg: AppConfig, dry_run: bool) -> None:
         admin_chat_id=settings.admin_chat_id, dry_run=dry_run,
         whatsapp_test_jid=settings.whatsapp_test_jid,
         x=XSender(http, *settings.x_keys) if settings.x_keys else None,
+        version=describe(local_build(PROJECT, settings.config_path)),
     )
     scheduler = build_scheduler(jobs, conn, notify, utcnow)
     server = uvicorn.Server(uvicorn.Config(

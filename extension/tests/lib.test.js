@@ -4,7 +4,7 @@ import { describe, it } from "node:test";
 import { detectBlock } from "../lib/block.js";
 import { matchesCapture } from "../lib/patterns.js";
 import { RateLimiter } from "../lib/ratelimit.js";
-import { nextDelayMs, withinWindow } from "../lib/schedule.js";
+import { nextDelayMs, shouldCollectNow, withinWindow } from "../lib/schedule.js";
 
 describe("matchesCapture", () => {
   const patterns = ["https://www.mercadolivre.com.br/affiliate*/api/*", "*://api.mercadolibre.com/x"];
@@ -100,5 +100,24 @@ describe("RateLimiter", () => {
     rl.record();
     const restored = RateLimiter.fromJSON(JSON.parse(JSON.stringify(rl)), () => now);
     assert.equal(restored.canProceed(), false);
+  });
+});
+
+describe("shouldCollectNow", () => {
+  const now = Date.parse("2026-10-22T15:00:00Z");
+  const cfg = { collect_now: true, collect_now_gap_min: 30 };
+
+  it("coleta quando a nuvem pede e nunca coletou", () => {
+    assert.equal(shouldCollectNow(cfg, undefined, now), true);
+  });
+
+  it("respeita o intervalo mínimo desde a última coleta", () => {
+    assert.equal(shouldCollectNow(cfg, now - 29 * 60_000, now), false);
+    assert.equal(shouldCollectNow(cfg, now - 30 * 60_000, now), true);
+  });
+
+  it("não coleta sem pedido da nuvem", () => {
+    assert.equal(shouldCollectNow({ collect_now: false }, undefined, now), false);
+    assert.equal(shouldCollectNow(null, undefined, now), false);
   });
 });

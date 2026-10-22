@@ -24,3 +24,14 @@ export function nextDelayMs(baseMin, jitterMin, rng = Math.random) {
   const minutes = baseMin + (rng() * 2 - 1) * jitterMin;
   return Math.max(1, minutes) * 60_000;
 }
+
+/**
+ * A nuvem pede uma coleta fora de hora (`collect_now`: estoque curto) e a última coleta desta
+ * extensão começou há mais de `collect_now_gap_min`. A trava local evita repetir a coleta a
+ * cada 30 s quando a nuvem ainda não registrou a anterior.
+ */
+export function shouldCollectNow(cfg, lastCollectAt, nowMs) {
+  if (!cfg?.collect_now) return false;
+  const gapMs = (cfg.collect_now_gap_min ?? 30) * 60_000;
+  return !lastCollectAt || nowMs - lastCollectAt >= gapMs;
+}
