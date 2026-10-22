@@ -55,6 +55,12 @@ def test_require_full():
     assert passes(offer(full=True), f)[0]
 
 
+def test_exclude_international():
+    assert passes(offer(international=True), Filters())[0]
+    ok, reason = passes(offer(international=True), Filters(exclude_international=True))
+    assert not ok and "internacional" in reason
+
+
 def test_blocked_keyword_ignores_case_and_accents():
     ok, reason = passes(offer(title="Tênis REPLICA Premium"), Filters())
     assert not ok and "réplica" in reason

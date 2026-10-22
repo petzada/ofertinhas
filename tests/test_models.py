@@ -21,6 +21,11 @@ def test_discount_pct_from_original_price():
     assert make_offer().discount_pct == 40.0
 
 
+def test_discount_pct_rounds_down_like_mercado_livre():
+    # 1 - 3599/5499 = 34,55%: o ML anuncia 34%, nunca arredonda para cima
+    assert make_offer(price=3599, original_price=5499).discount_pct == 34.0
+
+
 def test_discount_pct_zero_without_original_price():
     assert make_offer(original_price=None).discount_pct == 0.0
 

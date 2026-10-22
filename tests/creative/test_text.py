@@ -38,6 +38,11 @@ def test_values_with_discount_and_badges():
     assert v["link"] == LINK
 
 
+def test_values_with_pix_only_discount():
+    v = caption_values(offer(pix_only=True))
+    assert v["preco"] == "De ~R$ 499,90~ por *R$ 299,90 no Pix* (40% OFF)"
+
+
 def test_values_without_discount():
     v = caption_values(offer(original_price=None, free_shipping=False, full=False))
     assert v["preco"] == "Por *R$ 299,90*"

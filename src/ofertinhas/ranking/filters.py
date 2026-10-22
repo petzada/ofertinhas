@@ -32,6 +32,8 @@ def passes(offer: Offer, filters: Filters) -> tuple[bool, str | None]:
         return False, "sem frete grátis"
     if filters.require_full and not offer.full:
         return False, "não é Full"
+    if filters.exclude_international and offer.international:
+        return False, "compra internacional"
     title = normalize_text(offer.title)
     for keyword in filters.blocked_keywords:
         if contains_term(title, keyword):

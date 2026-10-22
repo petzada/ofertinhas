@@ -38,7 +38,11 @@ def caption_values(offer: Offer) -> dict[str, str]:
     por = brl(offer.price)
     de = brl(offer.original_price) if discount > 0 else ""
     desconto = f"{discount:.0f}" if discount > 0 else ""
-    preco = f"De ~R$ {de}~ por *R$ {por}* ({desconto}% OFF)" if discount > 0 else f"Por *R$ {por}*"
+    pix = " no Pix" if offer.pix_only else ""
+    if discount > 0:
+        preco = f"De ~R$ {de}~ por *R$ {por}{pix}* ({desconto}% OFF)"
+    else:
+        preco = f"Por *R$ {por}{pix}*"
     return {
         "titulo_curto": short_title(offer.title),
         "preco": preco,

@@ -32,9 +32,15 @@ def _num(value: float) -> str:
 def approval_caption(offer: Offer, cand: Candidate) -> str:
     """Legenda HTML do card que o admin recebe para decidir."""
     price = f"R$ {brl(offer.price)}"
+    if offer.pix_only:
+        price += " no Pix"
     if offer.discount_pct > 0:
         price += f" (de R$ {brl(offer.original_price)}, -{offer.discount_pct:.0f}%)"
     selos = badges(offer)
+    if offer.extra_commission:
+        selos.append("💎 Ganhos extras")
+    if offer.international:
+        selos.append("🌎 Internacional")
     breakdown = " • ".join(
         f"{CRITERIA_LABELS.get(k, k)} {_num(v)}" for k, v in cand.breakdown.items() if v > 0
     )

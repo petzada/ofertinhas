@@ -60,6 +60,7 @@ class Filters(_Strict):
     min_rating: float | None = Field(4.0, ge=0, le=5)  # sem avaliação passa
     require_free_shipping: bool = False
     require_full: bool = False
+    exclude_international: bool = False
     blocked_keywords: list[str] = ["usado", "recondicionado", "réplica"]
 
     @model_validator(mode="after")

@@ -63,6 +63,14 @@ def test_discount_badge_only_with_discount():
     assert without.getpixel(probe) != badge_rgb
 
 
+def test_pix_only_changes_the_card():
+    theme = theme_for("casa")
+    normal = render_card(offer(), theme, product_image())
+    pix = render_card(offer(pix_only=True), theme, product_image())
+    assert normal != pix
+    assert open_png(pix).size == CARD_SIZE
+
+
 def test_renders_without_product_image():
     assert open_png(render_card(offer(), theme_for("x"), None)).size == CARD_SIZE
 

@@ -137,8 +137,13 @@ def render_card(offer: Offer, theme: Theme, product: Image.Image | None) -> byte
         draw.line((TEXT_LEFT, 866, TEXT_LEFT + de_font.getlength(de), 866),
                   fill=theme.muted, width=3)
     por = f"R$ {brl(offer.price)}"
-    por_font = fit_font(por, "Poppins-ExtraBold.ttf", 80, TEXT_WIDTH)
+    pix_font = _font("Poppins-Bold.ttf", 32)
+    pix_width = pix_font.getlength("no Pix") + 16 if offer.pix_only else 0
+    por_font = fit_font(por, "Poppins-ExtraBold.ttf", 80, TEXT_WIDTH - pix_width)
     draw.text((TEXT_LEFT, 940), por, font=por_font, fill=theme.price, anchor="lm")
+    if offer.pix_only:
+        x = TEXT_LEFT + por_font.getlength(por) + 16
+        draw.text((x, 956), "no Pix", font=pix_font, fill=theme.price, anchor="lm")
 
     qr = _qr_image(offer.affiliate_link)
     card.paste(qr, (INFO_BOX[2] - 30 - qr.width, INFO_BOX[1] + (300 - qr.height) // 2))

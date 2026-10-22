@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -73,9 +74,10 @@ class Offer:
 
     @property
     def discount_pct(self) -> float:
+        """Desconto em % inteiro, arredondado para baixo como o ML anuncia (nunca exagera)."""
         if not self.original_price or self.original_price <= self.price:
             return 0.0
-        return round((1 - self.price / self.original_price) * 100, 1)
+        return float(math.floor((1 - self.price / self.original_price) * 100 + 1e-9))
 
     @property
     def commission_brl(self) -> float:

@@ -45,6 +45,16 @@ def test_caption_has_score_price_commission_and_breakdown():
     assert 'href="https://produto.mercadolivre.com.br/MLB-4123456789"' in text
 
 
+def test_caption_shows_pix_only():
+    assert "no Pix" in approval_caption(offer(pix_only=True), cand())
+    assert "no Pix" not in approval_caption(offer(), cand())
+
+
+def test_caption_shows_extra_commission_and_international():
+    text = approval_caption(offer(extra_commission=True, international=True), cand())
+    assert "ganhos extras" in text.lower() and "internacional" in text.lower()
+
+
 def test_caption_escapes_html_from_title():
     text = approval_caption(offer(), cand())
     assert "&lt;Air&gt;" in text and "&amp; Cia" in text
