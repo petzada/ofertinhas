@@ -60,7 +60,7 @@ Scaffold, CLI, CI (ruff → pytest) e `.gitattributes`.
 
 ## Fase 2: Saída do Playwright e mapeamento do portal
 
-### T2.1 Remover o Playwright
+### T2.1 Remover o Playwright ✅
 - Apagar `browser.py`, `capture.py` e seus testes. Tirar `playwright` do `pyproject.toml` e o comando `capture` da CLI.
 - `slugify` vai para `ofertinhas/text.py` (com teste), porque o criativo e o debug ainda usam.
 - Apagar `data/chrome-profile` e `data/capture/` (as capturas falhas).
@@ -73,8 +73,8 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 4. Gere um link pelo **Gerador de link** e outro pela **barra de afiliado** de um produto.
 5. Clique com o botão direito na lista → **Save all as HAR** e salve em `data/har/portal.har`.
 
-### T2.3 Ferramenta de extração do HAR
-- **Arquivo:** `scripts/har_extract.py`.
+### T2.3 Ferramenta de extração do HAR ✅
+- **Feito como comando da CLI:** `python -m ofertinhas har-extract data/har/portal.har --mask "Seu Nome=Pessoa Exemplo"` (código em `har.py`).
 - Lê o HAR, **descarta todos os headers e cookies**, mantém método, URL, status, corpo da requisição e corpo da resposta JSON. Mascara e-mail, nome e ids de usuário com um mapa de substituição.
 - Grava em `tests/fixtures/portal/NNN-<slug>.json` e gera um índice `tests/fixtures/portal/index.md`.
 - **Testes:** HAR sintético com cookie, header `Authorization` e e-mail; a saída não contém nenhum dos três.
@@ -103,12 +103,12 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 
 ## Fase 3: API local do backend
 
-### T3.1 Settings e token
+### T3.1 Settings e token ✅
 - **Arquivo:** `settings.py`, que carrega o `.env`, e `.env.example`.
 - Variáveis: `EXTENSION_TOKEN`, `API_PORT=8765`, `TELEGRAM_BOT_TOKEN`, `ADMIN_CHAT_ID`, `WHATSMIAU_API_KEY` e `WHATSMIAU_INSTANCE`.
 - CLI: `python -m ofertinhas new-token` gera o token e mostra onde colocá-lo.
 
-### T3.2 App FastAPI
+### T3.2 App FastAPI ✅ (por enquanto só `/health`; as rotas `/ext/*` entram a partir de T3.3)
 - **Arquivo:** `api/app.py`. `create_app(conn, cfg, notifier)`.
 - Middleware de token. CORS só para a origem `chrome-extension://<id>`, configurável.
 - **Testes** (TestClient): sem token → 401; token errado → 401; `/health` ok.
@@ -147,7 +147,7 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 
 ## Fase 4: Extensão no Brave
 
-### T4.1 Funções puras (`extension/lib/`)
+### T4.1 Funções puras (`extension/lib/`) ✅
 - `matchesCapture(url, patterns)`
 - `withinWindow(now, window)`
 - `nextDelayMs(baseMin, jitterMin, rng)`
@@ -193,7 +193,7 @@ Quando o limite de tentativas de login do ML liberar, no Brave normal:
 
 ---
 
-## Fase 5: Criativo
+## ✅ Fase 5: Criativo
 Sem mudanças em relação à revisão 1:
 - **T5.1** título curto
 - **T5.2** templates de texto (sorteio sem repetir; inclui `{cupom}` se T2.7 existir)
@@ -203,7 +203,7 @@ Sem mudanças em relação à revisão 1:
 
 Testes conforme a spec, incluindo o QR decodificando para o link exato (`pyzbar`).
 
-## Fase 6: Bot de aprovação
+## Fase 6: Bot de aprovação (✅ T6.2–T6.4; falta T6.1 👤)
 - **T6.1 👤** Criar o bot no BotFather e preencher o `.env`.
 - **T6.2** Card de aprovação com foto, nota e breakdown, e teclado inline (`callback_data` ≤ 64 bytes).
 - **T6.3** Handlers: aprovar, rejeitar, editar texto e trocar nicho. Só o admin pode usar, e o clique duplo é idempotente.
@@ -211,15 +211,15 @@ Testes conforme a spec, incluindo o QR decodificando para o link exato (`pyzbar`
 
 ## Fase 7: Disparo
 
-### T7.1 Ritmo
+### T7.1 Ritmo ✅
 Função pura `can_post(now, last_post_at, posts_today, pacing)` (testada com freezegun).
 
-### T7.2 Fila e validade
+### T7.2 Fila e validade ✅ (com `Offer.last_seen_at` e `max_offer_age_hours` no config)
 - `next_for_chat(db, niche)`: a candidata `rendered`/`queued` de maior nota.
 - Validade: se o `updated_at` da oferta for mais antigo que `max_offer_age_hours`, a candidata vira `expired`.
 - **Testes:** ordenação; expiração.
 
-### T7.3 Telegram
+### T7.3 Telegram ✅
 `sendPhoto` com legenda HTML via httpx. Testes com respx: payload; 429 respeita `retry_after`; 400 sem retry.
 
 ### T7.4 👤 Teste da API da WhatsMiau.dev
