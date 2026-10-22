@@ -37,8 +37,41 @@ def main(argv: list[str] | None = None) -> int:
         return _har_extract(parser, args)
     if args.command == "new-token":
         return _new_token()
+    if args.command == "render-sample":
+        return _render_sample(args.niche)
     print(f"Comando '{args.command}' ainda não implementado.", file=sys.stderr)
     return 2
+
+
+def _render_sample(niche: str) -> int:
+    from PIL import Image, ImageDraw
+
+    from .creative.image import render_card
+    from .creative.themes import theme_for
+    from .models import Offer
+    from .settings import Settings
+
+    product = Image.new("RGB", (600, 600), "#F2F2F2")
+    draw = ImageDraw.Draw(product)
+    draw.rounded_rectangle((150, 120, 450, 520), radius=60, fill="#2B2B2B")
+    draw.ellipse((220, 200, 380, 360), fill="#5A5A5A")
+    offer = Offer(
+        mlb_id="MLB000000000",
+        title="Fritadeira Elétrica Air Fryer Mondial 4L Preta com Timer",
+        price=299.90,
+        original_price=499.90,
+        commission_pct=12,
+        category_path=("MLB1574",),
+        permalink="https://produto.mercadolivre.com.br/MLB-000000000",
+        free_shipping=True,
+        full=True,
+        affiliate_link="https://mercadolivre.com/sec/1AbC2dE",
+    )
+    out = Settings.load().data_dir / "samples" / f"{niche}.png"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_bytes(render_card(offer, theme_for(niche), product))
+    print(f"Exemplo gravado em {out}")
+    return 0
 
 
 def _new_token() -> int:
