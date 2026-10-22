@@ -90,12 +90,12 @@ def test_keep_awake_uses_windows_flags():
 
 
 def test_wake_tasks_wake_the_pc_and_run_the_session():
-    from pathlib import Path
+    from pathlib import PureWindowsPath  # caminho do Windows também no CI (Linux)
 
     from ofertinhas.winops import wake_tasks_script
 
-    script = wake_tasks_script(Path(r"C:\p\.venv\Scripts\python.exe"), Path(r"C:\p"),
-                               ["05:30", "17:00"], 45, 120)
+    script = wake_tasks_script(PureWindowsPath(r"C:\p\.venv\Scripts\python.exe"),
+                               PureWindowsPath(r"C:\p"), ["05:30", "17:00"], 45, 120)
     assert r"'C:\p\.venv\Scripts\pythonw.exe'" in script
     assert "'-m ofertinhas wake-session --minutes 45 --max-minutes 120'" in script
     assert "-ExecutionTimeLimit (New-TimeSpan -Minutes 135)" in script
