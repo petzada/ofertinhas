@@ -8,53 +8,26 @@ import html
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
-from ..creative.text import badges, brl
+from ..creative.text import brl
 from ..creative.title import short_title
 from ..models import Candidate, Offer
 
 CALLBACK_LIMIT = 64
-CRITERIA_LABELS = {
-    "commission_pct": "Comissão %",
-    "discount_pct": "Desconto",
-    "commission_brl": "Comissão R$",
-    "rating": "Avaliação",
-    "sold_count": "Vendidos",
-    "freshness": "Novidade",
-    "free_shipping": "Frete grátis",
-    "full": "Full",
-}
-
-
-def _num(value: float) -> str:
-    return f"{value:.1f}".replace(".", ",")
-
 
 def approval_caption(offer: Offer, cand: Candidate) -> str:
-    """Legenda HTML do card que o admin recebe para decidir."""
-    price = f"R$ {brl(offer.price)}"
-    if offer.pix_only:
-        price += " no Pix"
-    if offer.discount_pct > 0:
-        price += f" (de R$ {brl(offer.original_price)}, -{offer.discount_pct:.0f}%)"
-    selos = badges(offer)
-    if offer.extra_commission:
-        selos.append("💎 Ganhos extras")
-    if offer.international:
-        selos.append("🌎 Internacional")
-    breakdown = " • ".join(
-        f"{CRITERIA_LABELS.get(k, k)} {_num(v)}" for k, v in cand.breakdown.items() if v > 0
-    )
+    """Legenda HTML do card que o admin recebe para decidir: só o essencial, bem espaçado."""
+    pix = " no Pix" if offer.pix_only else ""
     lines = [
-        f"<b>{html.escape(cand.niche.upper())}</b> • nota <b>{_num(cand.score)}</b>",
+        f"<b>{html.escape(cand.niche.upper())}</b>  ·  nota <b>{cand.score:.0f}</b>",
+        "",
         html.escape(short_title(offer.title, 90)),
-        f"💰 {price}",
-        f"🤝 Comissão {offer.commission_pct:g}% ≈ R$ {brl(offer.commission_brl)}",
+        "",
+        f"Por:  <b>R$ {brl(offer.price)}</b>{pix}",
     ]
-    if selos:
-        lines.append(" • ".join(selos))
-    if breakdown:
-        lines.append(f"<i>{breakdown}</i>")
-    lines.append(f'<a href="{html.escape(offer.permalink)}">Ver no Mercado Livre</a>')
+    if offer.discount_pct > 0:
+        lines.append(f"De:  R$ {brl(offer.original_price)}")
+        lines.append(f"Desconto:  <b>{offer.discount_pct:.0f}%</b>")
+    lines.append(f"Comissão:  <b>{offer.commission_pct:g}%</b>")
     return "\n".join(lines)
 
 

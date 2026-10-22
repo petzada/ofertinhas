@@ -34,25 +34,35 @@ def cand(**kw):
     return Candidate(**base)
 
 
-def test_caption_has_score_price_commission_and_breakdown():
-    text = approval_caption(offer(), cand())
-    assert "CASA" in text and "72,4" in text
-    assert "R$ 299,90" in text and "-40%" in text
-    assert "12%" in text and "R$ 35,99" in text
-    assert "Comissão % 21,0" in text and "Desconto 16,7" in text
-    assert "Full" not in text  # critério zerado não aparece
-    assert "🚚 Frete grátis" in text
-    assert 'href="https://produto.mercadolivre.com.br/MLB-4123456789"' in text
+def test_caption_is_short_and_spaced():
+    text = approval_caption(offer(title="Fritadeira Air Fryer Mondial 4L"), cand())
+    assert text == (
+        "<b>CASA</b>  ·  nota <b>72</b>\n"
+        "\n"
+        "Fritadeira Air Fryer Mondial 4L\n"
+        "\n"
+        "Por:  <b>R$ 299,90</b>\n"
+        "De:  R$ 499,90\n"
+        "Desconto:  <b>40%</b>\n"
+        "Comissão:  <b>12%</b>"
+    )
+
+
+def test_caption_without_discount_skips_old_price_lines():
+    text = approval_caption(offer(original_price=None), cand())
+    assert "De:" not in text and "Desconto:" not in text
+    assert "Por:  <b>R$ 299,90</b>" in text
 
 
 def test_caption_shows_pix_only():
-    assert "no Pix" in approval_caption(offer(pix_only=True), cand())
+    assert "Por:  <b>R$ 299,90</b> no Pix" in approval_caption(offer(pix_only=True), cand())
     assert "no Pix" not in approval_caption(offer(), cand())
 
 
-def test_caption_shows_extra_commission_and_international():
+def test_caption_has_no_extras():
     text = approval_caption(offer(extra_commission=True, international=True), cand())
-    assert "ganhos extras" in text.lower() and "internacional" in text.lower()
+    for extra in ("href", "Frete", "Ganhos", "Internacional", "R$ 35,99"):
+        assert extra not in text
 
 
 def test_caption_escapes_html_from_title():
