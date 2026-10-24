@@ -1,0 +1,28 @@
+# Gates locais: pre-commit só nos arquivos em stage (< 10 s); pre-push só no que o push
+# muda (< 2 min). A suíte completa, a matriz de Python e o bundle do Worker ficam no CI.
+# Instalação (uma vez): .venv/Scripts/python -m pip install -e ".[dev]" && .venv/Scripts/lefthook install
+# Os comandos usam o Python do .venv quando existe (dev no Windows) e o do PATH no resto.
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format
+      glob: "*.py"
+      run: $( [ -x .venv/Scripts/python.exe ] && echo .venv/Scripts/python.exe || echo python ) -m ruff format {staged_files}
+      stage_fixed: true
+    - name: lint
+      glob: "*.py"
+      run: $( [ -x .venv/Scripts/python.exe ] && echo .venv/Scripts/python.exe || echo python ) -m ruff check --fix {staged_files}
+      stage_fixed: true
+
+pre-push:
+  piped: true
+  jobs:
+    # pytest-testmon roda só os testes cujo código executado mudou (o 1º run monta o
+    # .testmondata e passa por todos).
+    - name: 2_related
+      glob: "*.py"
+      run: $( [ -x .venv/Scripts/python.exe ] && echo .venv/Scripts/python.exe || echo python ) -m pytest --testmon -q
+    - name: 3_extension
+      glob: "extension/**"
+      run: node --test "extension/tests/**/*.test.js"
