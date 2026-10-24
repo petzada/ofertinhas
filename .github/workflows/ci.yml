@@ -4,10 +4,20 @@ on:
   push:
     branches: [main]
   pull_request:
+    # ready_for_review: tirar o PR de draft dispara as etapas pesadas.
+    types: [opened, synchronize, reopened, ready_for_review]
 
+# Push novo no mesmo PR cancela o run anterior.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Repositório privado: em PR draft só o lint roda; matriz de testes e extensão rodam
+# quando o PR fica pronto (ou em push na main). Os gates locais (lefthook) cobrem o diff.
 jobs:
   lint:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -19,7 +29,9 @@ jobs:
 
   test:
     needs: lint
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -40,7 +52,9 @@ jobs:
 
   extension:
     needs: lint
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
