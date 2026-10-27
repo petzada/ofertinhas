@@ -116,7 +116,19 @@ Invoke-RestMethod https://ofertinhas.marciopetigrosso.workers.dev/admin/status -
 
 ## Publicar uma versão (deploy versionado)
 
-Na pasta `cloud/worker`, com o `.venv` no PATH:
+**Padrão: pelo CI.** O workflow `.github/workflows/deploy.yml` roda o mesmo `deploy.py` em push na
+`main` que toque `cloud/worker/`, `src/ofertinhas/`, fontes, modelos de texto ou o `pyproject.toml`
+(ou por "Run workflow"). Ele precisa, em Settings → Secrets and variables → Actions:
+
+- secret `CLOUDFLARE_API_TOKEN` e variable `CLOUDFLARE_ACCOUNT_ID`;
+- secret `OFERTINHAS_CONFIG_YAML` com o conteúdo do `config.yaml` de produção (o arquivo continua fora
+  do Git; mudou o config, atualize o secret e rode o workflow).
+
+Sem o token o workflow só valida (`--dry-run`) e avisa. A cópia do config publicado e o
+`deploys.jsonl` saem como artefato do run (90 dias); o `data/deploys/` do PC só registra deploys
+feitos do PC. Segredos do Worker continuam pelo `push_secrets.py`, à mão.
+
+**Do PC (exceção)**, na pasta `cloud/worker`, com o `.venv` no PATH:
 
 ```powershell
 python push_secrets.py   # só quando um segredo mudar ou for novo (ex.: ADMIN_TOKEN)

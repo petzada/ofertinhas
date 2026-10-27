@@ -1,0 +1,93 @@
+name: deploy
+
+# Publica o Worker `ofertinhas` (cloud/worker) em push na main que toque o que vai no bundle,
+# com o mesmo `cloud/worker/deploy.py` usado antes no notebook: testes de tests/cloud, bundle
+# com version.json (commit + hash do config) e `pywrangler deploy --tag <commit>`.
+#
+# Secrets do repositório (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN     token com "Workers Scripts: Edit" (+ Durable Objects, R2 leitura)
+#   OFERTINHAS_CONFIG_YAML   conteúdo do config.yaml de produção (fica fora do Git)
+# Variable: CLOUDFLARE_ACCOUNT_ID.
+# Sem o token, roda tudo em `--dry-run` e avisa. Sem o config, falha antes de qualquer coisa.
+# A cópia do config publicado e o deploys.jsonl saem como artefato (no PC ficavam em data/deploys/).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'cloud/worker/**'
+      - 'src/ofertinhas/**'
+      - 'assets/fonts/**'
+      - 'templates/text/**'
+      - 'pyproject.toml'
+      - '.github/workflows/deploy.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      HAS_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+      HAS_CONFIG: ${{ secrets.OFERTINHAS_CONFIG_YAML != '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Config de produção
+        if: env.HAS_CONFIG != 'true'
+        run: |
+          echo "::error::Secret OFERTINHAS_CONFIG_YAML ausente (conteúdo do config.yaml). Nada foi publicado."
+          exit 1
+      - name: Gravar config.yaml
+        env:
+          CONFIG_YAML: ${{ secrets.OFERTINHAS_CONFIG_YAML }}
+        run: |
+          umask 077
+          printf '%s\n' "$CONFIG_YAML" > config.yaml
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - run: sudo apt-get update && sudo apt-get install -y libzbar0
+      - run: pip install -e ".[dev]"
+      - name: Token ausente — só validar (dry-run)
+        if: env.HAS_CLOUDFLARE_TOKEN != 'true'
+        working-directory: cloud/worker
+        run: |
+          python deploy.py --dry-run
+          echo "::warning::CLOUDFLARE_API_TOKEN ausente; bundle validado, nada foi publicado."
+      - name: Testar, montar e publicar
+        if: env.HAS_CLOUDFLARE_TOKEN == 'true'
+        working-directory: cloud/worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: python deploy.py
+      - name: Smoke (/health)
+        if: env.HAS_CLOUDFLARE_TOKEN == 'true'
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 15 "https://ofertinhas.marciopetigrosso.workers.dev/health"; then echo; exit 0; fi
+            sleep 10
+          done
+          echo "::error::/health não respondeu 2xx depois do deploy"; exit 1
+      - name: Registro do deploy (config publicado + deploys.jsonl)
+        if: env.HAS_CLOUDFLARE_TOKEN == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-${{ github.sha }}
+          path: data/deploys/
+          retention-days: 90
+      - name: Apagar o config do runner
+        if: always()
+        run: rm -f config.yaml
