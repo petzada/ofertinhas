@@ -30,3 +30,15 @@ Python 3.12+ (`src/ofertinhas`), extensão de navegador (`extension/`) e o Worke
 4. Nunca `--no-verify`, nunca desligar hooks, nunca force-push em branch compartilhada.
 5. `deploy.py`, `push_secrets.py`, `set_webhook.py` e qualquer `wrangler` com a conta real são ações do
    responsável ou do workflow `deploy.yml`, nunca do agente.
+
+### PR na VM da nuvem (Claude Code na web, app ou thread de projeto)
+
+Na nuvem o proxy do GitHub bloqueia GraphQL, então `gh pr …` e `gh issue …` dão 403. `git push` e
+`gh api` (REST) funcionam. Lá o fluxo de PR é este:
+
+- Abrir em draft: botão **Create draft PR** no cartão Changes (clique direito em Create PR), ou
+  `gh api repos/{owner}/{repo}/pulls -f title='<tipo>(<escopo>): …' -f head=<branch> -f base=main -f body='…' -F draft=true`.
+- Listar ou ver PR: `gh api repos/{owner}/{repo}/pulls?head={owner}:<branch>`.
+- Marcar como pronto não tem endpoint REST: na nuvem o agente avisa que os gates estão verdes e o
+  responsável marca pelo GitHub (ou pelo app). Merge continua sendo só do responsável.
+- Não coloque `GH_TOKEN` no ambiente da nuvem: não resolve o 403 e deixa o token legível.
