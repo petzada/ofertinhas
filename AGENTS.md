@@ -24,9 +24,10 @@ Python 3.12+ (`src/ofertinhas`), extensão de navegador (`extension/`) e o Worke
 1. Branch nova a partir da `main` atualizada: `<tipo>/<nome-kebab>` (`feat`, `fix`, `chore`, `docs`, `test`,
    `refactor`, `ci`). Nunca commitar direto na `main`.
 2. Commits semânticos: `<tipo>(<escopo>): <descrição no imperativo>`.
-3. PR **sempre em draft** (`gh pr create --draft`). Em draft só o lint roda no CI; o agente marca como pronto
-   (`gh pr ready`) com os gates do pre-push verdes. **O agente nunca faz merge.** Merge na `main` publica o
-   Worker e é decisão do responsável.
+3. **Fluxo de git (dev solo; mesmo de `~/.claude/CLAUDE.md`):** ao terminar uma implementação, commit +
+   push da branch da feature, automático (sem PR não há custo de CI relevante). **"Finaliza"** = PR e
+   pronto na sequência, acompanhar o CI, corrigir num push só e avisar. **"Suba pra produção" / "faça o
+   merge"** = squash merge e acompanhar o deploy. Draft só se pedido; merge só com esse pedido.
 4. Nunca `--no-verify`, nunca desligar hooks, nunca force-push em branch compartilhada.
 5. `deploy.py`, `push_secrets.py`, `set_webhook.py` e qualquer `wrangler` com a conta real são ações do
    responsável ou do workflow `deploy.yml`, nunca do agente.
@@ -34,11 +35,10 @@ Python 3.12+ (`src/ofertinhas`), extensão de navegador (`extension/`) e o Worke
 ### PR na VM da nuvem (Claude Code na web, app ou thread de projeto)
 
 Na nuvem o proxy do GitHub bloqueia GraphQL, então `gh pr …` e `gh issue …` dão 403. `git push` e
-`gh api` (REST) funcionam. Lá o fluxo de PR é este:
+`gh api` (REST) funcionam. O fluxo é o mesmo, pela API REST:
 
-- Abrir em draft: botão **Create draft PR** no cartão Changes (clique direito em Create PR), ou
-  `gh api repos/{owner}/{repo}/pulls -f title='<tipo>(<escopo>): …' -f head=<branch> -f base=main -f body='…' -F draft=true`.
+- **"Finaliza":** abrir o PR já pronto (`draft=false`):
+  `gh api repos/{owner}/{repo}/pulls -f title='<tipo>(<escopo>): …' -f head=<branch> -f base=main -f body='…' -F draft=false`.
+- **"Suba pra produção":** `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash`.
 - Listar ou ver PR: `gh api repos/{owner}/{repo}/pulls?head={owner}:<branch>`.
-- Marcar como pronto não tem endpoint REST: na nuvem o agente avisa que os gates estão verdes e o
-  responsável marca pelo GitHub (ou pelo app). Merge continua sendo só do responsável.
 - Não coloque `GH_TOKEN` no ambiente da nuvem: não resolve o 403 e deixa o token legível.
