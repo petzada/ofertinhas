@@ -6,6 +6,12 @@ whatsapp_enabled: false  # trava: nada vai para o WhatsApp enquanto estiver fals
 x_enabled: false  # trava do X: com true, cada post do Telegram também sai no X, em thread
 brand: "Ofertas 2KAI"    # texto do topo do card (o mesmo para todos os nichos)
 
+# Página /grupo do Worker (destino dos anúncios). Sem este bloco, /grupo responde 404.
+# landing:
+#   group_url: "https://chat.whatsapp.com/CODIGO"
+#   name: "Grupo VIP de Achadinhos"
+#   pixel_id: "000000000000000"  # Pixel da Meta: PageView ao abrir e Lead no clique do botão
+
 collector:              # ritmo da extensão no portal de afiliados
   every_min: 60         # um ciclo de coleta a cada ~60 min
   jitter_min: 10        # ± variação aleatória
@@ -119,10 +125,10 @@ niches:
   # Nicho fino só para um grupo de WhatsApp (o Telegram acima continua com tudo). Precisa de
   # `multi_niche: true` para a mesma oferta ir ao grupo geral e a este. As listas trocam as
   # dos defaults inteiras: repita os bloqueios gerais. Teste antes com POST /admin/niche-preview.
-  # noivas:
-  #   categories: [MLB1574, MLB5726, MLB1246, MLB3937, MLB12404]
+  # mulher:
+  #   categories: [MLB1246, MLB1430, MLB3937, MLB1574, MLB5726]
   #   whatsapp_group_jid: "120363000000000009@g.us"
   #   filters:
-  #     required_keywords: [jogo de cama, edredom, toalha*, panela*, faqueiro, maquiagem, batom]
+  #     required_keywords: [maquiagem, batom*, perfume*, feminin*, vestido*, panela*, airfryer]
   #     blocked_keywords: [usado, recondicionado, réplica, seminovo, masculino, infantil]
-  #   polls: {weekday: qui, at: "19:30"}  # enquete semanal no grupo (perguntas em polls.py)
+  #   polls: {weekday: qua, at: "12:30"}  # enquete semanal no grupo (perguntas em polls.py)

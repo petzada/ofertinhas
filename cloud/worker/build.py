@@ -1,5 +1,6 @@
 """Monta o bundle do Worker: o pacote `ofertinhas` do repositório, fontes, modelos de texto, o
-config.yaml e o `version.json` (commit e hash do config, ver `ofertinhas.buildinfo`).
+config.yaml, a página `/grupo` e o `version.json` (commit e hash do config, ver
+`ofertinhas.buildinfo`).
 
 Quem faz o deploy é o `deploy.py`, que chama este build. Os gerados ficam no .gitignore.
 Uso direto: python build.py [--config caminho] [--out pasta]
@@ -12,14 +13,24 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from ofertinhas.buildinfo import BUILD_FILE, local_build
+from ofertinhas.config import load_config
+from ofertinhas.landing import TEMPLATE, build_page
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 SRC = HERE / "src"
 
 # Só rodam no PC (CLI, Windows, servidor local); no Worker não são importados.
-LOCAL_ONLY = {"__main__.py", "run.py", "winops.py", "setup.py", "telegram_setup.py", "har.py",
-              "backup.py", "scheduler.py"}
+LOCAL_ONLY = {
+    "__main__.py",
+    "run.py",
+    "winops.py",
+    "setup.py",
+    "telegram_setup.py",
+    "har.py",
+    "backup.py",
+    "scheduler.py",
+}
 
 
 def build(config: Path = ROOT / "config.yaml", out: Path = SRC) -> dict:
@@ -29,17 +40,24 @@ def build(config: Path = ROOT / "config.yaml", out: Path = SRC) -> dict:
     bundle = out / "bundle"
     shutil.rmtree(target, ignore_errors=True)
     shutil.copytree(
-        ROOT / "src" / "ofertinhas", target,
+        ROOT / "src" / "ofertinhas",
+        target,
         ignore=lambda folder, names: [
-            n for n in names
+            n
+            for n in names
             if n == "__pycache__" or (Path(folder).name == "ofertinhas" and n in LOCAL_ONLY)
         ],
     )
     shutil.rmtree(bundle, ignore_errors=True)
-    shutil.copytree(ROOT / "assets" / "fonts", bundle / "fonts",
-                    ignore=shutil.ignore_patterns("*.txt"))
+    shutil.copytree(
+        ROOT / "assets" / "fonts", bundle / "fonts", ignore=shutil.ignore_patterns("*.txt")
+    )
     shutil.copytree(ROOT / "templates" / "text", bundle / "templates")
     shutil.copy(config, bundle / "config.yaml")
+    page = build_page(ROOT / "templates", load_config(config).landing)
+    if page is not None:  # /grupo: HTML pronto, o Worker só devolve o arquivo
+        (bundle / TEMPLATE).parent.mkdir(parents=True, exist_ok=True)
+        (bundle / TEMPLATE).write_text(page, encoding="utf-8")
     info = local_build(ROOT, config) | {"built_at": datetime.now(UTC).isoformat()}
     (bundle / BUILD_FILE).write_text(json.dumps(info, indent=2), encoding="utf-8")
     return info
@@ -51,10 +69,11 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=SRC)
     args = parser.parse_args()
     info = build(args.config, args.out)
-    files = sorted(p.relative_to(args.out).as_posix() for p in args.out.rglob("*")
-                   if p.is_file())
-    print(f"bundle pronto: {len(files)} arquivos em {args.out} ({info['commit']}, "
-          f"config {info['config_sha']})")
+    files = sorted(p.relative_to(args.out).as_posix() for p in args.out.rglob("*") if p.is_file())
+    print(
+        f"bundle pronto: {len(files)} arquivos em {args.out} ({info['commit']}, "
+        f"config {info['config_sha']})"
+    )
 
 
 if __name__ == "__main__":

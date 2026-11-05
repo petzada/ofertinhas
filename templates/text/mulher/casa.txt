@@ -1,0 +1,41 @@
+🏡 *Achadinho pra casa!*
+
+{titulo_curto}
+{preco}
+{selos}
+
+👉 {link}
+---
+Pra deixar a casa do seu jeitinho 💖
+
+*{titulo_curto}*
+{preco}
+⭐ {nota} • {vendidos}+ vendidos
+
+{link}
+---
+✨ Casa arrumada e cheirosa gastando pouco
+
+*{titulo_curto}*
+💰 {preco}
+{selos}
+
+🔎 No app, busque: {codigo_busca}
+🛍️ {link}
+---
+🛏️ Cama, mesa e banho com preço de verdade
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota}
+
+Garante o seu 👇
+{link}
+---
+🪴 Detalhe que transforma o ambiente
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+👉 {link}

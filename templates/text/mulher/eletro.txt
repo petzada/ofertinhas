@@ -1,0 +1,41 @@
+🔌 *Eletro em promoção!*
+
+{titulo_curto}
+{preco}
+{selos}
+
+👉 {link}
+---
+Aquele eletro que facilita a vida, pagando menos 💖
+
+*{titulo_curto}*
+{preco}
+⭐ {nota} • {vendidos}+ vendidos
+
+{link}
+---
+✨ Desconto conferido no histórico de preço
+
+*{titulo_curto}*
+💰 {preco}
+{selos}
+
+🔎 No app, busque: {codigo_busca}
+🛍️ {link}
+---
+🏠 Casa mais prática com preço de verdade
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota}
+
+Corre antes de acabar 👇
+{link}
+---
+⚡ Eletro bom em promoção não dura muito
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+👉 {link}

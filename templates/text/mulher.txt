@@ -1,0 +1,44 @@
+💖 *Achadinho do dia!*
+
+{titulo_curto}
+{preco}
+{selos}
+
+🔎 No app, busque: {codigo_busca}
+👉 {link}
+---
+✨ Olha esse preço, amiga!
+
+*{titulo_curto}*
+{preco}
+{selos}
+⭐ {nota} • {vendidos}+ vendidos
+
+Corre que é por tempo limitado 👇
+{link}
+---
+🛍️ *{titulo_curto}*
+
+💰 {preco}
+{selos}
+
+Garante o seu 👉 {link}
+---
+🔥 PROMOÇÃO RELÂMPAGO 🔥
+
+{titulo_curto}
+{preco}
+{selos}
+⭐ Nota {nota}
+
+🛒 {link}
+---
+🏡 Pra deixar a casa do seu jeito
+
+*{titulo_curto}*
+{preco}
+{selos}
+⭐ {nota} • {vendidos}+ vendidos
+
+🔎 No app, busque: {codigo_busca}
+🛍️ {link}

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{NAME}} | Entre no grupo do WhatsApp</title>
+<meta name="description" content="Grupo gratuito no WhatsApp com achadinhos de maquiagem, perfume, moda, casa e eletro. Só desconto de verdade, conferido no histórico de preço.">
+<meta name="theme-color" content="#B5677A">
+<meta property="og:title" content="{{NAME}}">
+<meta property="og:description" content="Achadinhos com desconto de verdade direto no seu WhatsApp. É grátis.">
+<link rel="preconnect" href="https://chat.whatsapp.com">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--rose:#B5677A;--deep:#C2185B;--ink:#2a1f23;--muted:#6f5f65;--bg:#fff7f8;--card:#fff;--wa:#1faa59}
+html{-webkit-text-size-adjust:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.45;padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.wrap{max-width:480px;margin:0 auto;padding:0 18px}
+header{background:linear-gradient(160deg,var(--rose),var(--deep));color:#fff;padding:28px 0 34px;border-radius:0 0 28px 28px}
+.badge{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:99px;padding:5px 12px;font-size:13px;font-weight:600;letter-spacing:.2px}
+h1{font-size:30px;line-height:1.12;margin:14px 0 10px;font-weight:800}
+.lead{font-size:17px;opacity:.95}
+.cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;border:0;border-radius:16px;background:var(--wa);color:#fff;font-size:18px;font-weight:800;text-decoration:none;box-shadow:0 8px 22px rgba(31,170,89,.35);cursor:pointer}
+.cta:active{transform:scale(.98)}
+.cta svg{width:24px;height:24px;flex:none}
+header .cta{margin-top:22px}
+.free{text-align:center;font-size:13px;margin-top:9px;opacity:.9}
+section{margin-top:26px}
+h2{font-size:20px;margin-bottom:12px;font-weight:800}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--card);border-radius:16px;padding:14px 12px;box-shadow:0 2px 10px rgba(181,103,122,.12);font-weight:650;font-size:15px}
+.tile span{display:block;font-size:26px;margin-bottom:4px}
+.list{list-style:none;display:grid;gap:10px}
+.list li{background:var(--card);border-radius:16px;padding:14px 14px 14px 52px;position:relative;box-shadow:0 2px 10px rgba(181,103,122,.12)}
+.list li b{display:block;font-size:16px}
+.list li small{color:var(--muted);font-size:14px}
+.list li::before{content:attr(data-i);position:absolute;left:12px;top:13px;font-size:24px}
+.steps{counter-reset:s;display:grid;gap:8px}
+.steps p{counter-increment:s;padding-left:38px;position:relative;font-size:15px}
+.steps p::before{content:counter(s);position:absolute;left:0;top:-1px;width:26px;height:26px;border-radius:50%;background:var(--rose);color:#fff;font-weight:800;font-size:14px;display:grid;place-items:center}
+footer{margin:30px 0 10px;color:var(--muted);font-size:12px;text-align:center}
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,247,248,.96);backdrop-filter:blur(8px);padding:12px 18px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(0,0,0,.08);transform:translateY(120%);transition:transform .25s}
+.bar.on{transform:none}
+.bar .cta{max-width:444px;margin:0 auto}
+</style>
+{{PIXEL_HEAD}}
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="badge">💖 Grupo gratuito no WhatsApp</span>
+    <h1>Achadinhos com desconto de verdade, direto no seu WhatsApp</h1>
+    <p class="lead">Maquiagem, perfume, moda, casa e eletro do Mercado Livre. A gente garimpa, você só aproveita.</p>
+    <a class="cta" id="cta-top" href="{{GROUP_URL}}" rel="noopener">{{WA_ICON}}Entrar no grupo</a>
+    <p class="free">É grátis · você sai quando quiser</p>
+  </div>
+</header>
+<main class="wrap">
+  <section>
+    <h2>O que chega no grupo</h2>
+    <div class="grid">
+      <div class="tile"><span>💄</span>Maquiagem e skincare</div>
+      <div class="tile"><span>🌸</span>Perfumes</div>
+      <div class="tile"><span>👗</span>Roupas, bolsas e acessórios</div>
+      <div class="tile"><span>🍳</span>Utensílios de cozinha</div>
+      <div class="tile"><span>🔌</span>Eletrodomésticos</div>
+      <div class="tile"><span>🏡</span>Cama, mesa, banho e decoração</div>
+    </div>
+  </section>
+  <section>
+    <h2>Por que entrar</h2>
+    <ul class="list">
+      <li data-i="🔎"><b>Promoção falsa não entra</b><small>Conferimos o preço dos últimos 30 dias de cada oferta antes de mandar.</small></li>
+      <li data-i="🤫"><b>Grupo silencioso</b><small>Só ofertas, poucas por dia, em horário comercial. Sem conversa e sem spam.</small></li>
+      <li data-i="⚡"><b>Antes de acabar</b><small>As melhores ofertas duram horas. No grupo você vê primeiro.</small></li>
+    </ul>
+  </section>
+  <section>
+    <h2>Como funciona</h2>
+    <div class="steps">
+      <p>Toque em <b>Entrar no grupo</b>.</p>
+      <p>O WhatsApp abre o convite: toque em <b>Entrar</b>.</p>
+      <p>Pronto! As ofertas chegam no grupo e você compra direto no Mercado Livre.</p>
+    </div>
+  </section>
+  <footer>{{NAME}} · Somos afiliados do Mercado Livre e podemos receber comissão pelas compras, sem custo extra para você.{{PIXEL_NOTE}}</footer>
+</main>
+<div class="bar" id="bar"><a class="cta" id="cta-bar" href="{{GROUP_URL}}" rel="noopener">{{WA_ICON}}Entrar no grupo grátis</a></div>
+<script>
+(function(){
+  var url = {{GROUP_URL_JSON}}, sent = false;
+  function go(e){
+    if (e) e.preventDefault();
+    if (!sent && window.fbq) { sent = true; fbq('track', 'Lead'); }
+    setTimeout(function(){ location.href = url; }, window.fbq ? 250 : 0);
+  }
+  document.getElementById('cta-top').addEventListener('click', go);
+  document.getElementById('cta-bar').addEventListener('click', go);
+  var bar = document.getElementById('bar'), top = document.getElementById('cta-top');
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function(es){ bar.classList.toggle('on', !es[0].isIntersecting); }).observe(top);
+  } else { bar.classList.add('on'); }
+})();
+</script>
+</body>
+</html>

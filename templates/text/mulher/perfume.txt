@@ -1,0 +1,41 @@
+🌸 *Perfume em promoção!*
+
+{titulo_curto}
+{preco}
+{selos}
+
+👉 {link}
+---
+Pra sair cheirosa e pagando menos 💖
+
+*{titulo_curto}*
+{preco}
+⭐ {nota} • {vendidos}+ vendidos
+
+{link}
+---
+✨ Cheirinho que marca presença
+
+*{titulo_curto}*
+💰 {preco}
+{selos}
+
+🔎 No app, busque: {codigo_busca}
+🛍️ {link}
+---
+💐 Perfume bom com preço de verdade
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota}
+
+Corre antes de acabar 👇
+{link}
+---
+🎁 Serve até pra presentear (ou se dar de presente 😉)
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+👉 {link}

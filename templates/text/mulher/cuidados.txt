@@ -1,0 +1,41 @@
+🧴 *Autocuidado em promoção!*
+
+{titulo_curto}
+{preco}
+{selos}
+
+👉 {link}
+---
+Pele e cabelo agradecem, o bolso também 💖
+
+*{titulo_curto}*
+{preco}
+⭐ {nota} • {vendidos}+ vendidos
+
+{link}
+---
+✨ Pra sua rotina de skincare e cabelo
+
+*{titulo_curto}*
+💰 {preco}
+{selos}
+
+🔎 No app, busque: {codigo_busca}
+🛍️ {link}
+---
+🌿 Momento de se cuidar pagando menos
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota}
+
+Garante o seu 👇
+{link}
+---
+💆‍♀️ Achadinho de beleza que vale cada centavo
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+👉 {link}

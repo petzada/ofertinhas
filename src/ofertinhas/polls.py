@@ -45,52 +45,262 @@ class Poll:
 
 
 BANK: dict[str, tuple[Poll, ...]] = {
+    "mulher": (
+        Poll(
+            "achados",
+            "🛍️ Quais achadinhos você mais quer ver aqui?",
+            (
+                "Maquiagem",
+                "Skincare e cabelo",
+                "Perfumes",
+                "Roupas e calçados",
+                "Bolsas e acessórios",
+                "Utensílios de cozinha",
+                "Eletrodomésticos",
+                "Cama, mesa e banho",
+                "Decoração",
+            ),
+            multi=True,
+        ),
+        Poll(
+            "preco",
+            "💸 Que faixa de preço você mais compra nos achadinhos?",
+            ("Até R$ 50", "R$ 50 a R$ 150", "R$ 150 a R$ 400", "Acima de R$ 400"),
+        ),
+        Poll(
+            "horario",
+            "⏰ Em que horário você mais vê as ofertas do grupo?",
+            ("Manhã", "Almoço", "Fim da tarde", "Noite"),
+        ),
+        Poll(
+            "loja",
+            "🛒 Onde você mais compra online?",
+            ("Mercado Livre", "Shopee", "Amazon", "Shein", "Magalu", "Loja física mesmo"),
+        ),
+        Poll(
+            "maquiagem",
+            "💄 Qual item de maquiagem acaba primeiro na sua nécessaire?",
+            ("Base", "Corretivo", "Máscara de cílios", "Batom / gloss", "Pó", "Blush"),
+        ),
+        Poll(
+            "cozinha",
+            "🍳 Qual eletro você mais quer pra cozinha?",
+            (
+                "Air fryer",
+                "Cafeteira",
+                "Batedeira",
+                "Liquidificador / mixer",
+                "Panela elétrica",
+                "Micro-ondas",
+                "Já tenho tudo 😎",
+            ),
+        ),
+        Poll(
+            "black_friday",
+            "🖤 Na Black Friday, o que você vai caçar?",
+            (
+                "Eletrodomésticos",
+                "Panelas e cozinha",
+                "Cama e banho",
+                "Maquiagem",
+                "Perfumes",
+                "Roupas e calçados",
+            ),
+            multi=True,
+        ),
+        Poll(
+            "presente",
+            "🎁 Você usa o grupo pra achar presente?",
+            ("Sim, sempre", "Às vezes", "Só pra mim mesma 💅", "Nunca pensei nisso"),
+        ),
+        Poll(
+            "cabelo",
+            "💇‍♀️ Qual é a sua prioridade no cabelo?",
+            ("Hidratação", "Frizz", "Queda", "Crescimento", "Cachos", "Coloração"),
+        ),
+        Poll(
+            "casa",
+            "🏡 Qual cômodo você quer dar um tapa agora?",
+            ("Cozinha", "Quarto", "Banheiro", "Sala", "Lavanderia", "Varanda"),
+        ),
+        Poll(
+            "perfume",
+            "🌸 Qual tipo de perfume é a sua cara?",
+            ("Doce", "Floral", "Amadeirado", "Cítrico / fresco", "Árabe", "Body splash"),
+        ),
+        Poll(
+            "conteudo",
+            "💡 O que mais te ajudaria aqui no grupo?",
+            (
+                "Mais ofertas",
+                "Cupons",
+                "Comparativo de preço",
+                "Dicas de produto",
+                "Kits para presente",
+            ),
+            multi=True,
+        ),
+    ),
     "noivas": (
-        Poll("data", "💍 Quando é o grande dia?", (
-            "Ainda em 2026", "1º semestre de 2027", "2º semestre de 2027", "2028 ou depois",
-            "Ainda sem data", "Já casei 🥂")),
-        Poll("achados", "🛍️ Quais achadinhos você mais quer ver aqui?", (
-            "Cozinha e chá de panela", "Cama, mesa e banho", "Eletro da lista de presentes",
-            "Beleza e skincare da noiva", "Decoração e lembrancinhas", "Lua de mel e viagem",
-            "Móveis e casa nova"), multi=True),
-        Poll("fase", "📋 Em que fase do planejamento você está?", (
-            "Acabei de ficar noiva", "Escolhendo local e fornecedores",
-            "Lista de presentes e chá", "Reta final (menos de 3 meses)", "Já casei")),
-        Poll("lista", "🎁 Como vai ser sua lista de presentes?", (
-            "Presentes físicos em loja", "Em dinheiro / PIX no site do casamento",
-            "As duas", "Ainda não decidi")),
-        Poll("convidados", "👥 Quantos convidados vocês esperam?", (
-            "Mini wedding (até 50)", "50 a 120", "120 a 250", "Mais de 250",
-            "Só no civil / cerimônia íntima")),
-        Poll("cha", "🫖 Vai ter chá antes do casamento?", (
-            "Chá de panela", "Chá bar com o noivo", "Chá de lingerie", "Chá de casa nova",
-            "Não vou fazer", "Ainda não sei")),
-        Poll("preco", "💸 Que faixa de preço você mais compra nos achadinhos?", (
-            "Até R$ 50", "R$ 50 a R$ 150", "R$ 150 a R$ 400", "Acima de R$ 400")),
-        Poll("site", "💻 Vocês vão ter site do casamento (RSVP, lista, informações)?", (
-            "Já temos", "Queremos fazer", "Nem tinha pensado nisso", "Não vamos ter")),
-        Poll("casa", "🏡 Como está a casa nova?", (
-            "Já moramos juntos, casa montada", "Já moramos juntos, falta muita coisa",
-            "Vamos montar do zero", "Vamos morar com a família por um tempo")),
-        Poll("orcamento", "💰 Qual o orçamento total do casamento?", (
-            "Até R$ 15 mil", "R$ 15 a 40 mil", "R$ 40 a 80 mil", "Mais de R$ 80 mil",
-            "Prefiro não dizer")),
-        Poll("estilo", "✨ Qual o estilo do seu casamento?", (
-            "Clássico", "Rústico / campo", "Praia", "Boho", "Minimalista", "Moderno")),
-        Poll("lua_de_mel", "✈️ Lua de mel: pra onde?", (
-            "Nordeste", "Serra / Sul", "Praia no exterior", "Cidade no exterior",
-            "Ainda não sei", "Sem lua de mel por enquanto")),
-        Poll("dor", "😮‍💨 O que mais tira seu sono no planejamento?", (
-            "Orçamento", "Lista de convidados", "Escolher fornecedores", "Organizar tudo",
-            "Família palpitando 😅")),
-        Poll("horario", "⏰ Em que horário você mais vê as ofertas do grupo?", (
-            "Manhã", "Almoço", "Fim da tarde", "Noite")),
-        Poll("black_friday", "🖤 Na Black Friday, o que você vai caçar?", (
-            "Eletrodomésticos", "Panelas e cozinha", "Cama e banho", "Beleza", "Móveis",
-            "Malas e viagem"), multi=True),
-        Poll("conteudo", "💡 O que mais te ajudaria aqui no grupo?", (
-            "Mais ofertas", "Checklists e planilhas", "Dicas de fornecedores",
-            "Ideias de decoração DIY", "Ofertas para a lua de mel"), multi=True),
+        Poll(
+            "data",
+            "💍 Quando é o grande dia?",
+            (
+                "Ainda em 2026",
+                "1º semestre de 2027",
+                "2º semestre de 2027",
+                "2028 ou depois",
+                "Ainda sem data",
+                "Já casei 🥂",
+            ),
+        ),
+        Poll(
+            "achados",
+            "🛍️ Quais achadinhos você mais quer ver aqui?",
+            (
+                "Cozinha e chá de panela",
+                "Cama, mesa e banho",
+                "Eletro da lista de presentes",
+                "Beleza e skincare da noiva",
+                "Decoração e lembrancinhas",
+                "Lua de mel e viagem",
+                "Móveis e casa nova",
+            ),
+            multi=True,
+        ),
+        Poll(
+            "fase",
+            "📋 Em que fase do planejamento você está?",
+            (
+                "Acabei de ficar noiva",
+                "Escolhendo local e fornecedores",
+                "Lista de presentes e chá",
+                "Reta final (menos de 3 meses)",
+                "Já casei",
+            ),
+        ),
+        Poll(
+            "lista",
+            "🎁 Como vai ser sua lista de presentes?",
+            (
+                "Presentes físicos em loja",
+                "Em dinheiro / PIX no site do casamento",
+                "As duas",
+                "Ainda não decidi",
+            ),
+        ),
+        Poll(
+            "convidados",
+            "👥 Quantos convidados vocês esperam?",
+            (
+                "Mini wedding (até 50)",
+                "50 a 120",
+                "120 a 250",
+                "Mais de 250",
+                "Só no civil / cerimônia íntima",
+            ),
+        ),
+        Poll(
+            "cha",
+            "🫖 Vai ter chá antes do casamento?",
+            (
+                "Chá de panela",
+                "Chá bar com o noivo",
+                "Chá de lingerie",
+                "Chá de casa nova",
+                "Não vou fazer",
+                "Ainda não sei",
+            ),
+        ),
+        Poll(
+            "preco",
+            "💸 Que faixa de preço você mais compra nos achadinhos?",
+            ("Até R$ 50", "R$ 50 a R$ 150", "R$ 150 a R$ 400", "Acima de R$ 400"),
+        ),
+        Poll(
+            "site",
+            "💻 Vocês vão ter site do casamento (RSVP, lista, informações)?",
+            ("Já temos", "Queremos fazer", "Nem tinha pensado nisso", "Não vamos ter"),
+        ),
+        Poll(
+            "casa",
+            "🏡 Como está a casa nova?",
+            (
+                "Já moramos juntos, casa montada",
+                "Já moramos juntos, falta muita coisa",
+                "Vamos montar do zero",
+                "Vamos morar com a família por um tempo",
+            ),
+        ),
+        Poll(
+            "orcamento",
+            "💰 Qual o orçamento total do casamento?",
+            (
+                "Até R$ 15 mil",
+                "R$ 15 a 40 mil",
+                "R$ 40 a 80 mil",
+                "Mais de R$ 80 mil",
+                "Prefiro não dizer",
+            ),
+        ),
+        Poll(
+            "estilo",
+            "✨ Qual o estilo do seu casamento?",
+            ("Clássico", "Rústico / campo", "Praia", "Boho", "Minimalista", "Moderno"),
+        ),
+        Poll(
+            "lua_de_mel",
+            "✈️ Lua de mel: pra onde?",
+            (
+                "Nordeste",
+                "Serra / Sul",
+                "Praia no exterior",
+                "Cidade no exterior",
+                "Ainda não sei",
+                "Sem lua de mel por enquanto",
+            ),
+        ),
+        Poll(
+            "dor",
+            "😮‍💨 O que mais tira seu sono no planejamento?",
+            (
+                "Orçamento",
+                "Lista de convidados",
+                "Escolher fornecedores",
+                "Organizar tudo",
+                "Família palpitando 😅",
+            ),
+        ),
+        Poll(
+            "horario",
+            "⏰ Em que horário você mais vê as ofertas do grupo?",
+            ("Manhã", "Almoço", "Fim da tarde", "Noite"),
+        ),
+        Poll(
+            "black_friday",
+            "🖤 Na Black Friday, o que você vai caçar?",
+            (
+                "Eletrodomésticos",
+                "Panelas e cozinha",
+                "Cama e banho",
+                "Beleza",
+                "Móveis",
+                "Malas e viagem",
+            ),
+            multi=True,
+        ),
+        Poll(
+            "conteudo",
+            "💡 O que mais te ajudaria aqui no grupo?",
+            (
+                "Mais ofertas",
+                "Checklists e planilhas",
+                "Dicas de fornecedores",
+                "Ideias de decoração DIY",
+                "Ofertas para a lua de mel",
+            ),
+            multi=True,
+        ),
     ),
 }
 
@@ -112,21 +322,28 @@ def voter_id(jid: str) -> str:
 def results(conn: sqlite3.Connection, poll: dict) -> dict[str, Any]:
     votes = db.poll_votes(conn, poll["message_id"])
     counts = Counter(option for vote in votes for option in vote)
-    return {"question": poll["question"], "sent_at": poll["sent_at"],
-            "voters": sum(1 for vote in votes if vote),
-            "counts": {option: counts[option] for option in poll["options"]},
-            "unreadable": counts[UNREADABLE]}
+    return {
+        "question": poll["question"],
+        "sent_at": poll["sent_at"],
+        "voters": sum(1 for vote in votes if vote),
+        "counts": {option: counts[option] for option in poll["options"]},
+        "unreadable": counts[UNREADABLE],
+    }
 
 
 def results_text(result: dict[str, Any]) -> str:
-    lines = [f"📊 Resultado da enquete: {result['question']}",
-             f"{result['voters']} pessoa(s) votaram"]
+    lines = [
+        f"📊 Resultado da enquete: {result['question']}",
+        f"{result['voters']} pessoa(s) votaram",
+    ]
     total = max(result["voters"], 1)
     for option, n in sorted(result["counts"].items(), key=lambda kv: -kv[1]):
         lines.append(f"• {option}: {n} ({n * 100 // total}%)")
     if result["unreadable"]:
-        lines.append(f"🔒 {result['unreadable']} voto(s) chegaram cifrados, sem a opção: veja o "
-                     "placar na enquete, no app do WhatsApp")
+        lines.append(
+            f"🔒 {result['unreadable']} voto(s) chegaram cifrados, sem a opção: veja o "
+            "placar na enquete, no app do WhatsApp"
+        )
     return "\n".join(lines)
 
 
@@ -159,19 +376,28 @@ async def send_weekly_polls(
             continue
         if force_niche is None:
             start = datetime.combine(local.date(), niche.polls.at, tzinfo=TZ)
-            if WEEKDAYS[local.weekday()] != niche.polls.weekday \
-                    or not start <= local < start + SEND_WINDOW \
-                    or db.poll_sent(conn, name, target, week):
+            if (
+                WEEKDAYS[local.weekday()] != niche.polls.weekday
+                or not start <= local < start + SEND_WINDOW
+                or db.poll_sent(conn, name, target, week)
+            ):
                 continue
         previous = db.recent_polls(conn, 1, name)
         if previous:
             await notify(results_text(results(conn, previous[0])))
         poll = next_poll(bank, db.poll_history(conn, name))
-        message_id = await whatsapp.send_poll(target, poll.question, list(poll.options),
-                                              poll.multi)
-        db.record_poll(conn, message_id=message_id or f"sem-id-{name}-{now.isoformat()}",
-                       niche=name, poll_key=poll.key, chat=target, week=week,
-                       question=poll.question, options=list(poll.options), sent_at=now)
+        message_id = await whatsapp.send_poll(target, poll.question, list(poll.options), poll.multi)
+        db.record_poll(
+            conn,
+            message_id=message_id or f"sem-id-{name}-{now.isoformat()}",
+            niche=name,
+            poll_key=poll.key,
+            chat=target,
+            week=week,
+            question=poll.question,
+            options=list(poll.options),
+            sent_at=now,
+        )
         sent.append(f"{name}:{poll.key}")
     return sent
 
@@ -199,8 +425,7 @@ def _option_names(selected: list, options: list[str]) -> list[str] | None:
     lookup = {}
     for option in options:
         digest = hashlib.sha256(option.encode()).digest()
-        for form in (option, digest.hex(), digest.hex().upper(),
-                     base64.b64encode(digest).decode()):
+        for form in (option, digest.hex(), digest.hex().upper(), base64.b64encode(digest).decode()):
             lookup[form] = option
     names = []
     for item in selected:
@@ -224,8 +449,11 @@ def _voter(data: Any) -> str | None:
 def _keep_unparsed(conn: sqlite3.Connection, event: dict, why: str, now: datetime) -> None:
     kept = db.get_setting(conn, UNPARSED_KEY, default=[])
     raw = json.dumps(event, ensure_ascii=False)[:UNPARSED_MAX_CHARS]
-    db.set_setting(conn, UNPARSED_KEY,
-                   [*kept, {"at": now.isoformat(), "why": why, "event": raw}][-UNPARSED_KEEP:])
+    db.set_setting(
+        conn,
+        UNPARSED_KEY,
+        [*kept, {"at": now.isoformat(), "why": why, "event": raw}][-UNPARSED_KEEP:],
+    )
 
 
 def record_vote(conn: sqlite3.Connection, event: dict, now: datetime) -> str:
