@@ -241,6 +241,14 @@ class CollectorConfig(_Strict):
         return self
 
 
+class LandingConfig(_Strict):
+    """Página de entrada no grupo (`/grupo` do Worker), destino dos anúncios."""
+
+    group_url: str = Field(pattern=r"^https://chat\.whatsapp\.com/[A-Za-z0-9]+$")
+    name: str = Field("Grupo VIP de Achadinhos", min_length=1, max_length=40)
+    pixel_id: str | None = Field(None, pattern=r"^[0-9]{6,20}$")  # Pixel da Meta (evento Lead)
+
+
 class AppConfig(_Strict):
     defaults: dict[str, Any] = {}
     niches: dict[str, dict[str, Any]]
@@ -251,6 +259,7 @@ class AppConfig(_Strict):
     brand: str = Field("Ofertas 2KAI", min_length=1, max_length=30)  # topo do card
     # Limpeza diária: ofertas, decisões e histórico de preço mais velhos que isso saem do banco.
     retention_days: int = Field(60, ge=14)
+    landing: LandingConfig | None = None  # página /grupo; sem ela a rota responde 404
 
     @model_validator(mode="after")
     def _validate_layers(self):
@@ -268,8 +277,9 @@ class AppConfig(_Strict):
             raise ConfigError(f"defaults: {_describe(e)}") from None
         for name in self.niches:
             niche = self.for_niche(name)
-            if self.retention_days <= max(niche.repost_cooldown_days,
-                                          niche.price_check.lookback_days):
+            if self.retention_days <= max(
+                niche.repost_cooldown_days, niche.price_check.lookback_days
+            ):
                 raise ConfigError(
                     f"retention_days ({self.retention_days}) precisa ser maior que o cooldown "
                     f"de repost e a janela do price_check do nicho '{name}'"

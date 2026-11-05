@@ -6,6 +6,12 @@ whatsapp_enabled: false  # trava: nada vai para o WhatsApp enquanto estiver fals
 x_enabled: false  # trava do X: com true, cada post do Telegram também sai no X, em thread
 brand: "Ofertas 2KAI"    # texto do topo do card (o mesmo para todos os nichos)
 
+# Página /grupo do Worker (destino dos anúncios). Sem este bloco, /grupo responde 404.
+# landing:
+#   group_url: "https://chat.whatsapp.com/CODIGO"
+#   name: "Grupo VIP de Achadinhos"
+#   pixel_id: "000000000000000"  # Pixel da Meta: PageView ao abrir e Lead no clique do botão
+
 collector:              # ritmo da extensão no portal de afiliados
   every_min: 60         # um ciclo de coleta a cada ~60 min
   jitter_min: 10        # ± variação aleatória

@@ -18,15 +18,30 @@ from workers import DurableObject, Response, WorkerEntrypoint, asgi
 # inicialização, e httpx/PTB/FastAPI a usam ao serem importados.
 
 BUNDLE = Path(__file__).parent / "bundle"
+LANDING = BUNDLE / "landing" / "grupo.html"  # gerado pelo build.py a partir do `landing`
+LANDING_PATHS = ("/grupo", "/grupo/")
 PUBLIC_PREFIXES = ("/health", "/ext/", "/tg/", "/wa/", "/admin/")
 CRON_URL = "https://ofertinhas.internal/_cron"
 RENDER_TASKS_URL = "https://ofertinhas.internal/_render/tasks"
 RENDER_DONE_URL = "https://ofertinhas.internal/_render/done"
 ENV_NAMES = (
-    "EXTENSION_TOKEN", "ADMIN_TOKEN", "EXTENSION_ORIGIN", "TELEGRAM_BOT_TOKEN", "ADMIN_CHAT_ID",
-    "ML_AFFILIATE_TAG", "WHATSMIAU_API_KEY", "WHATSMIAU_INSTANCE", "WHATSMIAU_BASE_URL",
-    "R2_PUBLIC_URL", "TELEGRAM_WEBHOOK_SECRET", "WHATSMIAU_WEBHOOK_SECRET", "DRY_RUN",
-    "WHATSAPP_TEST_JID", "X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN",
+    "EXTENSION_TOKEN",
+    "ADMIN_TOKEN",
+    "EXTENSION_ORIGIN",
+    "TELEGRAM_BOT_TOKEN",
+    "ADMIN_CHAT_ID",
+    "ML_AFFILIATE_TAG",
+    "WHATSMIAU_API_KEY",
+    "WHATSMIAU_INSTANCE",
+    "WHATSMIAU_BASE_URL",
+    "R2_PUBLIC_URL",
+    "TELEGRAM_WEBHOOK_SECRET",
+    "WHATSMIAU_WEBHOOK_SECRET",
+    "DRY_RUN",
+    "WHATSAPP_TEST_JID",
+    "X_API_KEY",
+    "X_API_SECRET",
+    "X_ACCESS_TOKEN",
     "X_ACCESS_TOKEN_SECRET",
 )
 
@@ -41,8 +56,9 @@ class JsBucket:
         self.binding = binding
 
     async def put(self, key: str, data: bytes, content_type: str) -> None:
-        options = to_js({"httpMetadata": {"contentType": content_type}},
-                        dict_converter=js.Object.fromEntries)
+        options = to_js(
+            {"httpMetadata": {"contentType": content_type}}, dict_converter=js.Object.fromEntries
+        )
         await self.binding.put(key, to_js(data), options)
 
     async def get(self, key: str) -> bytes | None:
@@ -93,8 +109,9 @@ class Ofertinhas(DurableObject):
             image.FONTS_DIR = BUNDLE / "fonts"  # no bundle, as fontes não ficam em assets/
             conn = DOConnection(self._exec, self._transaction)
             db.migrate(conn)
-            self.backend = CloudBackend(_env_values(self.env), conn, JsBucket(self.env.CARDS),
-                                        BUNDLE, httpx.AsyncClient())
+            self.backend = CloudBackend(
+                _env_values(self.env), conn, JsBucket(self.env.CARDS), BUNDLE, httpx.AsyncClient()
+            )
         return self.backend
 
     async def fetch(self, request):
@@ -115,7 +132,18 @@ class Default(WorkerEntrypoint):
         return self.env.STATE.get(self.env.STATE.idFromName("main"))
 
     async def fetch(self, request):
-        if not urlparse(request.url).path.startswith(PUBLIC_PREFIXES):
+        path = urlparse(request.url).path
+        if path in LANDING_PATHS:  # página dos anúncios: estática, sem acordar o Durable Object
+            if not LANDING.exists():
+                return Response("não encontrado", status=404)
+            return Response(
+                LANDING.read_text(encoding="utf-8"),
+                headers={
+                    "content-type": "text/html; charset=utf-8",
+                    "cache-control": "public, max-age=300",
+                },
+            )
+        if not path.startswith(PUBLIC_PREFIXES):
             return Response("não encontrado", status=404)
         return await self._stub().fetch(request)
 
@@ -141,7 +169,8 @@ class Default(WorkerEntrypoint):
         image.FONTS_DIR = BUNDLE / "fonts"
         async with httpx.AsyncClient() as http:
             results = await draw_cards(
-                tasks, lambda url: image.fetch_product_image(http, url),
+                tasks,
+                lambda url: image.fetch_product_image(http, url),
                 R2Cards(JsBucket(self.env.CARDS)).save,
             )
         if results:  # o SDK só aceita as opções do fetch como argumentos nomeados

@@ -81,6 +81,14 @@ Invoke-RestMethod https://ofertinhas.marciopetigrosso.workers.dev/admin/polls -H
 Invoke-RestMethod -Method Post "https://ofertinhas.marciopetigrosso.workers.dev/admin/poll-now?niche=noivas" -Headers $h
 ```
 
+### Página do grupo (`/grupo`)
+
+`https://ofertinhas.marciopetigrosso.workers.dev/grupo` é o destino dos anúncios da Meta. O
+`build.py` monta o HTML a partir de `templates/landing/grupo.html` e do bloco `landing` do
+config (`group_url`, `name`, `pixel_id`), e o Worker só devolve o arquivo, sem acordar o
+Durable Object. Com `pixel_id`, a página manda `PageView` ao abrir e `Lead` no clique do botão.
+Trocou o link do grupo ou o Pixel: atualize o secret do config e faça o deploy.
+
 ### Coleta pedida pela nuvem (`collect_now`)
 
 Um grupo está "curto" quando nem todas as aprovadas, com link ou esperando, cobrem os posts

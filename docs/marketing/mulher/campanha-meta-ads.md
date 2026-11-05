@@ -37,7 +37,7 @@ barra desconto inflado (`price_check`). "Só entra desconto de verdade: a gente 
 | Item | Configuração |
 |---|---|
 | Objetivo | **Leads** (ou Vendas), conversão no **site**, evento `Lead` disparado no clique do botão "Entrar no grupo" da página |
-| Página de destino | Página simples (pode ser uma rota do próprio Worker, ex. `/grupo`): título, 3 a 4 benefícios, prints de ofertas reais, botão para o link do grupo. Com Pixel + API de Conversões |
+| Página de destino | `https://ofertinhas.marciopetigrosso.workers.dev/grupo` (rota do Worker, ver `docs/operacao.md`): botão para o grupo e Pixel com `Lead` no clique |
 | Orçamento | Teste: R$ 40 a 60 por dia, por 7 dias, sem mexer nos primeiros 3 dias |
 | Público | Mulheres, 22 a 55 anos, Brasil, público Advantage+ aberto (sem interesses no início). Excluir quem já está no grupo, se der para montar a lista |
 | Posicionamentos | Advantage+ (Feed, Stories e Reels do Instagram e do Facebook) |
