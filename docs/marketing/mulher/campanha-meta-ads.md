@@ -146,6 +146,6 @@ otimização para `Lead`, sem limite de lance) e um anúncio. As imagens vêm de
 | C5 Cozinha eletro | 6990879643249 | cozinha |
 | C6 Make VIP | 6990879656649 | make |
 
-Ficaram **pausadas** até: (1) o Worker com a `/grupo` estar no ar e (2) a conta pré-paga ter
-saldo. Leia os resultados depois de 3 dias: custo por `Lead` de cada campanha e membros novos no
-grupo.
+**Ativadas em 05/11/2026 às 16h40**, depois do deploy da `/grupo` (versão `ea5f645d`) e do teste
+do Pixel (clique no botão registrado). Leia os resultados depois de 3 dias: custo por `Lead` de
+cada campanha e membros novos no grupo.
