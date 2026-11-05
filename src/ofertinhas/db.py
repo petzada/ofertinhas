@@ -195,8 +195,11 @@ def upsert_offer(conn: sqlite3.Connection, offer: Offer, now: datetime | None = 
                 f"UPDATE offers SET {sets} WHERE mlb_id = :mlb_id",
                 fields | {"mlb_id": offer.mlb_id},
             )
-        if (previous is None or previous["price"] != offer.price
-                or previous["original_price"] != offer.original_price):
+        if (
+            previous is None
+            or previous["price"] != offer.price
+            or previous["original_price"] != offer.original_price
+        ):
             conn.execute(
                 "INSERT INTO price_history (mlb_id, price, original_price, seen_at) "
                 "VALUES (?, ?, ?, ?)",
@@ -268,8 +271,9 @@ def get_offers(conn: sqlite3.Connection, mlb_ids: Iterable[str]) -> list[Offer]:
 
 def offers_seen_since(conn: sqlite3.Connection, since: datetime) -> list[Offer]:
     """Ofertas que apareceram numa coleta desde `since`, da mais recente para a mais antiga."""
-    rows = conn.execute("SELECT * FROM offers WHERE updated_at >= ? ORDER BY updated_at DESC",
-                        (_ts(since),))
+    rows = conn.execute(
+        "SELECT * FROM offers WHERE updated_at >= ? ORDER BY updated_at DESC", (_ts(since),)
+    )
     return [_offer_from_row(r) for r in rows]
 
 
@@ -298,9 +302,7 @@ def set_affiliate_link(
 
 def mark_link_requested(conn: sqlite3.Connection, mlb_id: str, now: datetime) -> None:
     with conn:
-        conn.execute(
-            "UPDATE offers SET link_requested_at = ? WHERE mlb_id = ?", (_ts(now), mlb_id)
-        )
+        conn.execute("UPDATE offers SET link_requested_at = ? WHERE mlb_id = ?", (_ts(now), mlb_id))
 
 
 def record_link_failure(conn: sqlite3.Connection, mlb_id: str) -> int:
@@ -309,9 +311,9 @@ def record_link_failure(conn: sqlite3.Connection, mlb_id: str) -> int:
         conn.execute(
             "UPDATE offers SET link_attempts = link_attempts + 1 WHERE mlb_id = ?", (mlb_id,)
         )
-    return conn.execute(
-        "SELECT link_attempts FROM offers WHERE mlb_id = ?", (mlb_id,)
-    ).fetchone()[0]
+    return conn.execute("SELECT link_attempts FROM offers WHERE mlb_id = ?", (mlb_id,)).fetchone()[
+        0
+    ]
 
 
 # --- candidatos ------------------------------------------------------------
@@ -419,8 +421,16 @@ def record_post(
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                mlb_id, niche, channel, chat, status, _ts(sent_at),
-                message_id, price, attempts, error,
+                mlb_id,
+                niche,
+                channel,
+                chat,
+                status,
+                _ts(sent_at),
+                message_id,
+                price,
+                attempts,
+                error,
             ),
         )
 
@@ -452,6 +462,17 @@ def sent_to_chat_since(conn: sqlite3.Connection, mlb_id: str, chat: str, since: 
         (mlb_id, chat, _ts(since)),
     ).fetchone()
     return row is not None
+
+
+def sent_ids_today(conn: sqlite3.Connection, chat: str, now: datetime) -> list[str]:
+    """IDs das ofertas enviadas ao chat hoje (horário de São Paulo), uma por post."""
+    start = now.astimezone(TZ).replace(hour=0, minute=0, second=0, microsecond=0)
+    rows = conn.execute(
+        "SELECT mlb_id FROM posts WHERE chat = ? AND status = 'sent' AND sent_at >= ? "
+        "AND sent_at < ?",
+        (chat, _ts(start), _ts(start + timedelta(days=1))),
+    ).fetchall()
+    return [r[0] for r in rows]
 
 
 def posts_today(conn: sqlite3.Connection, chat: str, now: datetime) -> int:
@@ -487,27 +508,43 @@ def record_template_use(conn: sqlite3.Connection, key: str, idx: int, now: datet
 # --- enquetes --------------------------------------------------------------
 
 
-def record_poll(conn: sqlite3.Connection, *, message_id: str, niche: str, poll_key: str,
-                chat: str, week: str, question: str, options: list[str],
-                sent_at: datetime) -> None:
+def record_poll(
+    conn: sqlite3.Connection,
+    *,
+    message_id: str,
+    niche: str,
+    poll_key: str,
+    chat: str,
+    week: str,
+    question: str,
+    options: list[str],
+    sent_at: datetime,
+) -> None:
     with conn:
         conn.execute(
             "INSERT OR REPLACE INTO polls (message_id, niche, poll_key, chat, week, question, "
             "options_json, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (message_id, niche, poll_key, chat, week, question, json.dumps(options),
-             _ts(sent_at)),
+            (message_id, niche, poll_key, chat, week, question, json.dumps(options), _ts(sent_at)),
         )
 
 
 def poll_sent(conn: sqlite3.Connection, niche: str, chat: str, week: str) -> bool:
-    return conn.execute("SELECT 1 FROM polls WHERE niche = ? AND chat = ? AND week = ?",
-                        (niche, chat, week)).fetchone() is not None
+    return (
+        conn.execute(
+            "SELECT 1 FROM polls WHERE niche = ? AND chat = ? AND week = ?", (niche, chat, week)
+        ).fetchone()
+        is not None
+    )
 
 
 def poll_history(conn: sqlite3.Connection, niche: str) -> list[str]:
     """`poll_key` das enquetes do nicho, da mais antiga para a mais nova."""
-    return [r["poll_key"] for r in conn.execute(
-        "SELECT poll_key FROM polls WHERE niche = ? ORDER BY sent_at", (niche,))]
+    return [
+        r["poll_key"]
+        for r in conn.execute(
+            "SELECT poll_key FROM polls WHERE niche = ? ORDER BY sent_at", (niche,)
+        )
+    ]
 
 
 def get_poll(conn: sqlite3.Connection, message_id: str) -> dict | None:
@@ -527,20 +564,26 @@ def recent_polls(conn: sqlite3.Connection, limit: int, niche: str | None = None)
     return [get_poll(conn, r["message_id"]) for r in rows]
 
 
-def set_poll_vote(conn: sqlite3.Connection, message_id: str, voter: str, options: list[str],
-                  voted_at: datetime) -> None:
+def set_poll_vote(
+    conn: sqlite3.Connection, message_id: str, voter: str, options: list[str], voted_at: datetime
+) -> None:
     """O voto mais recente de cada pessoa vale (no WhatsApp dá para trocar o voto); lista
     vazia é voto retirado."""
     with conn:
         conn.execute(
             "INSERT OR REPLACE INTO poll_votes (message_id, voter, options_json, voted_at) "
-            "VALUES (?, ?, ?, ?)", (message_id, voter, json.dumps(options), _ts(voted_at)),
+            "VALUES (?, ?, ?, ?)",
+            (message_id, voter, json.dumps(options), _ts(voted_at)),
         )
 
 
 def poll_votes(conn: sqlite3.Connection, message_id: str) -> list[list[str]]:
-    return [json.loads(r["options_json"]) for r in conn.execute(
-        "SELECT options_json FROM poll_votes WHERE message_id = ?", (message_id,))]
+    return [
+        json.loads(r["options_json"])
+        for r in conn.execute(
+            "SELECT options_json FROM poll_votes WHERE message_id = ?", (message_id,)
+        )
+    ]
 
 
 # --- configurações em tempo de execução ------------------------------------
@@ -596,16 +639,22 @@ def prune(conn: sqlite3.Connection, now: datetime, keep_days: int) -> dict[str, 
     removed = {}
     with conn:
         removed["candidates"] = _delete(
-            conn, "candidates", f"decided_at < ? AND state NOT IN ({marks})", (cutoff, *active))
-        _delete(conn, "price_history",
-                f"mlb_id IN (SELECT mlb_id FROM offers WHERE {gone})", (cutoff,))
+            conn, "candidates", f"decided_at < ? AND state NOT IN ({marks})", (cutoff, *active)
+        )
+        _delete(
+            conn, "price_history", f"mlb_id IN (SELECT mlb_id FROM offers WHERE {gone})", (cutoff,)
+        )
         removed["offers"] = _delete(conn, "offers", gone, (cutoff,))
         removed["price_history"] = _delete(
-            conn, "price_history",
+            conn,
+            "price_history",
             "seen_at < (SELECT MAX(h.seen_at) FROM price_history h "
-            "WHERE h.mlb_id = price_history.mlb_id AND h.seen_at < ?)", (cutoff,))
+            "WHERE h.mlb_id = price_history.mlb_id AND h.seen_at < ?)",
+            (cutoff,),
+        )
         stale = [
-            row["key"] for row in conn.execute(
+            row["key"]
+            for row in conn.execute(
                 "SELECT key FROM settings WHERE "
                 + " OR ".join("key LIKE ?" for _ in DAILY_KEY_PREFIXES),
                 [f"{prefix}%" for prefix in DAILY_KEY_PREFIXES],

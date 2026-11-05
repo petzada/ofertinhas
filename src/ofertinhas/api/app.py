@@ -19,6 +19,8 @@ from pydantic import BaseModel
 from .. import __version__, db
 from ..affiliate.links import LinkError, apply_link_result, next_link_request
 from ..alerts import notify_throttled
+from ..collector.amazon import SEARCH_PATH as AMAZON_SEARCH_PATH
+from ..collector.amazon import collect_requests, parse_deals
 from ..collector.categories import ROOT_CATEGORIES
 from ..collector.parsers import parse_hub_search
 from ..config import AppConfig
@@ -32,6 +34,7 @@ from ..stock import collect_now, group_stock, niches_needing_links
 TOKEN_HEADER = "X-Ofertinhas-Token"
 ADMIN_HEADER = "X-Ofertinhas-Admin"
 PORTAL_URL = "https://www.mercadolivre.com.br/afiliados/hub?is_affiliate=true"
+AMAZON_LAST_KEY = "amazon:last_collect"
 SEARCH_URL = (
     "https://www.mercadolivre.com.br/affiliate-program/api/hub/search"
     "?is_affiliate=true&device=desktop"
@@ -130,6 +133,20 @@ def create_app(state: ApiState) -> FastAPI:
             db.set_setting(conn, ROTATION_KEY, (offset + size) % len(all_ids))
         return [all_ids[(offset + i) % len(all_ids)] for i in range(size)]
 
+    def amazon_requests(now) -> dict | None:
+        src = state.cfg.sources.amazon
+        if src is None:
+            return None
+        last = db.get_setting(conn, AMAZON_LAST_KEY)
+        if last and now - datetime.fromisoformat(last) < timedelta(minutes=src.every_min):
+            return None
+        db.set_setting(conn, AMAZON_LAST_KEY, now.isoformat())
+        paused = {n for n, c in niche_configs(conn, state.cfg).items() if c.paused}
+        return {
+            "requests": collect_requests(src, state.cfg.collector_categories(paused)),
+            "gap_s": list(state.cfg.collector.request_gap_s),
+        }
+
     @router.get("/ext/config")
     async def ext_config(purpose: str | None = None) -> dict:
         col = state.cfg.collector
@@ -169,10 +186,44 @@ def create_app(state: ApiState) -> FastAPI:
             "collect_now_gap_min": col.collect_now_gap_min,
             # relatório de ganhos do portal (ROAS no status): a extensão lê quando vier
             "earnings": earnings_request(conn, now),
+            # Ofertas do Dia da Amazon: lista de leituras quando estiver na hora (ver amazon.py)
+            "amazon": amazon_requests(now) if collecting else None,
+        }
+
+    def ingest(offers, now) -> dict:
+        """Grava, guarda o link que já veio pronto (Amazon/Shopee) e roteia aos nichos."""
+        new = sum(db.upsert_offer(conn, o, now=now) for o in offers)
+        for o in offers:
+            if o.affiliate_link:
+                db.set_affiliate_link(conn, o.mlb_id, o.affiliate_link)
+        routed = score_and_route(conn, state.cfg, [o.mlb_id for o in offers], now=now)
+        return {
+            "parsed": len(offers),
+            "new": new,
+            "routed": {cand_state.value: n for cand_state, n in routed.items()},
         }
 
     @router.post("/ext/raw")
     async def ext_raw(capture: RawCapture) -> dict:
+        amazon = state.cfg.sources.amazon
+        if amazon and AMAZON_SEARCH_PATH in capture.url:
+            now = state.clock()
+            if not isinstance(capture.body, dict) or "products" not in capture.body:
+                saved = await save_unparsed(
+                    f"amazon-{now:%Y%m%d-%H%M%S-%f}.json",
+                    json.dumps(capture.model_dump(), ensure_ascii=False),
+                )
+                await notify_throttled(
+                    conn,
+                    state.notify,
+                    "amazon-format",
+                    f"⚠️ A Amazon mudou o formato das ofertas. Salvo em {saved}.",
+                    now,
+                    UNKNOWN_FORMAT_EVERY,
+                )
+                return {"parsed": 0, "unknown": True}
+            department = (capture.request_body or {}).get("department")
+            return ingest(parse_deals(capture.body, amazon, department, now=now), now)
         if SEARCH_PATH not in capture.url:
             return {"ignored": True}
         now = state.clock()
@@ -192,13 +243,7 @@ def create_app(state: ApiState) -> FastAPI:
                 UNKNOWN_FORMAT_EVERY,
             )
             return {"parsed": 0, "unknown": True}
-        new = sum(db.upsert_offer(conn, o, now=now) for o in offers)
-        routed = score_and_route(conn, state.cfg, [o.mlb_id for o in offers], now=now)
-        return {
-            "parsed": len(offers),
-            "new": new,
-            "routed": {cand_state.value: n for cand_state, n in routed.items()},
-        }
+        return ingest(offers, now)
 
     @router.get("/ext/link-requests")
     async def ext_link_requests() -> dict:

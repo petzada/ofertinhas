@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 from .. import db
 from ..models import CandidateState, Offer
+from ..sources import ML, source_of
 
 S = CandidateState
 CREATE_LINK_URL = "https://www.mercadolivre.com.br/affiliate-program/api/v2/affiliates/createLink"
@@ -62,8 +63,20 @@ def _promote(conn: sqlite3.Connection, mlb_id: str, to: CandidateState) -> None:
             db.save_candidate(conn, dataclasses.replace(cand, state=to))
 
 
-def next_link_request(conn: sqlite3.Connection, tag: str, now: datetime,
-                      niches: set[str] | None = None) -> dict | None:
+def promote_linked(conn: sqlite3.Connection) -> int:
+    """Aprovadas cujo produto já tem link (de outro nicho, ou da Amazon/Shopee, que vêm com o
+    link pronto) vão para `linked`, sem esperar pedido da extensão."""
+    moved = 0
+    for cand in db.candidates_by_state(conn, S.APPROVED):
+        if db.get_offer(conn, cand.mlb_id).affiliate_link:
+            db.save_candidate(conn, dataclasses.replace(cand, state=S.LINKED))
+            moved += 1
+    return moved
+
+
+def next_link_request(
+    conn: sqlite3.Connection, tag: str, now: datetime, niches: set[str] | None = None
+) -> dict | None:
     """Próximo pedido para a extensão ou None.
 
     Mesma ordem da fila de envio: automáticas primeiro, depois as que o admin aprovou no bot
@@ -71,15 +84,14 @@ def next_link_request(conn: sqlite3.Connection, tag: str, now: datetime,
     link (de outro nicho) avançam direto, sem pedido. Com `niches`, só pede link para esses
     (os grupos abaixo do estoque-alvo); as outras aprovadas esperam na reserva.
     """
-    for cand in db.candidates_by_state(conn, S.APPROVED):
-        offer = db.get_offer(conn, cand.mlb_id)
-        if offer.affiliate_link:
-            _promote(conn, cand.mlb_id, S.LINKED)
+    promote_linked(conn)
     approved = db.candidates_by_state(conn, S.APPROVED)  # já ordenadas pela nota
     approved.sort(key=lambda c: c.notified_at is not None)  # sort estável: automáticas antes
     for cand in approved:
         if niches is not None and cand.niche not in niches:
             continue
+        if source_of(cand.mlb_id) != ML:
+            continue  # Amazon/Shopee: o link vem na coleta; o createLink é só do ML
         offer = db.get_offer(conn, cand.mlb_id)
         if offer.link_requested_at and now - offer.link_requested_at < REQUEST_COOLDOWN:
             continue

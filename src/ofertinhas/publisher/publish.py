@@ -31,6 +31,7 @@ from ..cardstore import CardStore, DiskCards
 from ..config import AppConfig, NicheConfig, Pacing
 from ..creative.format import to_telegram_html, to_whatsapp, to_x
 from ..models import Candidate, CandidateState
+from ..sources import source_of
 from .cardhost import CardHostError
 from .pacing import can_post
 from .telegram import TelegramError
@@ -64,9 +65,31 @@ def pacing_key(tg_chat: int | None, wa_jid: str | None, dry_run: bool) -> str:
     return f"dry-run:{primary}" if dry_run else primary
 
 
+def full_sources(conn: sqlite3.Connection, cfg: AppConfig, chat: str, now: datetime) -> set[str]:
+    """Lojas que já usaram a fatia do dia (`max_share`) neste chat: vão para o fim da fila.
+    Se só sobrar oferta delas, ainda saem; a fatia ordena, não bloqueia."""
+    shares = {
+        name: src.max_share
+        for name in ("amazon", "shopee")
+        if (src := getattr(cfg.sources, name)) is not None
+    }
+    if not shares:
+        return set()
+    sent = [source_of(m) for m in db.sent_ids_today(conn, chat, now)]
+    total = len(sent)
+    return {
+        name
+        for name, share in shares.items()
+        if sent.count(name) and sent.count(name) / total >= share
+    }
+
+
 def _next_in_group(
-    conn: sqlite3.Connection, niches: list[NicheConfig], now: datetime,
+    conn: sqlite3.Connection,
+    niches: list[NicheConfig],
+    now: datetime,
     only_mlb: str | None = None,
+    full: set[str] = frozenset(),
 ) -> tuple[Candidate, NicheConfig] | None:
     """Próxima oferta do grupo, expirando as que sumiram da coleta.
 
@@ -75,11 +98,15 @@ def _next_in_group(
     """
     by_name = {n.name: n for n in niches}
     while True:
-        ready = [c for name in by_name for c in db.candidates_by_state(conn, S.RENDERED, name)
-                 if only_mlb is None or c.mlb_id == only_mlb]
+        ready = [
+            c
+            for name in by_name
+            for c in db.candidates_by_state(conn, S.RENDERED, name)
+            if only_mlb is None or c.mlb_id == only_mlb
+        ]
         if not ready:
             return None
-        ready.sort(key=lambda c: (c.notified_at is not None, -c.score))
+        ready.sort(key=lambda c: (source_of(c.mlb_id) in full, c.notified_at is not None, -c.score))
         cand = ready[0]
         niche = by_name[cand.niche]
         offer = db.get_offer(conn, cand.mlb_id)
@@ -91,8 +118,12 @@ def _next_in_group(
 
 
 def _whatsapp_choices(
-    conn: sqlite3.Connection, niches: list[NicheConfig], now: datetime, chat: str,
+    conn: sqlite3.Connection,
+    niches: list[NicheConfig],
+    now: datetime,
+    chat: str,
     only_mlb: str | None = None,
+    full: set[str] = frozenset(),
 ) -> list[tuple[Candidate, NicheConfig]]:
     """Ofertas frescas do grupo (prontas ou já postadas no Telegram) que ainda não foram a
     este chat do WhatsApp dentro do cooldown de repost, da melhor para a pior."""
@@ -113,7 +144,13 @@ def _whatsapp_choices(
                     continue
                 if not _card_is_current(cand, db.get_offer(conn, cand.mlb_id)):
                     continue  # preço mudou: o card com o preço novo sai no Telegram antes
-                choices.append(((cand.notified_at is not None, -cand.score), cand, niche))
+                choices.append(
+                    (
+                        (source_of(cand.mlb_id) in full, cand.notified_at is not None, -cand.score),
+                        cand,
+                        niche,
+                    )
+                )
     choices.sort(key=lambda c: c[0])
     return [(cand, niche) for _, cand, niche in choices]
 
@@ -123,13 +160,19 @@ def _card_is_current(cand: Candidate, offer) -> bool:
     return abs(offer.price - cand.ref_price) < 0.01
 
 
-def _refresh(conn: sqlite3.Connection, cand: Candidate, niche: NicheConfig, offer,
-             now: datetime) -> None:
+def _refresh(
+    conn: sqlite3.Connection, cand: Candidate, niche: NicheConfig, offer, now: datetime
+) -> None:
     """Preço mudou desde o card: se a oferta automática não passa mais na regra, sai da fila;
     senão, volta para `linked` e o card é desenhado de novo com o preço atual."""
     rules = niche.rules
-    if (rules is not None and cand.notified_at is None
-            and not rules.auto.passes(offer.discount_pct, offer.commission_pct)):
+    if (
+        rules is not None
+        and cand.notified_at is None
+        and not rules.for_source(source_of(offer.mlb_id))[0].passes(
+            offer.discount_pct, offer.commission_pct
+        )
+    ):
         log.info("%s/%s saiu da regra com o preço novo", cand.mlb_id, cand.niche)
         db.save_candidate(conn, dataclasses.replace(cand, state=S.DISCARDED, decided_at=now))
         return
@@ -137,8 +180,9 @@ def _refresh(conn: sqlite3.Connection, cand: Candidate, niche: NicheConfig, offe
     db.save_candidate(conn, dataclasses.replace(cand, state=S.LINKED, card_path=None))
 
 
-def _due(conn: sqlite3.Connection, key: str, pacing: Pacing, now: datetime, dry_run: bool,
-         force: bool) -> bool:
+def _due(
+    conn: sqlite3.Connection, key: str, pacing: Pacing, now: datetime, dry_run: bool, force: bool
+) -> bool:
     if force:
         return True
     retry_at = db.get_setting(conn, f"retry_at:{key}")
@@ -146,13 +190,17 @@ def _due(conn: sqlite3.Connection, key: str, pacing: Pacing, now: datetime, dry_
         return False
     if dry_run:  # teste vale a qualquer hora; nos grupos, post de madrugada ninguém vê
         pacing = pacing.model_copy(update={"window": (time(0, 0), time(23, 59, 59))})
-    allowed, _ = can_post(now, db.last_post_at(conn, key), db.posts_today(conn, key, now),
-                          pacing, db.get_setting(conn, f"jitter:{key}", 0.0))
+    allowed, _ = can_post(
+        now,
+        db.last_post_at(conn, key),
+        db.posts_today(conn, key, now),
+        pacing,
+        db.get_setting(conn, f"jitter:{key}", 0.0),
+    )
     return allowed
 
 
-def _next_jitter(conn: sqlite3.Connection, key: str, pacing: Pacing,
-                 rng: random.Random) -> None:
+def _next_jitter(conn: sqlite3.Connection, key: str, pacing: Pacing, rng: random.Random) -> None:
     """Variação do próximo intervalo (ex.: 45 ± 15 min = 30 a 60), sorteada uma vez."""
     db.set_setting(conn, f"jitter:{key}", rng.uniform(-pacing.jitter_min, pacing.jitter_min))
 
@@ -189,10 +237,21 @@ async def publish_due(
     for (tg_chat, wa_jid), members in destination_groups(conn, cfg).items():
         if tg_chat is not None or dry_run:
             mlb = await _telegram_turn(
-                conn, members, tg_chat, wa_jid, telegram=telegram, store=store,
-                admin_chat_id=admin_chat_id, dry_run=dry_run, now=now, notify=notify, rng=rng,
-                force=force, only_mlb=only_mlb,
+                conn,
+                members,
+                tg_chat,
+                wa_jid,
+                telegram=telegram,
+                store=store,
+                admin_chat_id=admin_chat_id,
+                dry_run=dry_run,
+                now=now,
+                notify=notify,
+                rng=rng,
+                force=force,
+                only_mlb=only_mlb,
                 x=x if cfg.x_enabled and not dry_run else None,
+                full=full_sources(conn, cfg, pacing_key(tg_chat, wa_jid, dry_run), now),
             )
             if mlb:
                 posted.append(mlb)
@@ -201,29 +260,60 @@ async def publish_due(
             continue
         if card_host is None:
             await notify_throttled(
-                conn, notify, "whatsapp-no-host",
+                conn,
+                notify,
+                "whatsapp-no-host",
                 "⚠️ WhatsApp ligado, mas falta R2_API_TOKEN no .env para publicar a imagem.",
-                now, ALERT_EVERY,
+                now,
+                ALERT_EVERY,
             )
             continue
         mlb = await _whatsapp_turn(
-            conn, members, wa_target, whatsapp=whatsapp, card_host=card_host, store=store,
-            dry_run=dry_run, now=now, notify=notify, rng=rng, sleep=sleep, force=force,
-            only_mlb=only_mlb, owns_queue=tg_chat is None,
+            conn,
+            members,
+            wa_target,
+            whatsapp=whatsapp,
+            card_host=card_host,
+            store=store,
+            dry_run=dry_run,
+            now=now,
+            notify=notify,
+            rng=rng,
+            sleep=sleep,
+            force=force,
+            only_mlb=only_mlb,
+            owns_queue=tg_chat is None,
+            full=full_sources(conn, cfg, f"dry-run:{wa_target}" if dry_run else wa_target, now),
         )
         if mlb and mlb not in posted:
             posted.append(mlb)
     return posted
 
 
-async def _telegram_turn(conn, members, tg_chat, wa_jid, *, telegram, store, admin_chat_id,
-                         dry_run, now, notify, rng, force, only_mlb, x=None) -> str | None:
+async def _telegram_turn(
+    conn,
+    members,
+    tg_chat,
+    wa_jid,
+    *,
+    telegram,
+    store,
+    admin_chat_id,
+    dry_run,
+    now,
+    notify,
+    rng,
+    force,
+    only_mlb,
+    x=None,
+    full=frozenset(),
+) -> str | None:
     key = pacing_key(tg_chat, wa_jid, dry_run)
     pacing = members[0].pacing
     if not _due(conn, key, pacing, now, dry_run, force):
         return None
     while True:
-        found = _next_in_group(conn, members, now, only_mlb)
+        found = _next_in_group(conn, members, now, only_mlb, full)
         if found is None:
             return None
         cand, niche = found
@@ -244,58 +334,124 @@ async def _telegram_turn(conn, members, tg_chat, wa_jid, *, telegram, store, adm
     try:
         message_id = await telegram.send_photo(target, png, caption)
     except TelegramError as e:
-        db.record_post(conn, mlb_id=cand.mlb_id, niche=niche.name, channel="telegram",
-                       chat=key, status="failed", sent_at=now, error=str(e))
+        db.record_post(
+            conn,
+            mlb_id=cand.mlb_id,
+            niche=niche.name,
+            channel="telegram",
+            chat=key,
+            status="failed",
+            sent_at=now,
+            error=str(e),
+        )
         db.set_setting(conn, f"retry_at:{key}", (now + RETRY_AFTER_FAILURE).isoformat())
         await notify_throttled(
-            conn, notify, f"publish-fail:{key}",
-            f"⚠️ Não consegui postar no Telegram ({niche.name}): {e}. "
-            "Tento de novo em 10 min.", now, ALERT_EVERY,
+            conn,
+            notify,
+            f"publish-fail:{key}",
+            f"⚠️ Não consegui postar no Telegram ({niche.name}): {e}. Tento de novo em 10 min.",
+            now,
+            ALERT_EVERY,
         )
         return None
-    db.record_post(conn, mlb_id=cand.mlb_id, niche=niche.name, channel="telegram", chat=key,
-                   status="sent", sent_at=now, message_id=message_id, price=offer.price)
-    db.save_candidate(conn, dataclasses.replace(
-        cand, state=S.POSTED, decided_at=now, ref_price=offer.price,
-    ))
+    db.record_post(
+        conn,
+        mlb_id=cand.mlb_id,
+        niche=niche.name,
+        channel="telegram",
+        chat=key,
+        status="sent",
+        sent_at=now,
+        message_id=message_id,
+        price=offer.price,
+    )
+    db.save_candidate(
+        conn,
+        dataclasses.replace(
+            cand,
+            state=S.POSTED,
+            decided_at=now,
+            ref_price=offer.price,
+        ),
+    )
     _next_jitter(conn, key, pacing, rng)
     if x is not None:
         await x_thread(conn, x, cand, niche.name, offer, png, now, notify)
     return cand.mlb_id
 
 
-async def x_thread(conn, x, cand: Candidate, niche: str, offer, png: bytes, now: datetime,
-                    notify) -> None:
+async def x_thread(
+    conn, x, cand: Candidate, niche: str, offer, png: bytes, now: datetime, notify
+) -> None:
     """Thread no X logo depois do Telegram; uma falha aqui não desfaz o post do Telegram."""
     if not offer.affiliate_link:  # sem link, a resposta da thread ficaria vazia
         return
     try:
-        first, _ = await x.post_thread(png, to_x(cand.caption, offer.affiliate_link),
-                                       offer.affiliate_link)
+        first, _ = await x.post_thread(
+            png, to_x(cand.caption, offer.affiliate_link), offer.affiliate_link
+        )
     except XError as e:
-        db.record_post(conn, mlb_id=cand.mlb_id, niche=niche, channel="x", chat="x",
-                       status="failed", sent_at=now, error=str(e))
-        await notify_throttled(conn, notify, "publish-fail-x",
-                               f"⚠️ Não consegui postar no X ({niche}): {e}.", now, ALERT_EVERY)
+        db.record_post(
+            conn,
+            mlb_id=cand.mlb_id,
+            niche=niche,
+            channel="x",
+            chat="x",
+            status="failed",
+            sent_at=now,
+            error=str(e),
+        )
+        await notify_throttled(
+            conn,
+            notify,
+            "publish-fail-x",
+            f"⚠️ Não consegui postar no X ({niche}): {e}.",
+            now,
+            ALERT_EVERY,
+        )
         return
-    db.record_post(conn, mlb_id=cand.mlb_id, niche=niche, channel="x", chat="x",
-                   status="sent", sent_at=now, message_id=first, price=offer.price)
+    db.record_post(
+        conn,
+        mlb_id=cand.mlb_id,
+        niche=niche,
+        channel="x",
+        chat="x",
+        status="sent",
+        sent_at=now,
+        message_id=first,
+        price=offer.price,
+    )
 
 
-async def _whatsapp_turn(conn, members, wa_target, *, whatsapp, card_host, store, dry_run, now,
-                         notify, rng, sleep, force, only_mlb, owns_queue) -> str | None:
+async def _whatsapp_turn(
+    conn,
+    members,
+    wa_target,
+    *,
+    whatsapp,
+    card_host,
+    store,
+    dry_run,
+    now,
+    notify,
+    rng,
+    sleep,
+    force,
+    only_mlb,
+    owns_queue,
+    full=frozenset(),
+) -> str | None:
     """`owns_queue`: o grupo não tem Telegram, então o post do WhatsApp tira a oferta da fila."""
     key = f"dry-run:{wa_target}" if dry_run else wa_target
     pacing = members[0].whatsapp_pacing or members[0].pacing
     if not _due(conn, key, pacing, now, dry_run, force):
         return None
     found = None
-    for cand, niche in _whatsapp_choices(conn, members, now, key, only_mlb):
+    for cand, niche in _whatsapp_choices(conn, members, now, key, only_mlb, full):
         try:  # o card de uma oferta postada pelo PC antes da virada pode não estar no R2
             png = await store.load(cand.card_path)
         except FileNotFoundError:
-            log.warning("sem card de %s/%s para o WhatsApp; vai a próxima", cand.mlb_id,
-                        cand.niche)
+            log.warning("sem card de %s/%s para o WhatsApp; vai a próxima", cand.mlb_id, cand.niche)
             continue
         found = cand, niche
         break
@@ -312,19 +468,46 @@ async def _whatsapp_turn(conn, members, wa_target, *, whatsapp, card_host, store
         await sleep(rng.uniform(*WHATSAPP_TYPING_S))
         message_id = await whatsapp.send_image(wa_target, media_url, caption)
     except (WhatsAppError, CardHostError) as e:
-        db.record_post(conn, mlb_id=cand.mlb_id, niche=niche.name, channel="whatsapp",
-                       chat=key, status="failed", sent_at=now, error=str(e))
+        db.record_post(
+            conn,
+            mlb_id=cand.mlb_id,
+            niche=niche.name,
+            channel="whatsapp",
+            chat=key,
+            status="failed",
+            sent_at=now,
+            error=str(e),
+        )
         db.set_setting(conn, f"retry_at:{key}", (now + RETRY_AFTER_FAILURE).isoformat())
         await notify_throttled(
-            conn, notify, f"publish-fail-wa:{wa_target}",
-            f"⚠️ Não consegui postar no WhatsApp ({niche.name}): {e}.", now, ALERT_EVERY,
+            conn,
+            notify,
+            f"publish-fail-wa:{wa_target}",
+            f"⚠️ Não consegui postar no WhatsApp ({niche.name}): {e}.",
+            now,
+            ALERT_EVERY,
         )
         return None
-    db.record_post(conn, mlb_id=cand.mlb_id, niche=niche.name, channel="whatsapp", chat=key,
-                   status="sent", sent_at=now, message_id=message_id, price=offer.price)
+    db.record_post(
+        conn,
+        mlb_id=cand.mlb_id,
+        niche=niche.name,
+        channel="whatsapp",
+        chat=key,
+        status="sent",
+        sent_at=now,
+        message_id=message_id,
+        price=offer.price,
+    )
     if owns_queue:
-        db.save_candidate(conn, dataclasses.replace(
-            cand, state=S.POSTED, decided_at=now, ref_price=offer.price,
-        ))
+        db.save_candidate(
+            conn,
+            dataclasses.replace(
+                cand,
+                state=S.POSTED,
+                decided_at=now,
+                ref_price=offer.price,
+            ),
+        )
     _next_jitter(conn, key, pacing, rng)
     return cand.mlb_id
