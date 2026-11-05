@@ -46,3 +46,22 @@ export async function postInPage(url, body, includeOrigin, waitMs) {
     return { error: String(error), location: location.href };
   }
 }
+
+// GET autocontido na aba do portal (relatórios do painel; não precisa de CSRF).
+export async function getInPage(url) {
+  try {
+    const response = await fetch(url, {
+      credentials: "include",
+      headers: { accept: "application/json, text/plain, */*" },
+    });
+    let json = null;
+    try {
+      json = await response.json();
+    } catch {
+      // corpo vazio ou não-JSON
+    }
+    return { status: response.status, json, location: location.href };
+  } catch (error) {
+    return { error: String(error), location: location.href };
+  }
+}

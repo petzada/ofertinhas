@@ -13,6 +13,7 @@ from .config import AppConfig
 from .models import TZ, CandidateState
 from .pipeline import INFLATED_KEY
 from .publisher.telegram import TelegramError
+from .roas import status_lines as roas_lines
 from .stock import group_stock
 
 STATUS_MESSAGE_KEY = "status:message"  # {"chat": ..., "message_id": ...}
@@ -41,10 +42,18 @@ def _ago(now: datetime, then: datetime) -> str:
     return f"há {minutes // (24 * 60)} dias"
 
 
-def status_text(conn: sqlite3.Connection, cfg: AppConfig, now: datetime, dry_run: bool,
-                whatsapp_state: str, version: str | None = None) -> str:
-    lines = [f"📌 <b>Ofertinhas</b> • atualizado às {_hhmm(now)}",
-             "🧪 Modo de teste: posts só no chat do admin" if dry_run else "Posts reais nos grupos"]
+def status_text(
+    conn: sqlite3.Connection,
+    cfg: AppConfig,
+    now: datetime,
+    dry_run: bool,
+    whatsapp_state: str,
+    version: str | None = None,
+) -> str:
+    lines = [
+        f"📌 <b>Ofertinhas</b> • atualizado às {_hhmm(now)}",
+        "🧪 Modo de teste: posts só no chat do admin" if dry_run else "Posts reais nos grupos",
+    ]
     for g in group_stock(conn, cfg, now, dry_run):
         until = "cobre o dia" if g.ends_at is None else f"estoque até {_hhmm(g.ends_at)}"
         lines += [
@@ -57,14 +66,17 @@ def status_text(conn: sqlite3.Connection, cfg: AppConfig, now: datetime, dry_run
     lines.append("")
     lines.append(f"Cards para você aprovar: {counts.get(CandidateState.PENDING.value, 0)}")
     collected = last_collect(conn)
-    lines.append("Última coleta: " + (
-        f"{_hhmm(collected)} ({_ago(now, collected)})" if collected else "nunca"))
+    lines.append(
+        "Última coleta: "
+        + (f"{_hhmm(collected)} ({_ago(now, collected)})" if collected else "nunca")
+    )
     paused = db.get_setting(conn, db.EXTENSION_PAUSED_KEY)
     if paused:
         lines.append(f"⏸️ Extensão pausada: {html.escape(str(paused.get('reason')))}")
     day = db.get_setting(conn, INFLATED_KEY.format(date=now.astimezone(TZ).date().isoformat()))
     lines.append(f"Descontos inflados barrados hoje: {day['inflated'] if day else 0}")
     lines.append(f"WhatsApp: {html.escape(whatsapp_state)}")
+    lines += roas_lines(conn, now)
     if version:
         lines.append(f"Versão: <code>{html.escape(version)}</code>")
     return "\n".join(lines)

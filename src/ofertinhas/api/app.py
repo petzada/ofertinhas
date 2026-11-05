@@ -9,7 +9,7 @@ import secrets
 import sqlite3
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException
@@ -24,6 +24,7 @@ from ..collector.parsers import parse_hub_search
 from ..config import AppConfig
 from ..models import utcnow
 from ..pipeline import niche_configs, score_and_route
+from ..roas import earnings_request, parse_daily, save_earnings
 from ..settings import Settings
 from ..status import LAST_COLLECT_KEY, last_collect
 from ..stock import collect_now, group_stock, niches_needing_links
@@ -65,6 +66,12 @@ class LinkReport(BaseModel):
     mlb_id: str
     response: dict[str, Any] | None = None
     error: str | None = None
+
+
+class EarningsReport(BaseModel):
+    since: str  # AAAA-MM-DD
+    until: str  # exclusivo
+    body: dict[str, Any]
 
 
 class Alert(BaseModel):
@@ -151,10 +158,17 @@ def create_app(state: ApiState) -> FastAPI:
             "search_url": SEARCH_URL,
             "categories": categories,
             # pedido de coleta fora de hora (estoque curto); a extensão confere a cada 30 s
-            "collect_now": not collecting and collect_now(
-                conn, state.cfg, group_stock(conn, state.cfg, now, state.dry_run), now,
-                last_collect(conn)),
+            "collect_now": not collecting
+            and collect_now(
+                conn,
+                state.cfg,
+                group_stock(conn, state.cfg, now, state.dry_run),
+                now,
+                last_collect(conn),
+            ),
             "collect_now_gap_min": col.collect_now_gap_min,
+            # relatório de ganhos do portal (ROAS no status): a extensão lê quando vier
+            "earnings": earnings_request(conn, now),
         }
 
     @router.post("/ext/raw")
@@ -164,13 +178,18 @@ def create_app(state: ApiState) -> FastAPI:
         now = state.clock()
         offers = parse_hub_search(capture.request_body, capture.body, now=now)
         if offers is None:
-            saved = await save_unparsed(f"{now.strftime('%Y%m%d-%H%M%S-%f')}.json",
-                                        json.dumps(capture.model_dump(), ensure_ascii=False))
+            saved = await save_unparsed(
+                f"{now.strftime('%Y%m%d-%H%M%S-%f')}.json",
+                json.dumps(capture.model_dump(), ensure_ascii=False),
+            )
             await notify_throttled(
-                conn, state.notify, "unknown-format",
+                conn,
+                state.notify,
+                "unknown-format",
                 f"⚠️ O portal mudou o formato da busca. Resposta salva em {saved}; "
                 "grave um HAR novo para eu atualizar o leitor.",
-                now, UNKNOWN_FORMAT_EVERY,
+                now,
+                UNKNOWN_FORMAT_EVERY,
             )
             return {"parsed": 0, "unknown": True}
         new = sum(db.upsert_offer(conn, o, now=now) for o in offers)
@@ -186,14 +205,31 @@ def create_app(state: ApiState) -> FastAPI:
         tag = state.settings.ml_affiliate_tag
         if not tag:
             await notify_throttled(
-                conn, state.notify, "missing-tag",
+                conn,
+                state.notify,
+                "missing-tag",
                 "⚠️ Há ofertas aprovadas, mas falta ML_AFFILIATE_TAG no .env para gerar links.",
-                state.clock(), UNKNOWN_FORMAT_EVERY,
+                state.clock(),
+                UNKNOWN_FORMAT_EVERY,
             )
             return {"request": None, "error": "ML_AFFILIATE_TAG ausente no .env"}
         now = state.clock()
         needy = niches_needing_links(conn, state.cfg, now, state.dry_run)
         return {"request": next_link_request(conn, tag, now, niches=needy)}
+
+    @router.post("/ext/earnings")
+    async def ext_earnings(report: EarningsReport) -> dict:
+        try:
+            rows = parse_daily(
+                report.body, date.fromisoformat(report.since), date.fromisoformat(report.until)
+            )
+        except (KeyError, TypeError, ValueError) as e:
+            name = f"earnings-{state.clock():%Y%m%d-%H%M%S}.json"
+            where = await save_unparsed(name, json.dumps(report.body, ensure_ascii=False))
+            raise HTTPException(
+                422, f"relatório de ganhos inesperado ({e}); salvo em {where}"
+            ) from e
+        return {"saved": save_earnings(conn, rows, state.clock())}
 
     @router.post("/ext/links")
     async def ext_links(report: LinkReport) -> dict:
@@ -213,13 +249,19 @@ def create_app(state: ApiState) -> FastAPI:
     @router.post("/ext/alert")
     async def ext_alert(alert: Alert) -> dict:
         now = state.clock()
-        db.set_setting(conn, db.EXTENSION_PAUSED_KEY,
-                       {"reason": alert.reason, "url": alert.url, "at": now.isoformat()})
+        db.set_setting(
+            conn,
+            db.EXTENSION_PAUSED_KEY,
+            {"reason": alert.reason, "url": alert.url, "at": now.isoformat()},
+        )
         await notify_throttled(
-            conn, state.notify, f"extension:{alert.reason}",
+            conn,
+            state.notify,
+            f"extension:{alert.reason}",
             f"⏸️ A extensão parou: {alert.reason}. Resolva no Brave e use /retomar coleta "
             "ou o botão Retomar da extensão.",
-            now, ALERT_EVERY,
+            now,
+            ALERT_EVERY,
         )
         return {"paused": True}
 

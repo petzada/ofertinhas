@@ -247,6 +247,15 @@ class LandingConfig(_Strict):
     group_url: str = Field(pattern=r"^https://chat\.whatsapp\.com/[A-Za-z0-9]+$")
     name: str = Field("Grupo VIP de Achadinhos", min_length=1, max_length=40)
     pixel_id: str | None = Field(None, pattern=r"^[0-9]{6,20}$")  # Pixel da Meta (evento Lead)
+    # Banner azul abaixo da dobra: grupo do Telegram com ofertas de tudo (clique = TelegramClick)
+    telegram_url: str | None = Field(None, pattern=r"^https://t\.me/[A-Za-z0-9_+]+$")
+
+
+class AdsConfig(_Strict):
+    """Campanhas da Meta cujo gasto entra no ROAS do status (job `ads_sync`, `roas.py`)."""
+
+    meta_account_id: str = Field(pattern=r"^act_[0-9]+$")
+    campaign_name_contains: str = ""  # vazio: todas as campanhas da conta
 
 
 class AppConfig(_Strict):
@@ -259,6 +268,7 @@ class AppConfig(_Strict):
     brand: str = Field("Ofertas 2KAI", min_length=1, max_length=30)  # topo do card
     # Limpeza diária: ofertas, decisões e histórico de preço mais velhos que isso saem do banco.
     retention_days: int = Field(60, ge=14)
+    ads: AdsConfig | None = None  # gasto da Meta no status; precisa do META_ADS_TOKEN
     landing: LandingConfig | None = None  # página /grupo; sem ela a rota responde 404
 
     @model_validator(mode="after")

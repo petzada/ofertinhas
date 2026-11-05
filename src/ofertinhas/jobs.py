@@ -23,6 +23,7 @@ from .polls import send_weekly_polls
 from .publisher.publish import publish_due
 from .publisher.queue import expire_stale
 from .publisher.whatsapp import WhatsAppError
+from .roas import MetaAds, sync_spend
 from .status import pin_status, status_text
 from .stock import alert_low_stock
 
@@ -51,6 +52,7 @@ SCHEDULE: dict[str, Every | At] = {
     "backup": At(("04:00",)),
     "prune": At(("04:30",)),
     "status": At(("08:00", "13:00", "20:00")),
+    "ads_sync": Every(60),  # gasto e leads da Meta (só com `ads` no config e META_ADS_TOKEN)
 }
 
 
@@ -85,6 +87,7 @@ def make_jobs(
     x=None,
     clock: Callable[[], datetime] = utcnow,
     version: str | None = None,
+    meta_ads: MetaAds | None = None,
 ) -> dict[str, Callable[[], Awaitable[object]]]:
     """Com `data_dir` (PC), os cards ficam em disco e há backup diário do SQLite; na nuvem,
     passe `card_store` (R2) e o banco conta com a recuperação do Durable Object."""
@@ -98,10 +101,20 @@ def make_jobs(
         return await render_linked(conn, cfg, store, templates_dir, fetch_image, now=clock())
 
     async def publish():
-        posted = await publish_due(conn, cfg, telegram=telegram, whatsapp=whatsapp,
-                                   card_host=cards, admin_chat_id=admin_chat_id,
-                                   dry_run=dry_run, now=clock(), notify=notify, card_store=store,
-                                   whatsapp_test_jid=whatsapp_test_jid, x=x)
+        posted = await publish_due(
+            conn,
+            cfg,
+            telegram=telegram,
+            whatsapp=whatsapp,
+            card_host=cards,
+            admin_chat_id=admin_chat_id,
+            dry_run=dry_run,
+            now=clock(),
+            notify=notify,
+            card_store=store,
+            whatsapp_test_jid=whatsapp_test_jid,
+            x=x,
+        )
         if posted:
             log.info("postadas: %s", ", ".join(posted))
         return posted
@@ -113,8 +126,9 @@ def make_jobs(
         return await alert_low_stock(conn, cfg, notify, clock(), dry_run)
 
     async def polls():
-        return await send_weekly_polls(conn, cfg, whatsapp, clock(), notify, dry_run=dry_run,
-                                       test_jid=whatsapp_test_jid)
+        return await send_weekly_polls(
+            conn, cfg, whatsapp, clock(), notify, dry_run=dry_run, test_jid=whatsapp_test_jid
+        )
 
     async def prune():
         removed = db.prune(conn, clock(), cfg.retention_days)
@@ -135,10 +149,24 @@ def make_jobs(
         except WhatsAppError as e:
             return f"erro ao consultar: {e}"
 
-    jobs = {"notify_pending": notify_pending, "render": render, "publish": publish,
-            "expire": expire, "stock_alert": stock_alert, "polls": polls, "prune": prune,
-            "status": status}
+    jobs = {
+        "notify_pending": notify_pending,
+        "render": render,
+        "publish": publish,
+        "expire": expire,
+        "stock_alert": stock_alert,
+        "polls": polls,
+        "prune": prune,
+        "status": status,
+    }
+    if meta_ads is not None:
+
+        async def ads_sync():
+            return await sync_spend(conn, meta_ads, clock())
+
+        jobs["ads_sync"] = ads_sync
     if data_dir is not None:
+
         async def backup():
             from .backup import backup_database  # cópia de arquivo: só no PC
 
@@ -161,7 +189,11 @@ def guarded(
         except Exception as e:  # um job com erro não pode derrubar o processo
             log.exception("job %s falhou", name)
             await notify_throttled(
-                conn, notify, f"job:{name}", f"⚠️ Erro no job {name}: {e}", clock(),
+                conn,
+                notify,
+                f"job:{name}",
+                f"⚠️ Erro no job {name}: {e}",
+                clock(),
                 ERROR_ALERT_EVERY,
             )
 

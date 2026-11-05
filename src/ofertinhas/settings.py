@@ -63,11 +63,12 @@ class Settings:
     # Rotas /admin/* da nuvem (postar agora, importar histórico): token próprio, para quem
     # tiver o token da extensão (que fica no navegador) não poder postar nem apagar nada.
     admin_token: str | None = None
+    # Token da API de Marketing da Meta (usuário do sistema, ads_read): gasto do ROAS
+    meta_ads_token: str | None = None
 
     @property
     def x_keys(self) -> tuple[str, str, str, str] | None:
-        keys = (self.x_api_key, self.x_api_secret, self.x_access_token,
-                self.x_access_token_secret)
+        keys = (self.x_api_key, self.x_api_secret, self.x_access_token, self.x_access_token_secret)
         return keys if all(keys) else None
 
     _ENV_NAMES = {
@@ -104,6 +105,7 @@ class Settings:
             x_access_token=env.get("X_ACCESS_TOKEN") or None,
             x_access_token_secret=env.get("X_ACCESS_TOKEN_SECRET") or None,
             admin_token=env.get("ADMIN_TOKEN") or None,
+            meta_ads_token=env.get("META_ADS_TOKEN") or None,
         )
 
     @classmethod

@@ -40,3 +40,13 @@ def test_no_landing_block_means_no_page():
 def test_rejects_bad_landing(bad):
     with pytest.raises(ConfigError):
         load_config_text(BASE + bad)
+
+
+def test_telegram_banner_only_when_configured_and_not_a_lead():
+    assert "cta-tg" not in build_page(TEMPLATES, LandingConfig(group_url=URL))
+    page = build_page(
+        TEMPLATES, LandingConfig(group_url=URL, telegram_url="https://t.me/ofertas2kai")
+    )
+    banner = page.index('id="cta-tg"')
+    assert 'href="https://t.me/ofertas2kai"' in page and "trackCustom', 'TelegramClick'" in page
+    assert page.index("Como funciona") < banner < page.index("<footer>")  # abaixo da dobra
