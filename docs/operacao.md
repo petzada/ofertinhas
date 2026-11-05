@@ -89,6 +89,14 @@ config (`group_url`, `name`, `pixel_id`), e o Worker só devolve o arquivo, sem 
 Durable Object. Com `pixel_id`, a página manda `PageView` ao abrir e `Lead` no clique do botão.
 Trocou o link do grupo ou o Pixel: atualize o secret do config e faça o deploy.
 
+### Sem aprovação no bot
+
+Com `rules.review` igual a `rules.auto` (como está desde 05/11/2026), não sai card de
+aprovação: a oferta que passa no padrão de desconto e comissão entra direto na fila, a de
+maior nota sai a cada 30 min (com o rodízio de lojas) e o resto é descartado. As pendentes
+antigas são decididas de novo pela regra (ou expiram, se a oferta sumiu da coleta). O chat do
+admin fica só com avisos: estoque baixo, erros, extensão pausada, status e ROAS.
+
 ### Amazon e Shopee (`sources`)
 
 As ofertas das outras lojas entram nas mesmas filas e grupos do Mercado Livre. O ID diz a

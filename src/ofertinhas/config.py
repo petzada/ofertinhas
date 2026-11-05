@@ -159,6 +159,12 @@ class Rules(_Strict):
     amazon: SourceGates | None = None
     shopee: SourceGates | None = None
 
+    def manual_tier(self, source: str) -> bool:
+        """Há faixa de aprovação manual (card no bot) só se `review` for mais solta que `auto`.
+        Com as duas iguais, quem passa entra direto e o resto é descartado."""
+        auto, review = self.for_source(source)
+        return review != auto
+
     def for_source(self, source: str) -> tuple[Gate, Gate]:
         gates = getattr(self, source, None) if source in ("amazon", "shopee") else None
         return (gates.auto, gates.review) if gates else (self.auto, self.review)

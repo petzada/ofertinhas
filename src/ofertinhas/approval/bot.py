@@ -9,7 +9,7 @@ import logging
 import sqlite3
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from telegram.constants import ParseMode
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, MessageHandler, filters
@@ -17,6 +17,7 @@ from telegram.ext import Application, CallbackQueryHandler, CommandHandler, Mess
 from .. import db
 from ..config import AppConfig
 from ..models import CandidateState, utcnow
+from ..sources import source_of
 from . import actions
 from .actions import ActionError
 from .commands import COMMANDS, HELP, CommandContext, run_command
@@ -39,7 +40,10 @@ class BotDeps:
 
 
 AUTOMATIC_FLOW = (
-    CandidateState.APPROVED, CandidateState.LINKED, CandidateState.RENDERED, CandidateState.QUEUED,
+    CandidateState.APPROVED,
+    CandidateState.LINKED,
+    CandidateState.RENDERED,
+    CandidateState.QUEUED,
 )
 
 
@@ -59,9 +63,23 @@ async def send_pending_cards(bot, deps: BotDeps, limit: int = 5) -> int:
     """Cards de aprovação são bônus: só saem para nichos cujo grupo não tem nenhuma oferta
     automática na fila. Até `limit` por vez, as de maior nota primeiro (o job roda a cada
     minuto)."""
+    from ..pipeline import decide, niche_configs  # evita import circular
+
     busy, dest = _busy_destinations(deps)
+    niches = niche_configs(deps.conn, deps.cfg)
     sent = 0
     for cand in db.candidates_by_state(deps.conn, CandidateState.PENDING):
+        niche = niches.get(cand.niche)
+        if niche and niche.rules and not niche.rules.manual_tier(source_of(cand.mlb_id)):
+            # sem aprovação manual: a pendente antiga é decidida de novo pela regra, sem card
+            offer = db.get_offer(deps.conn, cand.mlb_id)
+            now = deps.clock()
+            stale = offer.last_seen_at is None or now - offer.last_seen_at > timedelta(
+                hours=niche.max_offer_age_hours
+            )
+            state = CandidateState.EXPIRED if stale else decide(cand.score, niche, offer)
+            db.save_candidate(deps.conn, dataclasses.replace(cand, state=state, decided_at=now))
+            continue
         if sent >= limit:
             break
         if cand.notified_at is not None or dest.get(cand.niche) in busy:
@@ -72,13 +90,21 @@ async def send_pending_cards(bot, deps: BotDeps, limit: int = 5) -> int:
         try:
             if not offer.image_url:
                 raise ValueError("sem foto")
-            await bot.send_photo(chat_id=deps.admin_chat_id, photo=offer.image_url,
-                                 caption=caption, parse_mode=ParseMode.HTML,
-                                 reply_markup=keyboard)
+            await bot.send_photo(
+                chat_id=deps.admin_chat_id,
+                photo=offer.image_url,
+                caption=caption,
+                parse_mode=ParseMode.HTML,
+                reply_markup=keyboard,
+            )
         except Exception:
             try:
-                await bot.send_message(chat_id=deps.admin_chat_id, text=caption,
-                                       parse_mode=ParseMode.HTML, reply_markup=keyboard)
+                await bot.send_message(
+                    chat_id=deps.admin_chat_id,
+                    text=caption,
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=keyboard,
+                )
             except Exception:
                 log.exception("não consegui enviar o card de %s ao admin", cand.mlb_id)
                 continue
@@ -90,11 +116,17 @@ async def send_pending_cards(bot, deps: BotDeps, limit: int = 5) -> int:
 async def _close_card(q, status: str) -> None:
     """Acrescenta o resultado ao card e tira os botões."""
     if q.message.photo:
-        await q.edit_message_caption(caption=f"{q.message.caption_html}\n\n<b>{status}</b>",
-                                     parse_mode=ParseMode.HTML, reply_markup=None)
+        await q.edit_message_caption(
+            caption=f"{q.message.caption_html}\n\n<b>{status}</b>",
+            parse_mode=ParseMode.HTML,
+            reply_markup=None,
+        )
     else:
-        await q.edit_message_text(text=f"{q.message.text_html}\n\n<b>{status}</b>",
-                                  parse_mode=ParseMode.HTML, reply_markup=None)
+        await q.edit_message_text(
+            text=f"{q.message.text_html}\n\n<b>{status}</b>",
+            parse_mode=ParseMode.HTML,
+            reply_markup=None,
+        )
 
 
 async def on_callback(deps: BotDeps, update) -> None:
@@ -127,11 +159,13 @@ async def on_callback(deps: BotDeps, update) -> None:
             card = approval_caption(offer, new)
             keyboard = approval_keyboard(mlb_id, new.niche)
             if q.message.photo:
-                await q.edit_message_caption(caption=card, parse_mode=ParseMode.HTML,
-                                             reply_markup=keyboard)
+                await q.edit_message_caption(
+                    caption=card, parse_mode=ParseMode.HTML, reply_markup=keyboard
+                )
             else:
-                await q.edit_message_text(text=card, parse_mode=ParseMode.HTML,
-                                          reply_markup=keyboard)
+                await q.edit_message_text(
+                    text=card, parse_mode=ParseMode.HTML, reply_markup=keyboard
+                )
         elif action == "x":
             await q.answer()
             await q.edit_message_reply_markup(reply_markup=approval_keyboard(mlb_id, niche))

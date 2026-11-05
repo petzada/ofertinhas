@@ -31,15 +31,33 @@ def deps():
 
 
 def seed(conn, mlb_id="MLB1", image_url="https://img/1.webp", state=S.PENDING, niche="casa"):
-    db.upsert_offer(conn, Offer(
-        mlb_id=mlb_id, title="Air Fryer", price=299.9, original_price=499.9,
-        commission_pct=12, category_path=("MLB1574",), permalink="https://x",
-        image_url=image_url, collected_at=NOW,
-    ), now=NOW)
-    db.save_candidate(conn, Candidate(
-        mlb_id=mlb_id, niche=niche, state=state, score=70, breakdown={"commission_pct": 20.0},
-        ref_price=299.9, decided_at=NOW,
-    ))
+    db.upsert_offer(
+        conn,
+        Offer(
+            mlb_id=mlb_id,
+            title="Air Fryer",
+            price=299.9,
+            original_price=499.9,
+            commission_pct=12,
+            category_path=("MLB1574",),
+            permalink="https://x",
+            image_url=image_url,
+            collected_at=NOW,
+        ),
+        now=NOW,
+    )
+    db.save_candidate(
+        conn,
+        Candidate(
+            mlb_id=mlb_id,
+            niche=niche,
+            state=state,
+            score=70,
+            breakdown={"commission_pct": 20.0},
+            ref_price=299.9,
+            decided_at=NOW,
+        ),
+    )
 
 
 @pytest.mark.parametrize("flow_state", [S.APPROVED, S.LINKED, S.RENDERED])
@@ -67,12 +85,17 @@ def query(data, chat_id=ADMIN, photo=True):
     message = SimpleNamespace(
         chat=SimpleNamespace(id=chat_id),
         photo=[object()] if photo else [],
-        caption_html="card", text_html="card",
+        caption_html="card",
+        text_html="card",
         reply_text=AsyncMock(),
     )
     q = SimpleNamespace(
-        data=data, message=message, answer=AsyncMock(), edit_message_caption=AsyncMock(),
-        edit_message_text=AsyncMock(), edit_message_reply_markup=AsyncMock(),
+        data=data,
+        message=message,
+        answer=AsyncMock(),
+        edit_message_caption=AsyncMock(),
+        edit_message_text=AsyncMock(),
+        edit_message_reply_markup=AsyncMock(),
     )
     return SimpleNamespace(callback_query=q)
 
@@ -195,3 +218,24 @@ async def test_cancel_command_clears_pending_edit(deps):
     deps.awaiting_edit = ("MLB1", "casa")
     await on_command(deps, text_update("/cancelar"), "cancelar", [])
     assert deps.awaiting_edit is None
+
+
+async def test_without_manual_tier_pending_is_decided_again_and_no_card(deps):
+    """`review` igual a `auto`: nada vai para o bot; a pendente antiga entra ou sai pela regra."""
+    from dataclasses import replace
+
+    from ofertinhas.config import load_config_text
+
+    deps.cfg = load_config_text(
+        "defaults: {rules: {auto: {min_discount_pct: 30, min_commission_pct: 10},"
+        " review: {min_discount_pct: 30, min_commission_pct: 10}}}\n"
+        "niches: {casa: {categories: [MLB1574], telegram_chat_id: -1}}\n"
+    )
+    seed(deps.conn, "MLB1")  # 40% e 12%: passa
+    seed(deps.conn, "MLB2")
+    db.upsert_offer(deps.conn, replace(db.get_offer(deps.conn, "MLB2"), commission_pct=5), now=NOW)
+    bot = SimpleNamespace(send_photo=AsyncMock(), send_message=AsyncMock())
+    assert await send_pending_cards(bot, deps) == 0
+    bot.send_photo.assert_not_awaited()
+    states = {m: db.candidates_for_offer(deps.conn, m)[0].state for m in ("MLB1", "MLB2")}
+    assert states == {"MLB1": S.APPROVED, "MLB2": S.DISCARDED}
