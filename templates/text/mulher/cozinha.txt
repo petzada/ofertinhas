@@ -1,0 +1,41 @@
+🍳 *Achadinho pra cozinha!*
+
+{titulo_curto}
+{preco}
+{selos}
+
+👉 {link}
+---
+Cozinhar fica mais gostoso com isso aqui 💖
+
+*{titulo_curto}*
+{preco}
+⭐ {nota} • {vendidos}+ vendidos
+
+{link}
+---
+✨ Pra deixar a cozinha completa
+
+*{titulo_curto}*
+💰 {preco}
+{selos}
+
+🔎 No app, busque: {codigo_busca}
+🛍️ {link}
+---
+🥘 Praticidade no dia a dia com preço de verdade
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota}
+
+Garante o seu 👇
+{link}
+---
+👩‍🍳 Aquele utensílio que faz falta e agora tá em promoção
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+👉 {link}

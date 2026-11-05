@@ -1,0 +1,41 @@
+👗 *Look novo em promoção!*
+
+{titulo_curto}
+{preco}
+{selos}
+
+👉 {link}
+---
+Amiga, esse aqui é a sua cara 💖
+
+*{titulo_curto}*
+{preco}
+⭐ {nota} • {vendidos}+ vendidos
+
+{link}
+---
+✨ Achadinho de moda do dia
+
+*{titulo_curto}*
+💰 {preco}
+{selos}
+
+🔎 No app, busque: {codigo_busca}
+🛍️ {link}
+---
+👠 Pra arrasar gastando pouco
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota}
+
+Corre antes que acabe o seu tamanho 👇
+{link}
+---
+👜 Acessório certo muda o look inteiro
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+👉 {link}

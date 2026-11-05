@@ -1,0 +1,50 @@
+💄 *Make em promoção!*
+
+{titulo_curto}
+{preco}
+{selos}
+
+👉 {link}
+---
+Amiga, renova a nécessaire pagando menos 💖
+
+*{titulo_curto}*
+{preco}
+{selos}
+⭐ {nota} • {vendidos}+ vendidos
+
+{link}
+---
+✨ Achadinho de make do dia
+
+*{titulo_curto}*
+💰 {preco}
+{selos}
+
+🔎 No app, busque: {codigo_busca}
+🛍️ {link}
+---
+💋 Aquela make que todo mundo ama, com desconto de verdade
+
+{titulo_curto}
+{preco}
+⭐ Nota {nota}
+
+Corre antes de acabar 👇
+{link}
+---
+🎨 Pra make ficar perfeita sem pesar no bolso
+
+*{titulo_curto}*
+{preco}
+{selos}
+
+👉 {link}
+---
+💅 Corre que make boa em promoção some rápido!
+
+*{titulo_curto}*
+{preco}
+⭐ {nota} • {vendidos}+ vendidos
+
+🛒 {link}
