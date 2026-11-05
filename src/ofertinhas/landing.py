@@ -33,10 +33,17 @@ fbq('init','{pixel_id}');fbq('track','PageView');
 </script>"""
 
 
+NOSCRIPT = (
+    '<noscript><img height="1" width="1" style="display:none" alt="" '
+    'src="https://www.facebook.com/tr?id={pixel_id}&amp;ev=PageView&amp;noscript=1"></noscript>'
+)
+
+
 def render(template: str, landing: LandingConfig) -> str:
     pixel = landing.pixel_id
     return (
         template.replace("{{PIXEL_HEAD}}", PIXEL.replace("{pixel_id}", pixel) if pixel else "")
+        .replace("{{PIXEL_NOSCRIPT}}", NOSCRIPT.replace("{pixel_id}", pixel) if pixel else "")
         .replace(
             "{{PIXEL_NOTE}}", " Usamos o Pixel da Meta para medir os anúncios." if pixel else ""
         )

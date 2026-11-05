@@ -73,14 +73,20 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: python deploy.py
-      - name: Smoke (/health)
+      - name: Smoke (/health e /grupo)
         if: env.HAS_CLOUDFLARE_TOKEN == 'true'
         run: |
+          # /health exige o token da extensão: 401 aqui já prova que o Worker responde.
+          # A /grupo (página dos anúncios) é pública e precisa dar 200.
+          base="https://ofertinhas.marciopetigrosso.workers.dev"
           for i in 1 2 3 4 5 6; do
-            if curl -fsS --max-time 15 "https://ofertinhas.marciopetigrosso.workers.dev/health"; then echo; exit 0; fi
+            health=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$base/health" || true)
+            grupo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$base/grupo" || true)
+            echo "health=$health grupo=$grupo"
+            if [[ "$health" =~ ^(200|401)$ && "$grupo" =~ ^(200|404)$ ]]; then exit 0; fi
             sleep 10
           done
-          echo "::error::/health não respondeu 2xx depois do deploy"; exit 1
+          echo "::error::o Worker não respondeu depois do deploy"; exit 1
       - name: Registro do deploy (config publicado + deploys.jsonl)
         if: env.HAS_CLOUDFLARE_TOKEN == 'true'
         uses: actions/upload-artifact@v4
