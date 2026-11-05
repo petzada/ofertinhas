@@ -16,9 +16,14 @@ NOW = datetime(2026, 10, 22, 15, tzinfo=UTC)
 
 def offer(**kw):
     base = dict(
-        mlb_id="MLB4123456789", title="Fritadeira <Air> Fryer & Cia", price=299.9,
-        original_price=499.9, commission_pct=12, category_path=("MLB1574",),
-        permalink="https://produto.mercadolivre.com.br/MLB-4123456789", free_shipping=True,
+        mlb_id="MLB4123456789",
+        title="Fritadeira <Air> Fryer & Cia",
+        price=299.9,
+        original_price=499.9,
+        commission_pct=12,
+        category_path=("MLB1574",),
+        permalink="https://produto.mercadolivre.com.br/MLB-4123456789",
+        free_shipping=True,
     )
     base.update(kw)
     return Offer(**base)
@@ -26,9 +31,13 @@ def offer(**kw):
 
 def cand(**kw):
     base = dict(
-        mlb_id="MLB4123456789", niche="casa", state=CandidateState.PENDING, score=72.4,
+        mlb_id="MLB4123456789",
+        niche="casa",
+        state=CandidateState.PENDING,
+        score=72.4,
         breakdown={"commission_pct": 21.0, "discount_pct": 16.7, "full": 0.0},
-        ref_price=299.9, decided_at=NOW,
+        ref_price=299.9,
+        decided_at=NOW,
     )
     base.update(kw)
     return Candidate(**base)
@@ -37,7 +46,7 @@ def cand(**kw):
 def test_caption_is_short_and_spaced():
     text = approval_caption(offer(title="Fritadeira Air Fryer Mondial 4L"), cand())
     assert text == (
-        "<b>CASA</b>  ·  nota <b>72</b>\n"
+        "<b>CASA</b>  ·  Mercado Livre  ·  nota <b>72</b>\n"
         "\n"
         "Fritadeira Air Fryer Mondial 4L\n"
         "\n"

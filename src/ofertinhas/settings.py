@@ -65,6 +65,9 @@ class Settings:
     admin_token: str | None = None
     # Token da API de Marketing da Meta (usuário do sistema, ads_read): gasto do ROAS
     meta_ads_token: str | None = None
+    # Open API de afiliados da Shopee (painel de afiliados → Open API)
+    shopee_app_id: str | None = None
+    shopee_secret: str | None = None
 
     @property
     def x_keys(self) -> tuple[str, str, str, str] | None:
@@ -106,6 +109,8 @@ class Settings:
             x_access_token_secret=env.get("X_ACCESS_TOKEN_SECRET") or None,
             admin_token=env.get("ADMIN_TOKEN") or None,
             meta_ads_token=env.get("META_ADS_TOKEN") or None,
+            shopee_app_id=env.get("SHOPEE_APP_ID") or None,
+            shopee_secret=env.get("SHOPEE_SECRET") or None,
         )
 
     @classmethod

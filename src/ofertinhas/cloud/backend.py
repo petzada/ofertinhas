@@ -21,6 +21,7 @@ from .. import db
 from ..api.app import ApiState, create_app
 from ..approval.bot import BotDeps
 from ..buildinfo import describe, load_build
+from ..collector.shopee import ShopeeClient
 from ..config import NicheConfig, deep_merge, load_config
 from ..creative.image import fetch_product_image
 from ..jobs import SCHEDULE, guarded, is_due, make_jobs
@@ -105,6 +106,9 @@ class CloudBackend:
                 cfg.ads.meta_account_id,
                 cfg.ads.campaign_name_contains,
             )
+        shopee = None
+        if settings.shopee_app_id and settings.shopee_secret and cfg.sources.shopee:
+            shopee = ShopeeClient(http, settings.shopee_app_id, settings.shopee_secret)
         self.jobs = make_jobs(
             conn=conn,
             cfg=cfg,
@@ -123,6 +127,7 @@ class CloudBackend:
             x=self.x,
             version=describe(self.build),
             meta_ads=meta_ads,
+            shopee=shopee,
         )
         self._running: set[str] = set()
         self.app = self._build_app()

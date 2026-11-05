@@ -22,14 +22,16 @@ from .ranking.filters import passes
 from .ranking.niches import match_niches
 from .ranking.pricecheck import PriceVerdict, check_price
 from .ranking.scoring import Score, score_offer
+from .sources import AMAZON, LABELS, ML, source_of
 
 log = logging.getLogger(__name__)
 INFLATED_KEY = "price_check:{date}"  # {"inflated": n, "last": [{mlb_id, reason}]} do dia
 INFLATED_KEEP = 10
 
 
-def checked_offer(conn: sqlite3.Connection, offer: Offer, niche: Profile,
-                  now: datetime) -> PriceVerdict:
+def checked_offer(
+    conn: sqlite3.Connection, offer: Offer, niche: Profile, now: datetime
+) -> PriceVerdict:
     """A oferta com o desconto conferido no histórico de preços (ver ranking/pricecheck)."""
     check = niche.price_check
     if not check.enabled:
@@ -44,8 +46,9 @@ def _record_inflated(conn: sqlite3.Connection, flagged: dict[str, str], now: dat
     key = INFLATED_KEY.format(date=now.astimezone(TZ).date().isoformat())
     day = db.get_setting(conn, key) or {"inflated": 0, "last": []}
     day["inflated"] += len(flagged)
-    day["last"] = ([{"mlb_id": m, "reason": r} for m, r in flagged.items()]
-                   + day["last"])[:INFLATED_KEEP]
+    day["last"] = ([{"mlb_id": m, "reason": r} for m, r in flagged.items()] + day["last"])[
+        :INFLATED_KEEP
+    ]
     db.set_setting(conn, key, day)
 
 
@@ -69,9 +72,10 @@ def eligible_again(cand: Candidate | None, offer: Offer, rules: Profile, now: da
 def decide(score: float, niche: NicheConfig, offer: Offer | None = None) -> CandidateState:
     """Com `rules` no nicho, decide por desconto e comissão; senão, pelos cortes da nota."""
     if niche.rules is not None and offer is not None:
-        if niche.rules.auto.passes(offer.discount_pct, offer.commission_pct):
+        auto, review = niche.rules.for_source(source_of(offer.mlb_id))
+        if auto.passes(offer.discount_pct, offer.commission_pct):
             return CandidateState.APPROVED
-        if niche.rules.review.passes(offer.discount_pct, offer.commission_pct):
+        if review.passes(offer.discount_pct, offer.commission_pct):
             return CandidateState.PENDING
         return CandidateState.DISCARDED
     if score >= niche.auto_approve_at:
@@ -181,6 +185,22 @@ def score_and_route(
     return counts
 
 
+def ingest_offers(
+    conn: sqlite3.Connection, cfg: AppConfig, offers: list[Offer], now: datetime
+) -> dict:
+    """Grava as ofertas, guarda o link que já veio pronto (Amazon/Shopee) e roteia aos nichos."""
+    new = sum(db.upsert_offer(conn, o, now=now) for o in offers)
+    for o in offers:
+        if o.affiliate_link:
+            db.set_affiliate_link(conn, o.mlb_id, o.affiliate_link)
+    routed = score_and_route(conn, cfg, [o.mlb_id for o in offers], now=now)
+    return {
+        "parsed": len(offers),
+        "new": new,
+        "routed": {state.value: n for state, n in routed.items()},
+    }
+
+
 def reapply_cutoffs(
     conn: sqlite3.Connection, cfg: AppConfig, now: datetime | None = None
 ) -> Counter[str]:
@@ -217,19 +237,42 @@ def reapply_cutoffs(
 
 
 def linked_caption(
-    conn: sqlite3.Connection, cfg: AppConfig, cand: Candidate, offer: Offer, templates_dir: Path,
+    conn: sqlite3.Connection,
+    cfg: AppConfig,
+    cand: Candidate,
+    offer: Offer,
+    templates_dir: Path,
     now: datetime | None = None,
 ) -> str:
     """Legenda da candidata com link: o texto editado no bot ou o próximo modelo do nicho."""
     template = cfg.for_niche(cand.niche).template if cand.niche in cfg.niches else cand.niche
     custom = custom_caption(conn, cand.mlb_id, cand.niche)
     if custom:
-        return fill(custom, caption_values(offer))
-    return render_caption(conn, offer, template, cand.niche, templates_dir, now=now)
+        text = fill(custom, caption_values(offer))
+    else:
+        text = render_caption(conn, offer, template, cand.niche, templates_dir, now=now)
+    return text + store_note(offer, now or utcnow())
+
+
+def store_note(offer: Offer, now: datetime) -> str:
+    """Loja da oferta, quando não é o Mercado Livre. Na Amazon, o horário em que o preço foi
+    visto: as regras do Associados pedem que o preço mostrado não pareça permanente."""
+    source = source_of(offer.mlb_id)
+    if source == ML:
+        return ""
+    note = f"\n\n🛒 Na {LABELS[source]}"
+    if source == AMAZON:
+        seen = (offer.last_seen_at or now).astimezone(TZ).strftime("%H:%M")
+        note += f" • preço visto às {seen}, pode mudar"
+    return note
 
 
 def mark_rendered(
-    conn: sqlite3.Connection, mlb_id: str, niche: str, caption: str, card_ref: str,
+    conn: sqlite3.Connection,
+    mlb_id: str,
+    niche: str,
+    caption: str,
+    card_ref: str,
     price: float | None = None,
 ) -> bool:
     """`linked` → `rendered`; False se a candidata mudou de estado no meio do caminho.
@@ -241,10 +284,16 @@ def mark_rendered(
         return False
     if price is None:
         price = db.get_offer(conn, mlb_id).price
-    db.save_candidate(conn, dataclasses.replace(
-        cand, state=CandidateState.RENDERED, caption=caption, card_path=card_ref,
-        ref_price=price,
-    ))
+    db.save_candidate(
+        conn,
+        dataclasses.replace(
+            cand,
+            state=CandidateState.RENDERED,
+            caption=caption,
+            card_path=card_ref,
+            ref_price=price,
+        ),
+    )
     return True
 
 
@@ -262,6 +311,9 @@ async def render_linked(
     por nicho. Uma candidata com problema é registrada no log e não trava as outras.
     `cards` é a pasta dos PNG ou um `CardStore` (o R2, na nuvem).
     """
+    from .affiliate.links import promote_linked  # evita import circular
+
+    promote_linked(conn)  # Amazon/Shopee já chegam com link
     store = DiskCards(cards) if isinstance(cards, Path) else cards
     rendered = 0
     for cand in db.candidates_by_state(conn, CandidateState.LINKED):

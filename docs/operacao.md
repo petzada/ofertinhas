@@ -89,6 +89,24 @@ config (`group_url`, `name`, `pixel_id`), e o Worker só devolve o arquivo, sem 
 Durable Object. Com `pixel_id`, a página manda `PageView` ao abrir e `Lead` no clique do botão.
 Trocou o link do grupo ou o Pixel: atualize o secret do config e faça o deploy.
 
+### Amazon e Shopee (`sources`)
+
+As ofertas das outras lojas entram nas mesmas filas e grupos do Mercado Livre. O ID diz a
+loja (`AMZ-<ASIN>`, `SHP-<itemId>`), a legenda ganha "🛒 Na Amazon/Shopee" e as lojas se
+revezam em cada grupo (`store_rank` em `publisher/publish.py`): a loja do último post vai para
+o fim da fila e, entre as outras, a que menos postou hoje vem primeiro. Com três lojas, cada
+uma fica com cerca de 1/3 dos posts; se só uma tem oferta pronta, ela posta assim mesmo.
+As regras de desconto e comissão podem ser outras por loja (`defaults.rules.amazon`).
+
+- **Amazon:** sem API (a Creators API pede 10 vendas em 30 dias). A extensão lê as Ofertas do
+  Dia (`/d2b/api/v1/products/search`) numa aba fixada da Amazon, no fim da coleta, a cada
+  `every_min` (2 h), um departamento por vez com pausa. O link é `amazon.com.br/dp/<ASIN>?tag=`.
+  A legenda mostra a hora em que o preço foi visto e a `/grupo` tem o aviso de Associado.
+  Captcha ou erro encerra a rodada da Amazon sem pausar o Mercado Livre.
+- **Shopee:** job `shopee_collect` de hora em hora na nuvem, pela Open API de afiliados, com
+  as buscas de `sources.shopee.searches`; a oferta já vem com o link. Precisa dos secrets
+  `SHOPEE_APP_ID` e `SHOPEE_SECRET` no GitHub (o deploy os envia ao Worker).
+
 ### Coleta pedida pela nuvem (`collect_now`)
 
 Um grupo está "curto" quando nem todas as aprovadas, com link ou esperando, cobrem os posts

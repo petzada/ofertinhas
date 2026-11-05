@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { runCollection, runLinkStep, syncEarnings } from "../lib/cycle.js";
+import { runAmazon, runCollection, runLinkStep, syncEarnings } from "../lib/cycle.js";
 import { RateLimiter } from "../lib/ratelimit.js";
 
 const NOON = new Date("2026-10-22T15:00:00Z"); // 12:00 em São Paulo
@@ -236,5 +236,37 @@ describe("syncEarnings", () => {
     const out = await runCollection({ cfg: config({ earnings }), backend: fakeBackend(), ...d });
     assert.equal(kinds.at(-1), "earnings");
     assert.equal(out.status, "ok");
+  });
+});
+
+describe("runAmazon", () => {
+  const amazon = {
+    gap_s: [5, 15],
+    requests: [
+      { url: "https://www.amazon.com.br/d2b/api/v1/products/search?startIndex=0", department: "16194415011" },
+      { url: "https://www.amazon.com.br/d2b/api/v1/products/search?startIndex=30", department: "16194415011" },
+    ],
+  };
+
+  it("lê cada página com pausa e manda para /ext/raw com o departamento", async () => {
+    const backend = fakeBackend({ "/ext/raw": { parsed: 7 } });
+    const d = deps({ inTab: async () => ({ status: 200, json: { products: [] } }) });
+    const out = await runAmazon({ cfg: config({ amazon }), backend, ...d });
+    assert.deepEqual(out, { status: "ok", offers: 14 });
+    assert.deepEqual(d.sleeps, [10000]);
+    assert.deepEqual(backend.posts[0].body.request_body, { department: "16194415011" });
+  });
+
+  it("captcha ou erro encerra a rodada sem postar", async () => {
+    const backend = fakeBackend();
+    const d = deps({ inTab: async () => ({ status: 503, json: null }) });
+    const out = await runAmazon({ cfg: config({ amazon }), backend, ...d });
+    assert.equal(out.status, "blocked");
+    assert.equal(backend.posts.length, 0);
+  });
+
+  it("sem pedido não faz nada", async () => {
+    const out = await runAmazon({ cfg: config(), backend: fakeBackend(), ...deps({ inTab: async () => { throw new Error("não"); } }) });
+    assert.equal(out.status, "skip");
   });
 });

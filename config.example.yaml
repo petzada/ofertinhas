@@ -6,6 +6,14 @@ whatsapp_enabled: false  # trava: nada vai para o WhatsApp enquanto estiver fals
 x_enabled: false  # trava do X: com true, cada post do Telegram também sai no X, em thread
 brand: "Ofertas 2KAI"    # texto do topo do card (o mesmo para todos os nichos)
 
+# Lojas além do Mercado Livre. Amazon: a extensão lê as Ofertas do Dia (sem API), o link é a
+# URL do produto com a tag. Shopee: Open API de afiliados na nuvem (SHOPEE_APP_ID/SHOPEE_SECRET).
+# Regras próprias por loja em defaults.rules.amazon / defaults.rules.shopee.
+# sources:
+#   amazon: {tag: seutag-20, pages_per_department: 1, default_commission_pct: 4}
+#   shopee:
+#     searches: [{keyword: maquiagem, category: MLB1246}, {keyword: air fryer, category: MLB5726}]
+
 # Página /grupo do Worker (destino dos anúncios). Sem este bloco, /grupo responde 404.
 # landing:
 #   group_url: "https://chat.whatsapp.com/CODIGO"

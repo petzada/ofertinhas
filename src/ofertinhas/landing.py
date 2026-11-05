@@ -50,7 +50,19 @@ TELEGRAM_BANNER = """  <section class="tg">
   }});</script>"""
 
 
-def render(template: str, landing: LandingConfig) -> str:
+def _join(names: list[str]) -> str:
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " e " + names[-1]
+
+
+def _contracted(prep: str, names: list[str]) -> str:
+    """ "do Mercado Livre e da Amazon": preposição com o artigo de cada loja (todas femininas
+    menos o Mercado Livre)."""
+    art = {"de": ("do", "da"), "em": ("no", "na")}[prep]
+    return _join([f"{art[0] if n == 'Mercado Livre' else art[1]} {n}" for n in names])
+
+
+def render(template: str, landing: LandingConfig, stores: list[str] | None = None) -> str:
+    stores = stores or ["Mercado Livre"]
     pixel = landing.pixel_id
     telegram = landing.telegram_url
     return (
@@ -63,6 +75,15 @@ def render(template: str, landing: LandingConfig) -> str:
         .replace("{{GROUP_URL}}", html.escape(landing.group_url))
         .replace("{{NAME}}", html.escape(landing.name))
         .replace("{{WA_ICON}}", WA_ICON)
+        .replace("{{STORES_FROM}}", _contracted("de", stores))
+        .replace("{{STORES_IN}}", _contracted("em", stores))
+        .replace("{{STORES_OF}}", _contracted("de", stores))
+        .replace(
+            "{{AMAZON_NOTE}}",
+            " Como Associado da Amazon, ganho com compras qualificadas."
+            if "Amazon" in stores
+            else "",
+        )
         .replace(
             "{{TELEGRAM_BANNER}}",
             TELEGRAM_BANNER.format(url=html.escape(telegram)) if telegram else "",
@@ -70,8 +91,10 @@ def render(template: str, landing: LandingConfig) -> str:
     )
 
 
-def build_page(templates_dir: Path, landing: LandingConfig | None) -> str | None:
+def build_page(
+    templates_dir: Path, landing: LandingConfig | None, stores: list[str] | None = None
+) -> str | None:
     """O HTML pronto da página, ou None quando o config não tem `landing`."""
     if landing is None:
         return None
-    return render((templates_dir / TEMPLATE).read_text(encoding="utf-8"), landing)
+    return render((templates_dir / TEMPLATE).read_text(encoding="utf-8"), landing, stores)

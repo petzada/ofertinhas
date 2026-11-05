@@ -142,12 +142,26 @@ class Gate(_Strict):
         return discount_pct >= self.min_discount_pct and commission_pct >= self.min_commission_pct
 
 
+class SourceGates(_Strict):
+    auto: Gate
+    review: Gate
+
+
 class Rules(_Strict):
     """Decide pela oferta em vez da nota: passa em `auto` → link automático; senão, passa em
-    `review` → card para o admin; senão, descarte. A nota só ordena quem pega a cota."""
+    `review` → card para o admin; senão, descarte. A nota só ordena quem pega a cota.
+
+    `amazon`/`shopee` trocam os dois cortes para ofertas dessa loja (a Amazon paga comissão
+    fixa por categoria, então a regra dela costuma olhar só o desconto)."""
 
     auto: Gate
     review: Gate
+    amazon: SourceGates | None = None
+    shopee: SourceGates | None = None
+
+    def for_source(self, source: str) -> tuple[Gate, Gate]:
+        gates = getattr(self, source, None) if source in ("amazon", "shopee") else None
+        return (gates.auto, gates.review) if gates else (self.auto, self.review)
 
 
 class Profile(_Strict):
@@ -251,6 +265,44 @@ class LandingConfig(_Strict):
     telegram_url: str | None = Field(None, pattern=r"^https://t\.me/[A-Za-z0-9_+]+$")
 
 
+class AmazonSource(_Strict):
+    """Ofertas do Dia da Amazon, lidas pela extensão no Brave (sem API: o link é a URL do
+    produto com a tag de associado). Ver collector/amazon.py."""
+
+    tag: str = Field(pattern=r"^[A-Za-z0-9-]+-20$")
+    # departamentos da Amazon (IDs em collector/amazon.py); vazio: os que casam com os nichos
+    departments: list[str] = []
+    pages_per_department: int = Field(2, ge=1, le=5)  # 30 ofertas por página
+    every_min: int = Field(120, ge=30)  # leitura a cada 2 h (com folga para não ser bloqueado)
+    # comissão por categoria raiz MLB equivalente; confira na tabela de taxas do Associados
+    commission_pct: dict[str, float] = {}
+    default_commission_pct: float = Field(4, ge=0, le=100)
+
+
+class ShopeeSearch(_Strict):
+    keyword: str = Field(min_length=2)
+    category: str  # categoria raiz MLB equivalente, para rotear aos nichos
+
+
+class ShopeeSource(_Strict):
+    """Open API de afiliados da Shopee (GraphQL), coletada na nuvem: já vem com o link."""
+
+    searches: list[ShopeeSearch] = Field(min_length=1)
+    limit: int = Field(30, ge=1, le=50)  # ofertas por busca (job `shopee_collect`, de hora em hora)
+
+    @model_validator(mode="after")
+    def _known_categories(self):
+        unknown = [s.category for s in self.searches if s.category not in ROOT_CATEGORIES]
+        if unknown:
+            raise ValueError(f"shopee: categorias desconhecidas: {', '.join(unknown)}")
+        return self
+
+
+class SourcesConfig(_Strict):
+    amazon: AmazonSource | None = None
+    shopee: ShopeeSource | None = None
+
+
 class AdsConfig(_Strict):
     """Campanhas da Meta cujo gasto entra no ROAS do status (job `ads_sync`, `roas.py`)."""
 
@@ -268,6 +320,7 @@ class AppConfig(_Strict):
     brand: str = Field("Ofertas 2KAI", min_length=1, max_length=30)  # topo do card
     # Limpeza diária: ofertas, decisões e histórico de preço mais velhos que isso saem do banco.
     retention_days: int = Field(60, ge=14)
+    sources: SourcesConfig = SourcesConfig()  # lojas além do Mercado Livre
     ads: AdsConfig | None = None  # gasto da Meta no status; precisa do META_ADS_TOKEN
     landing: LandingConfig | None = None  # página /grupo; sem ela a rota responde 404
 

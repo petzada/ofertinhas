@@ -36,7 +36,6 @@ jobs:
     timeout-minutes: 20
     env:
       HAS_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
-      HAS_META_TOKEN: ${{ secrets.META_ADS_TOKEN != '' }}
       HAS_CONFIG: ${{ secrets.OFERTINHAS_CONFIG_YAML != '' }}
     steps:
       - uses: actions/checkout@v7
@@ -74,15 +73,23 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: python deploy.py
-      - name: Secret do Worker (META_ADS_TOKEN, gasto da Meta no ROAS)
-        if: env.HAS_CLOUDFLARE_TOKEN == 'true' && env.HAS_META_TOKEN == 'true'
+      - name: Secrets do Worker (Meta Ads e Shopee, quando existirem no GitHub)
+        if: env.HAS_CLOUDFLARE_TOKEN == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           META_ADS_TOKEN: ${{ secrets.META_ADS_TOKEN }}
+          SHOPEE_APP_ID: ${{ secrets.SHOPEE_APP_ID }}
+          SHOPEE_SECRET: ${{ secrets.SHOPEE_SECRET }}
         run: |
-          jq -n --arg v "$META_ADS_TOKEN" '{name: "META_ADS_TOKEN", text: $v, type: "secret_text"}' |
-            curl -fsS -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"               -H "Content-Type: application/json" --data @-               "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/ofertinhas/secrets"             | jq -r '"secret gravado: \(.success)"'
+          url="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/ofertinhas/secrets"
+          for name in META_ADS_TOKEN SHOPEE_APP_ID SHOPEE_SECRET; do
+            value="${!name}"
+            [ -z "$value" ] && { echo "$name: sem secret no GitHub, pulado"; continue; }
+            jq -n --arg n "$name" --arg v "$value" '{name: $n, text: $v, type: "secret_text"}' |
+              curl -fsS -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"                 -H "Content-Type: application/json" --data @- "$url" |
+              jq -r --arg n "$name" '"\($n) gravado: \(.success)"'
+          done
       - name: Smoke (/health e /grupo)
         if: env.HAS_CLOUDFLARE_TOKEN == 'true'
         run: |

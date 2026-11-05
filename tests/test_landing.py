@@ -50,3 +50,12 @@ def test_telegram_banner_only_when_configured_and_not_a_lead():
     banner = page.index('id="cta-tg"')
     assert 'href="https://t.me/ofertas2kai"' in page and "trackCustom', 'TelegramClick'" in page
     assert page.index("Como funciona") < banner < page.index("<footer>")  # abaixo da dobra
+
+
+def test_stores_and_amazon_disclosure():
+    page = build_page(TEMPLATES, LandingConfig(group_url=URL), ["Mercado Livre", "Amazon"])
+    assert "eletro do Mercado Livre e da Amazon" in page
+    assert "compra direto no Mercado Livre e na Amazon" in page
+    assert "Como Associado da Amazon, ganho com compras qualificadas." in page
+    only_ml = build_page(TEMPLATES, LandingConfig(group_url=URL))
+    assert "do Mercado Livre." in only_ml and "Associado da Amazon" not in only_ml

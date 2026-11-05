@@ -54,7 +54,7 @@ def test_every_job_is_in_the_shared_schedule(ctx):
     from ofertinhas.jobs import SCHEDULE
 
     # ads_sync só existe com `ads` no config e META_ADS_TOKEN (gasto da Meta no ROAS)
-    assert set(jobs(ctx)) == set(SCHEDULE) - {"ads_sync"}
+    assert set(jobs(ctx)) == set(SCHEDULE) - {"ads_sync", "shopee_collect"}
 
 
 async def test_jobs_run_on_an_empty_database(ctx):
