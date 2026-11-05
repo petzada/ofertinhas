@@ -39,8 +39,20 @@ NOSCRIPT = (
 )
 
 
+TELEGRAM_BANNER = """  <section class="tg">
+    <h2>Quer ofertas de tudo? ✈️</h2>
+    <p>No nosso grupo do Telegram tem achadinho de tecnologia, casa, pet, esporte, infantil
+      e muito mais, o dia todo.</p>
+    <a id="cta-tg" href="{url}" rel="noopener">Entrar no grupo do Telegram</a>
+  </section>
+  <script>document.getElementById('cta-tg').addEventListener('click', function(){{
+    if (window.fbq) fbq('trackCustom', 'TelegramClick');
+  }});</script>"""
+
+
 def render(template: str, landing: LandingConfig) -> str:
     pixel = landing.pixel_id
+    telegram = landing.telegram_url
     return (
         template.replace("{{PIXEL_HEAD}}", PIXEL.replace("{pixel_id}", pixel) if pixel else "")
         .replace("{{PIXEL_NOSCRIPT}}", NOSCRIPT.replace("{pixel_id}", pixel) if pixel else "")
@@ -51,6 +63,10 @@ def render(template: str, landing: LandingConfig) -> str:
         .replace("{{GROUP_URL}}", html.escape(landing.group_url))
         .replace("{{NAME}}", html.escape(landing.name))
         .replace("{{WA_ICON}}", WA_ICON)
+        .replace(
+            "{{TELEGRAM_BANNER}}",
+            TELEGRAM_BANNER.format(url=html.escape(telegram)) if telegram else "",
+        )
     )
 
 

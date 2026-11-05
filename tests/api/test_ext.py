@@ -54,8 +54,12 @@ def fixture(name):
 
 def raw_payload(name):
     data = fixture(name)
-    return {"url": data["request"]["url"], "request_body": data["request"]["body"],
-            "status": 200, "body": data["response"]["body"]}
+    return {
+        "url": data["request"]["url"],
+        "request_body": data["request"]["body"],
+        "status": 200,
+        "body": data["response"]["body"],
+    }
 
 
 def test_routes_require_token(env):
@@ -70,8 +74,9 @@ def test_config_lists_niche_categories_and_rhythm(env):
     assert cfg["collect_every_min"] == 60 and cfg["pages_per_category"] == 1
     assert cfg["categories"][0] == {"id": "MLB1574", "name": "Casa, Móveis e Decoração"}
     assert cfg["portal_url"].startswith("https://www.mercadolivre.com.br/afiliados/hub")
-    assert cfg["search_url"].endswith("/affiliate-program/api/hub/search?is_affiliate=true"
-                                      "&device=desktop")
+    assert cfg["search_url"].endswith(
+        "/affiliate-program/api/hub/search?is_affiliate=true&device=desktop"
+    )
 
 
 def test_collect_config_rotates_categories(env):
@@ -104,8 +109,9 @@ def test_config_skips_paused_niche_categories(env):
 
 
 def test_raw_ingests_and_ranks(env):
-    r = env.client.post("/ext/raw", headers=H,
-                        json=raw_payload("hub-search-categoria-games-internacional.json"))
+    r = env.client.post(
+        "/ext/raw", headers=H, json=raw_payload("hub-search-categoria-games-internacional.json")
+    )
     assert r.status_code == 200
     out = r.json()
     assert out["parsed"] == 18 and out["new"] == 18
@@ -123,8 +129,12 @@ def test_raw_twice_does_not_duplicate(env):
 
 
 def test_raw_unknown_format_is_saved_and_reported_once_per_hour(env, tmp_path):
-    payload = {"url": "https://www.mercadolivre.com.br/affiliate-program/api/hub/search",
-               "request_body": {}, "status": 200, "body": {"novo": "formato"}}
+    payload = {
+        "url": "https://www.mercadolivre.com.br/affiliate-program/api/hub/search",
+        "request_body": {},
+        "status": 200,
+        "body": {"novo": "formato"},
+    }
     out = env.client.post("/ext/raw", headers=H, json=payload).json()
     assert out == {"parsed": 0, "unknown": True}
     assert len(list((tmp_path / "unparsed").glob("*.json"))) == 1
@@ -133,8 +143,9 @@ def test_raw_unknown_format_is_saved_and_reported_once_per_hour(env, tmp_path):
 
 
 def test_raw_ignores_other_urls(env):
-    out = env.client.post("/ext/raw", headers=H,
-                          json={"url": "https://www.mercadolivre.com.br/x", "body": {}}).json()
+    out = env.client.post(
+        "/ext/raw", headers=H, json={"url": "https://www.mercadolivre.com.br/x", "body": {}}
+    ).json()
     assert out == {"ignored": True}
 
 
@@ -155,8 +166,9 @@ def test_link_request_and_success(env):
 
     response = fixture("create-link.json")["response"]["body"]
     response["urls"][0]["origin_url"] = req["body"]["urls"][0]
-    out = env.client.post("/ext/links", headers=H,
-                          json={"mlb_id": "MLB7818802816", "response": response}).json()
+    out = env.client.post(
+        "/ext/links", headers=H, json={"mlb_id": "MLB7818802816", "response": response}
+    ).json()
     assert out == {"ok": True}
     assert db.get_offer(env.conn, "MLB7818802816").affiliate_link == "https://meli.la/33zyUam"
     assert db.get_candidate(env.conn, "MLB7818802816", "casa").state is CandidateState.LINKED
@@ -178,15 +190,14 @@ def test_three_link_failures_notify_admin(env):
     approve_one(env)
     for _ in range(3):
         env.client.post("/ext/links", headers=H, json={"mlb_id": "MLB7818802816", "error": "500"})
-    assert db.get_candidate(env.conn, "MLB7818802816", "casa").state is (
-        CandidateState.LINK_FAILED
-    )
+    assert db.get_candidate(env.conn, "MLB7818802816", "casa").state is (CandidateState.LINK_FAILED)
     assert any("MLB7818802816" in m for m in env.sent)
 
 
 def test_alert_pauses_and_resume_clears(env):
-    out = env.client.post("/ext/alert", headers=H,
-                          json={"reason": "login", "url": "https://x/login"}).json()
+    out = env.client.post(
+        "/ext/alert", headers=H, json={"reason": "login", "url": "https://x/login"}
+    ).json()
     assert out == {"paused": True}
     cfg = env.client.get("/ext/config", headers=H).json()
     assert cfg["paused"] is True and cfg["pause_reason"] == "login"
@@ -206,8 +217,16 @@ def test_stock_reports_ready_waiting_and_until_when(env):
     data = response.json()
     assert (data["ready"], data["waiting_links"]) == (0, 0)
     assert data["groups"] and set(data["groups"][0]) == {
-        "ready", "waiting_links", "reserve", "target", "posts_today", "max_posts", "ends_at",
-        "ends_at_with_links", "short"}
+        "ready",
+        "waiting_links",
+        "reserve",
+        "target",
+        "posts_today",
+        "max_posts",
+        "ends_at",
+        "ends_at_with_links",
+        "short",
+    }
     assert env.client.get("/ext/stock").status_code == 401
 
 
@@ -225,3 +244,34 @@ def test_collect_now_when_stock_is_short_and_last_collect_is_old(env):
 def test_collect_now_respects_the_pause(env):
     db.set_setting(env.conn, db.EXTENSION_PAUSED_KEY, {"reason": "captcha"})
     assert env.client.get("/ext/config", headers=H).json()["collect_now"] is False
+
+
+def test_earnings_round_trip(env):
+    req = env.client.get("/ext/config", headers=H).json()["earnings"]
+    assert req["since"] == "2026-10-15" and req["until"] == "2026-10-23"
+    body = {
+        "item_list": [{"date": "2026-10-20", "orders": 2, "earnings": 9.9, "touchpoints": 5}],
+        "total_results": 1,
+    }
+    r = env.client.post(
+        "/ext/earnings",
+        headers=H,
+        json={"since": req["since"], "until": req["until"], "body": body},
+    )
+    assert r.json() == {"saved": 8}
+    assert env.client.get("/ext/config", headers=H).json()["earnings"] is None  # lido agora
+    assert db.get_setting(env.conn, "roas:earn:2026-10-20")["commission"] == 9.9
+
+
+def test_unexpected_earnings_is_saved_for_inspection(env, tmp_path):
+    r = env.client.post(
+        "/ext/earnings",
+        headers=H,
+        json={
+            "since": "2026-10-15",
+            "until": "2026-10-23",
+            "body": {"item_list": [{"earnings": 1}]},
+        },
+    )
+    assert r.status_code == 422
+    assert list((tmp_path / "unparsed").glob("earnings-*.json"))

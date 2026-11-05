@@ -37,6 +37,10 @@ h2{font-size:20px;margin-bottom:12px;font-weight:800}
 .steps{counter-reset:s;display:grid;gap:8px}
 .steps p{counter-increment:s;padding-left:38px;position:relative;font-size:15px}
 .steps p::before{content:counter(s);position:absolute;left:0;top:-1px;width:26px;height:26px;border-radius:50%;background:var(--rose);color:#fff;font-weight:800;font-size:14px;display:grid;place-items:center}
+.tg{margin-top:30px;background:linear-gradient(160deg,#2AABEE,#1E88D9);color:#fff;border-radius:20px;padding:20px 18px;box-shadow:0 6px 18px rgba(34,158,217,.3)}
+.tg h2{color:#fff;margin-bottom:6px;font-size:19px}
+.tg p{font-size:15px;opacity:.95}
+.tg a{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;min-height:50px;border-radius:14px;background:#fff;color:#1E88D9;font-weight:800;font-size:16px;text-decoration:none}
 footer{margin:30px 0 10px;color:var(--muted);font-size:12px;text-align:center}
 .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,247,248,.96);backdrop-filter:blur(8px);padding:12px 18px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px rgba(0,0,0,.08);transform:translateY(120%);transition:transform .25s}
 .bar.on{transform:none}
@@ -83,6 +87,7 @@ footer{margin:30px 0 10px;color:var(--muted);font-size:12px;text-align:center}
       <p>Pronto! As ofertas chegam no grupo e você compra direto no Mercado Livre.</p>
     </div>
   </section>
+{{TELEGRAM_BANNER}}
   <footer>{{NAME}} · Somos afiliados do Mercado Livre e podemos receber comissão pelas compras, sem custo extra para você.{{PIXEL_NOTE}}</footer>
 </main>
 <div class="bar" id="bar"><a class="cta" id="cta-bar" href="{{GROUP_URL}}" rel="noopener">{{WA_ICON}}Entrar no grupo grátis</a></div>

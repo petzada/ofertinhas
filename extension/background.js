@@ -6,7 +6,7 @@
 
 import { Backend } from "./lib/backend.js";
 import { runCollection, runLinkStep } from "./lib/cycle.js";
-import { postInPage } from "./lib/inpage.js";
+import { getInPage, postInPage } from "./lib/inpage.js";
 import { RateLimiter } from "./lib/ratelimit.js";
 import { nextDelayMs, shouldCollectNow } from "./lib/schedule.js";
 import { TabGate } from "./lib/tabgate.js";
@@ -101,8 +101,8 @@ function portalTab(portalUrl) {
       const [injection] = await chrome.scripting.executeScript({
         target: { tabId: await id() },
         world: "MAIN",
-        func: postInPage,
-        args: [url, body, kind === "search", CSRF_WAIT_MS],
+        func: kind === "earnings" ? getInPage : postInPage,
+        args: kind === "earnings" ? [url] : [url, body, kind === "search", CSRF_WAIT_MS],
       });
       return injection?.result ?? { error: "a aba não respondeu" };
     }),

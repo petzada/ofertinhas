@@ -43,6 +43,7 @@ ENV_NAMES = (
     "X_API_SECRET",
     "X_ACCESS_TOKEN",
     "X_ACCESS_TOKEN_SECRET",
+    "META_ADS_TOKEN",
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")

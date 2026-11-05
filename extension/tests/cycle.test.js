@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { runCollection, runLinkStep } from "../lib/cycle.js";
+import { runCollection, runLinkStep, syncEarnings } from "../lib/cycle.js";
 import { RateLimiter } from "../lib/ratelimit.js";
 
 const NOON = new Date("2026-10-22T15:00:00Z"); // 12:00 em São Paulo
@@ -192,5 +192,49 @@ describe("runLinkStep", () => {
     const full = new RateLimiter(0, () => NOON.getTime());
     assert.equal((await runLinkStep({ backend: empty, inTab, ...linkDeps({ limiter: full }) })).status, "limit");
     assert.equal((await runLinkStep({ backend: empty, inTab, ...linkDeps() })).status, "idle");
+  });
+});
+
+describe("syncEarnings", () => {
+  const earnings = { url: "https://www.mercadolivre.com.br/affiliate-program/api/dashboard/detalle-diario/general?x", since: "2026-10-15", until: "2026-10-23" };
+
+  it("lê o relatório quando a nuvem pede e manda para /ext/earnings", async () => {
+    const calls = [];
+    const backend = fakeBackend({ "/ext/earnings": { saved: 8 } });
+    const inTab = async (kind, url) => {
+      calls.push([kind, url]);
+      return { status: 200, json: { item_list: [] } };
+    };
+    const out = await syncEarnings(config({ earnings }), backend, inTab, async () => {});
+    assert.equal(out, 8);
+    assert.deepEqual(calls, [["earnings", earnings.url]]);
+    assert.deepEqual(backend.posts[0], {
+      path: "/ext/earnings",
+      body: { since: "2026-10-15", until: "2026-10-23", body: { item_list: [] } },
+    });
+  });
+
+  it("sem pedido não chama o portal; erro não derruba", async () => {
+    const backend = fakeBackend();
+    let called = false;
+    const out = await syncEarnings(config(), backend, async () => { called = true; }, async () => {});
+    assert.equal(out, "skip");
+    assert.equal(called, false);
+    const failed = await syncEarnings(config({ earnings }), backend,
+      async () => ({ status: 500, json: null }), async () => {});
+    assert.match(failed, /HTTP 500/);
+  });
+
+  it("roda no fim da coleta", async () => {
+    const kinds = [];
+    const d = deps({
+      inTab: async (kind) => {
+        kinds.push(kind);
+        return { status: 200, json: kind === "earnings" ? { item_list: [] } : page(5) };
+      },
+    });
+    const out = await runCollection({ cfg: config({ earnings }), backend: fakeBackend(), ...d });
+    assert.equal(kinds.at(-1), "earnings");
+    assert.equal(out.status, "ok");
   });
 });

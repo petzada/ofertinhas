@@ -76,7 +76,29 @@ export async function runCollection({
       if (cardCount(result.json) < cfg.page_size) break; // acabou a categoria
     }
   }
+  totals.earnings = await syncEarnings(cfg, backend, inTab, reloadTab, state);
   return { status: "ok", ...totals };
+}
+
+/**
+ * Lê o relatório diário de ganhos do portal quando a nuvem pede (`cfg.earnings`, no máximo a
+ * cada 3 h) e manda para o ROAS do status. Falha aqui não derruba a coleta.
+ */
+export async function syncEarnings(cfg, backend, inTab, reloadTab, state = { reloaded: false }) {
+  const req = cfg.earnings;
+  if (!req) return "skip";
+  try {
+    const { result, reason } = await callWithRecovery(
+      inTab, reloadTab, state, "earnings", req.url, undefined,
+    );
+    if (reason || result.status !== 200) return `erro: ${reason || `HTTP ${result.status}`}`;
+    const out = await backend.post("/ext/earnings", {
+      since: req.since, until: req.until, body: result.json,
+    });
+    return out?.saved ?? 0;
+  } catch (error) {
+    return `erro: ${error.message || error}`;
+  }
 }
 
 export async function runLinkStep({ cfg, backend, inTab, reloadTab = async () => {}, limiter, nextLinkAt, now, rng = Math.random }) {
