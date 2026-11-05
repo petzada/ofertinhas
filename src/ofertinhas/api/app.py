@@ -25,7 +25,7 @@ from ..collector.categories import ROOT_CATEGORIES
 from ..collector.parsers import parse_hub_search
 from ..config import AppConfig
 from ..models import utcnow
-from ..pipeline import niche_configs, score_and_route
+from ..pipeline import ingest_offers, niche_configs
 from ..roas import earnings_request, parse_daily, save_earnings
 from ..settings import Settings
 from ..status import LAST_COLLECT_KEY, last_collect
@@ -191,17 +191,7 @@ def create_app(state: ApiState) -> FastAPI:
         }
 
     def ingest(offers, now) -> dict:
-        """Grava, guarda o link que já veio pronto (Amazon/Shopee) e roteia aos nichos."""
-        new = sum(db.upsert_offer(conn, o, now=now) for o in offers)
-        for o in offers:
-            if o.affiliate_link:
-                db.set_affiliate_link(conn, o.mlb_id, o.affiliate_link)
-        routed = score_and_route(conn, state.cfg, [o.mlb_id for o in offers], now=now)
-        return {
-            "parsed": len(offers),
-            "new": new,
-            "routed": {cand_state.value: n for cand_state, n in routed.items()},
-        }
+        return ingest_offers(conn, state.cfg, offers, now)
 
     @router.post("/ext/raw")
     async def ext_raw(capture: RawCapture) -> dict:

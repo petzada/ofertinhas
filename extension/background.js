@@ -5,7 +5,7 @@
 // - freio: qualquer sinal de bloqueio pausa tudo e avisa o backend (que avisa no Telegram).
 
 import { Backend } from "./lib/backend.js";
-import { runCollection, runLinkStep } from "./lib/cycle.js";
+import { runAmazon, runCollection, runLinkStep } from "./lib/cycle.js";
 import { getInPage, postInPage } from "./lib/inpage.js";
 import { RateLimiter } from "./lib/ratelimit.js";
 import { nextDelayMs, shouldCollectNow } from "./lib/schedule.js";
@@ -14,6 +14,8 @@ import { TabGate } from "./lib/tabgate.js";
 const DEFAULT_BACKEND = "http://127.0.0.1:8765";
 const MIN_GAP_BETWEEN_CALLS_MS = 3_000;
 const PORTAL_PREFIX = "https://www.mercadolivre.com.br/afiliados/hub";
+const AMAZON_URL = "https://www.amazon.com.br/deals";
+const AMAZON_PREFIX = "https://www.amazon.com.br/";
 const CSRF_WAIT_MS = 15_000;
 const RETRY_AFTER_ERROR_MS = 5 * 60_000;
 
@@ -115,6 +117,30 @@ function portalTab(portalUrl) {
   };
 }
 
+/** Aba fixada da Amazon, só para as leituras das Ofertas do Dia (GET na própria página). */
+function amazonTab() {
+  let tabId = null;
+  const id = async () => {
+    if (tabId !== null) return tabId;
+    const [existing] = await chrome.tabs.query({ url: `${AMAZON_PREFIX}*`, pinned: true });
+    const tab = existing ?? await chrome.tabs.create({ url: AMAZON_URL, pinned: true, active: false });
+    tabId = tab.id;
+    await waitComplete(tabId);
+    return tabId;
+  };
+  return {
+    inTab: (kind, url) => tabGate.run(async () => {
+      const [injection] = await chrome.scripting.executeScript({
+        target: { tabId: await id() },
+        world: "MAIN",
+        func: getInPage,
+        args: [url],
+      });
+      return injection?.result ?? { error: "a aba não respondeu" };
+    }),
+  };
+}
+
 // --- freio -------------------------------------------------------------------
 
 async function brake(api, reason, url) {
@@ -148,7 +174,16 @@ async function collect({ manual = false } = {}) {
       ignoreWindow: manual,
     });
     if (out.status === "blocked") await brake(api, out.reason, out.url);
-    await patchState({ lastCollect: { at: Date.now(), ...out } });
+    let amazon = { status: "skip" };
+    if (out.status === "ok" && cfg.amazon) {
+      amazon = await runAmazon({
+        cfg,
+        backend: api,
+        inTab: amazonTab().inTab,
+        sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+      });
+    }
+    await patchState({ lastCollect: { at: Date.now(), ...out, amazon } });
   } catch (error) {
     await patchState({ lastError: String(error.message || error), lastErrorAt: Date.now() });
   } finally {

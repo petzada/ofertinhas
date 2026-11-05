@@ -289,8 +289,7 @@ class ShopeeSource(_Strict):
     """Open API de afiliados da Shopee (GraphQL), coletada na nuvem: já vem com o link."""
 
     searches: list[ShopeeSearch] = Field(min_length=1)
-    limit: int = Field(30, ge=1, le=50)  # ofertas por busca
-    every_min: int = Field(60, ge=15)
+    limit: int = Field(30, ge=1, le=50)  # ofertas por busca (job `shopee_collect`, de hora em hora)
     max_share: float = Field(0.4, gt=0, le=1)
 
     @model_validator(mode="after")

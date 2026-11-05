@@ -54,7 +54,13 @@ def build(config: Path = ROOT / "config.yaml", out: Path = SRC) -> dict:
     )
     shutil.copytree(ROOT / "templates" / "text", bundle / "templates")
     shutil.copy(config, bundle / "config.yaml")
-    page = build_page(ROOT / "templates", load_config(config).landing)
+    cfg = load_config(config)
+    stores = ["Mercado Livre"] + [
+        name
+        for key, name in (("amazon", "Amazon"), ("shopee", "Shopee"))
+        if getattr(cfg.sources, key) is not None
+    ]
+    page = build_page(ROOT / "templates", cfg.landing, stores)
     if page is not None:  # /grupo: HTML pronto, o Worker só devolve o arquivo
         (bundle / TEMPLATE).parent.mkdir(parents=True, exist_ok=True)
         (bundle / TEMPLATE).write_text(page, encoding="utf-8")

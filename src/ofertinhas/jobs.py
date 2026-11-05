@@ -16,9 +16,11 @@ from . import db
 from .alerts import notify_throttled
 from .approval.bot import BotDeps, send_pending_cards
 from .cardstore import CardStore, DiskCards
+from .collector.shopee import ShopeeClient
+from .collector.shopee import collect as collect_shopee
 from .config import AppConfig
 from .models import TZ, utcnow
-from .pipeline import render_linked
+from .pipeline import ingest_offers, render_linked
 from .polls import send_weekly_polls
 from .publisher.publish import publish_due
 from .publisher.queue import expire_stale
@@ -53,6 +55,7 @@ SCHEDULE: dict[str, Every | At] = {
     "prune": At(("04:30",)),
     "status": At(("08:00", "13:00", "20:00")),
     "ads_sync": Every(60),  # gasto e leads da Meta (só com `ads` no config e META_ADS_TOKEN)
+    "shopee_collect": Every(60),  # só com `sources.shopee` no config e as chaves da Open API
 }
 
 
@@ -88,6 +91,7 @@ def make_jobs(
     clock: Callable[[], datetime] = utcnow,
     version: str | None = None,
     meta_ads: MetaAds | None = None,
+    shopee: ShopeeClient | None = None,
 ) -> dict[str, Callable[[], Awaitable[object]]]:
     """Com `data_dir` (PC), os cards ficam em disco e há backup diário do SQLite; na nuvem,
     passe `card_store` (R2) e o banco conta com a recuperação do Durable Object."""
@@ -165,6 +169,14 @@ def make_jobs(
             return await sync_spend(conn, meta_ads, clock())
 
         jobs["ads_sync"] = ads_sync
+    if shopee is not None and cfg.sources.shopee is not None:
+
+        async def shopee_collect():
+            now = clock()
+            offers = await collect_shopee(shopee, cfg.sources.shopee, now)
+            return ingest_offers(conn, cfg, offers, now)
+
+        jobs["shopee_collect"] = shopee_collect
     if data_dir is not None:
 
         async def backup():

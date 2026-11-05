@@ -185,6 +185,22 @@ def score_and_route(
     return counts
 
 
+def ingest_offers(
+    conn: sqlite3.Connection, cfg: AppConfig, offers: list[Offer], now: datetime
+) -> dict:
+    """Grava as ofertas, guarda o link que já veio pronto (Amazon/Shopee) e roteia aos nichos."""
+    new = sum(db.upsert_offer(conn, o, now=now) for o in offers)
+    for o in offers:
+        if o.affiliate_link:
+            db.set_affiliate_link(conn, o.mlb_id, o.affiliate_link)
+    routed = score_and_route(conn, cfg, [o.mlb_id for o in offers], now=now)
+    return {
+        "parsed": len(offers),
+        "new": new,
+        "routed": {state.value: n for state, n in routed.items()},
+    }
+
+
 def reapply_cutoffs(
     conn: sqlite3.Connection, cfg: AppConfig, now: datetime | None = None
 ) -> Counter[str]:

@@ -81,6 +81,32 @@ export async function runCollection({
 }
 
 /**
+ * Ofertas do Dia da Amazon (`cfg.amazon.requests`, a cada 2 h pela nuvem): GET na própria aba
+ * da Amazon, com pausa entre as páginas. Resposta que não é JSON (captcha, erro) encerra a
+ * rodada sem pausar o Mercado Livre; a nuvem pede de novo na próxima janela.
+ */
+export async function runAmazon({ cfg, backend, inTab, sleep, rng = Math.random }) {
+  const plan = cfg.amazon;
+  if (!plan?.requests?.length) return { status: "skip" };
+  let offers = 0;
+  for (const [i, req] of plan.requests.entries()) {
+    if (i > 0) await sleep(randomBetween(plan.gap_s, rng) * 1000);
+    const result = await inTab("amazon", req.url);
+    if (result.status !== 200 || !result.json?.products) {
+      return { status: "blocked", reason: result.error || `HTTP ${result.status}`, offers };
+    }
+    const out = await backend.post("/ext/raw", {
+      url: req.url,
+      request_body: { department: req.department },
+      status: result.status,
+      body: result.json,
+    });
+    offers += out?.parsed ?? 0;
+  }
+  return { status: "ok", offers };
+}
+
+/**
  * Lê o relatório diário de ganhos do portal quando a nuvem pede (`cfg.earnings`, no máximo a
  * cada 3 h) e manda para o ROAS do status. Falha aqui não derruba a coleta.
  */
