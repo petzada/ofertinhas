@@ -127,3 +127,25 @@ existiram: a Meta reprova e o público percebe. Use só preços que de fato pass
 4. Criar a campanha (Leads → site → `Lead`), conjunto com o público acima, e deixar **pausada** para
    revisar.
 5. Publicar, esperar 3 dias sem mexer, depois cortar os criativos com custo por lead acima da média.
+
+## No ar (criado em 05/11/2026)
+
+Conta de anúncios `act_109317889218052` (portfólio Marct Soluções), página **Thai ofertas**
+(`1359485027256529`), Pixel = conjunto de dados `1515964113490111` (a conta só aceita um;
+evento `Lead` no clique do botão da `/grupo`). Teste 1-1-1: uma campanha por criativo, cada uma
+com um conjunto de R$ 10/dia (mulheres de 22 a 55 anos, Brasil, posicionamentos automáticos,
+otimização para `Lead`, sem limite de lance) e um anúncio. As imagens vêm de
+`docs/marketing/mulher/criativos/` na `main`.
+
+| Campanha | ID | Texto |
+|---|---|---|
+| C1 Thai sofá | 6990879427249 | C (voz de amiga) |
+| C2 Promoção falsa | 6990879530849 | B (preço conferido) |
+| C3 WhatsApp celular | 6990879565449 | A (dor + lista) |
+| C4 Caiu no grupo | 6990879626249 | A |
+| C5 Cozinha eletro | 6990879643249 | cozinha |
+| C6 Make VIP | 6990879656649 | make |
+
+**Ativadas em 05/11/2026 às 16h40**, depois do deploy da `/grupo` (versão `ea5f645d`) e do teste
+do Pixel (clique no botão registrado). Leia os resultados depois de 3 dias: custo por `Lead` de
+cada campanha e membros novos no grupo.
