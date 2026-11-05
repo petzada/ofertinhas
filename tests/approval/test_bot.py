@@ -239,3 +239,11 @@ async def test_without_manual_tier_pending_is_decided_again_and_no_card(deps):
     bot.send_photo.assert_not_awaited()
     states = {m: db.candidates_for_offer(deps.conn, m)[0].state for m in ("MLB1", "MLB2")}
     assert states == {"MLB1": S.APPROVED, "MLB2": S.DISCARDED}
+
+
+async def test_pending_of_removed_niche_expires_without_card(deps):
+    seed(deps.conn, "MLB9", niche="noivas")  # nicho que não está no config
+    bot = SimpleNamespace(send_photo=AsyncMock(), send_message=AsyncMock())
+    assert await send_pending_cards(bot, deps) == 0
+    bot.send_photo.assert_not_awaited()
+    assert db.candidates_for_offer(deps.conn, "MLB9")[0].state is S.EXPIRED

@@ -70,7 +70,13 @@ async def send_pending_cards(bot, deps: BotDeps, limit: int = 5) -> int:
     sent = 0
     for cand in db.candidates_by_state(deps.conn, CandidateState.PENDING):
         niche = niches.get(cand.niche)
-        if niche and niche.rules and not niche.rules.manual_tier(source_of(cand.mlb_id)):
+        if niche is None:  # nicho que saiu do config (ex.: noivas): não há para onde postar
+            db.save_candidate(
+                deps.conn,
+                dataclasses.replace(cand, state=CandidateState.EXPIRED, decided_at=deps.clock()),
+            )
+            continue
+        if niche.rules and not niche.rules.manual_tier(source_of(cand.mlb_id)):
             # sem aprovação manual: a pendente antiga é decidida de novo pela regra, sem card
             offer = db.get_offer(deps.conn, cand.mlb_id)
             now = deps.clock()
