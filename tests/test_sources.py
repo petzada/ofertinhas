@@ -12,7 +12,7 @@ from ofertinhas.api.app import ApiState, create_app
 from ofertinhas.config import load_config_text
 from ofertinhas.models import Offer
 from ofertinhas.pipeline import store_note
-from ofertinhas.publisher.publish import full_sources
+from ofertinhas.publisher.publish import store_rank
 from ofertinhas.settings import Settings
 from ofertinhas.sources import make_id, source_of
 
@@ -21,6 +21,7 @@ NOW = datetime(2026, 11, 5, 15, tzinfo=UTC)  # 12h em SP
 H = {"X-Ofertinhas-Token": "tok"}
 CFG = """
 multi_niche: true
+collector: {window: ["05:30", "22:00"]}
 defaults:
   rules:
     auto: {min_discount_pct: 39, min_commission_pct: 19}
@@ -31,7 +32,7 @@ defaults:
 niches:
   mulher: {categories: [MLB1246, MLB1574], telegram_chat_id: -100}
 sources:
-  amazon: {tag: ofertaderainh-20, max_share: 0.4}
+  amazon: {tag: ofertaderainh-20}
 """
 
 
@@ -88,9 +89,9 @@ def test_amazon_round_trip_uses_own_rules_and_skips_create_link(client):
     assert c.get("/ext/link-requests", headers=H).json().get("request") is None
 
 
-def test_full_sources_pushes_amazon_back_after_its_share(client):
+def test_stores_take_turns(client):
     _, state = client
-    for i, mlb in enumerate(["MLB1", "AMZ-A", "AMZ-B"]):
+    for i, mlb in enumerate(["MLB1", "AMZ-A", "MLB2"]):  # o último foi do ML
         db.record_post(
             state.conn,
             mlb_id=mlb,
@@ -98,10 +99,24 @@ def test_full_sources_pushes_amazon_back_after_its_share(client):
             channel="telegram",
             chat="-100",
             status="sent",
-            sent_at=NOW - timedelta(minutes=10 * (i + 1)),
+            sent_at=NOW - timedelta(minutes=30 * (3 - i)),
         )
-    assert full_sources(state.conn, state.cfg, "-100", NOW) == {"amazon"}  # 2/3 ≥ 40%
-    assert full_sources(state.conn, state.cfg, "outro", NOW) == set()
+    rank = store_rank(state.conn, "-100", NOW)
+    order = sorted(["ml", "amazon", "shopee"], key=rank.get)
+    assert order == ["shopee", "amazon", "ml"]  # nunca a mesma do último post; menos posts antes
+    assert store_rank(state.conn, "outro", NOW) == {
+        "ml": (False, 0),
+        "amazon": (False, 0),
+        "shopee": (False, 0),
+    }
+
+
+def test_amazon_waits_outside_collector_window(client):
+    c, state = client
+    state.clock = lambda: datetime(2026, 11, 5, 4, tzinfo=UTC)  # 01h em SP
+    assert c.get("/ext/config?purpose=collect", headers=H).json()["amazon"] is None
+    state.clock = lambda: NOW
+    assert c.get("/ext/config?purpose=collect", headers=H).json()["amazon"] is not None
 
 
 def test_store_note_only_outside_ml():

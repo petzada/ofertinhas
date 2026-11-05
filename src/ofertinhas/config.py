@@ -277,7 +277,6 @@ class AmazonSource(_Strict):
     # comissão por categoria raiz MLB equivalente; confira na tabela de taxas do Associados
     commission_pct: dict[str, float] = {}
     default_commission_pct: float = Field(4, ge=0, le=100)
-    max_share: float = Field(0.4, gt=0, le=1)  # fatia máxima dos posts do dia em cada grupo
 
 
 class ShopeeSearch(_Strict):
@@ -290,7 +289,6 @@ class ShopeeSource(_Strict):
 
     searches: list[ShopeeSearch] = Field(min_length=1)
     limit: int = Field(30, ge=1, le=50)  # ofertas por busca (job `shopee_collect`, de hora em hora)
-    max_share: float = Field(0.4, gt=0, le=1)
 
     @model_validator(mode="after")
     def _known_categories(self):

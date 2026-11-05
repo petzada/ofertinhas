@@ -465,11 +465,12 @@ def sent_to_chat_since(conn: sqlite3.Connection, mlb_id: str, chat: str, since: 
 
 
 def sent_ids_today(conn: sqlite3.Connection, chat: str, now: datetime) -> list[str]:
-    """IDs das ofertas enviadas ao chat hoje (horário de São Paulo), uma por post."""
+    """IDs das ofertas enviadas ao chat hoje (horário de São Paulo), uma por post, da mais
+    antiga para a mais recente."""
     start = now.astimezone(TZ).replace(hour=0, minute=0, second=0, microsecond=0)
     rows = conn.execute(
         "SELECT mlb_id FROM posts WHERE chat = ? AND status = 'sent' AND sent_at >= ? "
-        "AND sent_at < ?",
+        "AND sent_at < ? ORDER BY sent_at, id",
         (chat, _ts(start), _ts(start + timedelta(days=1))),
     ).fetchall()
     return [r[0] for r in rows]

@@ -44,6 +44,8 @@ ENV_NAMES = (
     "X_ACCESS_TOKEN",
     "X_ACCESS_TOKEN_SECRET",
     "META_ADS_TOKEN",
+    "SHOPEE_APP_ID",
+    "SHOPEE_SECRET",
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")

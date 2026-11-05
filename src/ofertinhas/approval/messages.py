@@ -11,14 +11,17 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from ..creative.text import brl
 from ..creative.title import short_title
 from ..models import Candidate, Offer
+from ..sources import label
 
 CALLBACK_LIMIT = 64
+
 
 def approval_caption(offer: Offer, cand: Candidate) -> str:
     """Legenda HTML do card que o admin recebe para decidir: só o essencial, bem espaçado."""
     pix = " no Pix" if offer.pix_only else ""
     lines = [
-        f"<b>{html.escape(cand.niche.upper())}</b>  ·  nota <b>{cand.score:.0f}</b>",
+        f"<b>{html.escape(cand.niche.upper())}</b>  ·  {label(offer.mlb_id)}  ·  "
+        f"nota <b>{cand.score:.0f}</b>",
         "",
         html.escape(short_title(offer.title, 90)),
         "",
@@ -47,10 +50,12 @@ def approval_keyboard(mlb_id: str, niche: str) -> InlineKeyboardMarkup:
     def button(label: str, action: str) -> InlineKeyboardButton:
         return InlineKeyboardButton(label, callback_data=make_callback(action, mlb_id, niche))
 
-    return InlineKeyboardMarkup([
-        [button("✅ Aprovar", "a"), button("❌ Rejeitar", "r")],
-        [button("✏️ Editar texto", "e"), button("🔁 Trocar nicho", "n")],
-    ])
+    return InlineKeyboardMarkup(
+        [
+            [button("✅ Aprovar", "a"), button("❌ Rejeitar", "r")],
+            [button("✏️ Editar texto", "e"), button("🔁 Trocar nicho", "n")],
+        ]
+    )
 
 
 def niche_keyboard(mlb_id: str, current: str, niches: list[str]) -> InlineKeyboardMarkup:

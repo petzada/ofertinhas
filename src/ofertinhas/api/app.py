@@ -24,7 +24,7 @@ from ..collector.amazon import collect_requests, parse_deals
 from ..collector.categories import ROOT_CATEGORIES
 from ..collector.parsers import parse_hub_search
 from ..config import AppConfig
-from ..models import utcnow
+from ..models import TZ, utcnow
 from ..pipeline import ingest_offers, niche_configs
 from ..roas import earnings_request, parse_daily, save_earnings
 from ..settings import Settings
@@ -137,6 +137,10 @@ def create_app(state: ApiState) -> FastAPI:
         src = state.cfg.sources.amazon
         if src is None:
             return None
+        window = state.cfg.collector.window
+        local = now.astimezone(TZ).time()
+        if window and not window[0] <= local <= window[1]:
+            return None  # a extensão não coleta fora da janela: não gasta a vez da Amazon
         last = db.get_setting(conn, AMAZON_LAST_KEY)
         if last and now - datetime.fromisoformat(last) < timedelta(minutes=src.every_min):
             return None

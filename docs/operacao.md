@@ -92,8 +92,10 @@ Trocou o link do grupo ou o Pixel: atualize o secret do config e faça o deploy.
 ### Amazon e Shopee (`sources`)
 
 As ofertas das outras lojas entram nas mesmas filas e grupos do Mercado Livre. O ID diz a
-loja (`AMZ-<ASIN>`, `SHP-<itemId>`), a legenda ganha "🛒 Na Amazon/Shopee" e cada loja ocupa
-no máximo `max_share` dos posts do dia de cada grupo (passou disso, vai para o fim da fila).
+loja (`AMZ-<ASIN>`, `SHP-<itemId>`), a legenda ganha "🛒 Na Amazon/Shopee" e as lojas se
+revezam em cada grupo (`store_rank` em `publisher/publish.py`): a loja do último post vai para
+o fim da fila e, entre as outras, a que menos postou hoje vem primeiro. Com três lojas, cada
+uma fica com cerca de 1/3 dos posts; se só uma tem oferta pronta, ela posta assim mesmo.
 As regras de desconto e comissão podem ser outras por loja (`defaults.rules.amazon`).
 
 - **Amazon:** sem API (a Creators API pede 10 vendas em 30 dias). A extensão lê as Ofertas do

@@ -10,9 +10,8 @@ brand: "Ofertas 2KAI"    # texto do topo do card (o mesmo para todos os nichos)
 # URL do produto com a tag. Shopee: Open API de afiliados na nuvem (SHOPEE_APP_ID/SHOPEE_SECRET).
 # Regras próprias por loja em defaults.rules.amazon / defaults.rules.shopee.
 # sources:
-#   amazon: {tag: seutag-20, pages_per_department: 1, default_commission_pct: 4, max_share: 0.4}
+#   amazon: {tag: seutag-20, pages_per_department: 1, default_commission_pct: 4}
 #   shopee:
-#     max_share: 0.4
 #     searches: [{keyword: maquiagem, category: MLB1246}, {keyword: air fryer, category: MLB5726}]
 
 # Página /grupo do Worker (destino dos anúncios). Sem este bloco, /grupo responde 404.

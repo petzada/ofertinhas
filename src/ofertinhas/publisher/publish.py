@@ -31,7 +31,7 @@ from ..cardstore import CardStore, DiskCards
 from ..config import AppConfig, NicheConfig, Pacing
 from ..creative.format import to_telegram_html, to_whatsapp, to_x
 from ..models import Candidate, CandidateState
-from ..sources import source_of
+from ..sources import AMAZON, ML, SHOPEE, source_of
 from .cardhost import CardHostError
 from .pacing import can_post
 from .telegram import TelegramError
@@ -65,23 +65,19 @@ def pacing_key(tg_chat: int | None, wa_jid: str | None, dry_run: bool) -> str:
     return f"dry-run:{primary}" if dry_run else primary
 
 
-def full_sources(conn: sqlite3.Connection, cfg: AppConfig, chat: str, now: datetime) -> set[str]:
-    """Lojas que já usaram a fatia do dia (`max_share`) neste chat: vão para o fim da fila.
-    Se só sobrar oferta delas, ainda saem; a fatia ordena, não bloqueia."""
-    shares = {
-        name: src.max_share
-        for name in ("amazon", "shopee")
-        if (src := getattr(cfg.sources, name)) is not None
-    }
-    if not shares:
-        return set()
+def store_rank(conn: sqlite3.Connection, chat: str, now: datetime) -> dict[str, tuple]:
+    """Rodízio de lojas no chat: a loja do último post de hoje vai para o fim e, entre as
+    outras, a que menos postou hoje vem primeiro. Assim Mercado Livre, Amazon e Shopee se
+    alternam e cada uma fica com a mesma fatia do dia; se só uma loja tem oferta pronta, ela
+    posta assim mesmo (o rodízio ordena, não bloqueia)."""
     sent = [source_of(m) for m in db.sent_ids_today(conn, chat, now)]
-    total = len(sent)
-    return {
-        name
-        for name, share in shares.items()
-        if sent.count(name) and sent.count(name) / total >= share
-    }
+    last = sent[-1] if sent else None
+    return {src: (src == last, sent.count(src)) for src in (ML, AMAZON, SHOPEE)}
+
+
+def _order(cand: Candidate, rank: dict[str, tuple] | None) -> tuple:
+    """Rodízio de lojas primeiro; dentro da loja, automáticas antes e a maior nota."""
+    return ((rank or {}).get(source_of(cand.mlb_id), ()), cand.notified_at is not None, -cand.score)
 
 
 def _next_in_group(
@@ -89,7 +85,7 @@ def _next_in_group(
     niches: list[NicheConfig],
     now: datetime,
     only_mlb: str | None = None,
-    full: set[str] = frozenset(),
+    rank: dict[str, tuple] | None = None,
 ) -> tuple[Candidate, NicheConfig] | None:
     """Próxima oferta do grupo, expirando as que sumiram da coleta.
 
@@ -106,7 +102,13 @@ def _next_in_group(
         ]
         if not ready:
             return None
-        ready.sort(key=lambda c: (source_of(c.mlb_id) in full, c.notified_at is not None, -c.score))
+        ready.sort(
+            key=lambda c: (
+                (rank or {}).get(source_of(c.mlb_id), ()),
+                c.notified_at is not None,
+                -c.score,
+            )
+        )
         cand = ready[0]
         niche = by_name[cand.niche]
         offer = db.get_offer(conn, cand.mlb_id)
@@ -123,7 +125,7 @@ def _whatsapp_choices(
     now: datetime,
     chat: str,
     only_mlb: str | None = None,
-    full: set[str] = frozenset(),
+    rank: dict[str, tuple] | None = None,
 ) -> list[tuple[Candidate, NicheConfig]]:
     """Ofertas frescas do grupo (prontas ou já postadas no Telegram) que ainda não foram a
     este chat do WhatsApp dentro do cooldown de repost, da melhor para a pior."""
@@ -146,7 +148,11 @@ def _whatsapp_choices(
                     continue  # preço mudou: o card com o preço novo sai no Telegram antes
                 choices.append(
                     (
-                        (source_of(cand.mlb_id) in full, cand.notified_at is not None, -cand.score),
+                        (
+                            (rank or {}).get(source_of(cand.mlb_id), ()),
+                            cand.notified_at is not None,
+                            -cand.score,
+                        ),
                         cand,
                         niche,
                     )
@@ -251,7 +257,7 @@ async def publish_due(
                 force=force,
                 only_mlb=only_mlb,
                 x=x if cfg.x_enabled and not dry_run else None,
-                full=full_sources(conn, cfg, pacing_key(tg_chat, wa_jid, dry_run), now),
+                rank=store_rank(conn, pacing_key(tg_chat, wa_jid, dry_run), now),
             )
             if mlb:
                 posted.append(mlb)
@@ -283,7 +289,7 @@ async def publish_due(
             force=force,
             only_mlb=only_mlb,
             owns_queue=tg_chat is None,
-            full=full_sources(conn, cfg, f"dry-run:{wa_target}" if dry_run else wa_target, now),
+            rank=store_rank(conn, f"dry-run:{wa_target}" if dry_run else wa_target, now),
         )
         if mlb and mlb not in posted:
             posted.append(mlb)
@@ -306,14 +312,14 @@ async def _telegram_turn(
     force,
     only_mlb,
     x=None,
-    full=frozenset(),
+    rank=None,
 ) -> str | None:
     key = pacing_key(tg_chat, wa_jid, dry_run)
     pacing = members[0].pacing
     if not _due(conn, key, pacing, now, dry_run, force):
         return None
     while True:
-        found = _next_in_group(conn, members, now, only_mlb, full)
+        found = _next_in_group(conn, members, now, only_mlb, rank)
         if found is None:
             return None
         cand, niche = found
@@ -439,7 +445,7 @@ async def _whatsapp_turn(
     force,
     only_mlb,
     owns_queue,
-    full=frozenset(),
+    rank=None,
 ) -> str | None:
     """`owns_queue`: o grupo não tem Telegram, então o post do WhatsApp tira a oferta da fila."""
     key = f"dry-run:{wa_target}" if dry_run else wa_target
@@ -447,7 +453,7 @@ async def _whatsapp_turn(
     if not _due(conn, key, pacing, now, dry_run, force):
         return None
     found = None
-    for cand, niche in _whatsapp_choices(conn, members, now, key, only_mlb, full):
+    for cand, niche in _whatsapp_choices(conn, members, now, key, only_mlb, rank):
         try:  # o card de uma oferta postada pelo PC antes da virada pode não estar no R2
             png = await store.load(cand.card_path)
         except FileNotFoundError:
