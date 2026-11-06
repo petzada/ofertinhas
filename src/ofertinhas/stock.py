@@ -7,6 +7,7 @@ quando os próximos horários de post do dia ficam sem oferta válida. É isso q
 aqui, simulando os horários com a mesma regra de ritmo do envio.
 """
 
+import math
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -17,6 +18,7 @@ from .config import AppConfig, NicheConfig, Pacing
 from .models import TZ, CandidateState
 from .publisher.pacing import can_post
 from .publisher.publish import destination_groups, pacing_key
+from .sources import ML, source_of
 
 S = CandidateState
 READY = (S.LINKED, S.RENDERED, S.QUEUED)  # já têm link: a nuvem posta sem o PC
@@ -49,15 +51,26 @@ class GroupStock:
         def iso(dt: datetime | None) -> str | None:
             return dt.isoformat() if dt else None
 
-        return {"ready": self.ready, "waiting_links": self.waiting_links,
-                "reserve": self.reserve, "target": self.target,
-                "posts_today": self.posts_today, "max_posts": self.max_posts,
-                "short": self.short,
-                "ends_at": iso(self.ends_at), "ends_at_with_links": iso(self.ends_at_with_links)}
+        return {
+            "ready": self.ready,
+            "waiting_links": self.waiting_links,
+            "reserve": self.reserve,
+            "target": self.target,
+            "posts_today": self.posts_today,
+            "max_posts": self.max_posts,
+            "short": self.short,
+            "ends_at": iso(self.ends_at),
+            "ends_at_with_links": iso(self.ends_at_with_links),
+        }
 
 
-def post_slots(now: datetime, last_post_at: datetime | None, posts_today: int, pacing: Pacing,
-               jitter_min: float = 0.0) -> list[datetime]:
+def post_slots(
+    now: datetime,
+    last_post_at: datetime | None,
+    posts_today: int,
+    pacing: Pacing,
+    jitter_min: float = 0.0,
+) -> list[datetime]:
     """Próximos horários de post até o fim da janela de hoje (horário de São Paulo)."""
     local = now.astimezone(TZ)
     day_end = datetime.combine(local.date(), pacing.window[1], tzinfo=TZ)
@@ -88,8 +101,13 @@ def _covered_until(slots: list[datetime], expiries: list[datetime]) -> datetime 
     return None
 
 
-def _expiries(conn: sqlite3.Connection, niches: list[NicheConfig],
-              states: tuple[CandidateState, ...], now: datetime) -> list[datetime]:
+def _expiries(
+    conn: sqlite3.Connection,
+    niches: list[NicheConfig],
+    states: tuple[CandidateState, ...],
+    now: datetime,
+) -> list[tuple[datetime, str]]:
+    """Validade de cada oferta pronta (ou à espera), com a loja dela."""
     out = []
     for niche in niches:
         max_age = timedelta(hours=niche.max_offer_age_hours)
@@ -97,40 +115,69 @@ def _expiries(conn: sqlite3.Connection, niches: list[NicheConfig],
             for cand in db.candidates_by_state(conn, state, niche=niche.name):
                 seen = db.get_offer(conn, cand.mlb_id).last_seen_at
                 if seen and seen + max_age > now:
-                    out.append(seen + max_age)
+                    out.append((seen + max_age, source_of(cand.mlb_id)))
     return out
 
 
-def group_stock(conn: sqlite3.Connection, cfg: AppConfig, now: datetime,
-                dry_run: bool) -> list[GroupStock]:
+def group_stock(
+    conn: sqlite3.Connection, cfg: AppConfig, now: datetime, dry_run: bool
+) -> list[GroupStock]:
     report = []
     for (tg_chat, wa_jid), niches in destination_groups(conn, cfg).items():
         if tg_chat is None and wa_jid is None:
             continue
         key = pacing_key(tg_chat, wa_jid, dry_run)
-        pacing = niches[0].pacing if tg_chat is not None else (
-            niches[0].whatsapp_pacing or niches[0].pacing)
+        pacing = (
+            niches[0].pacing
+            if tg_chat is not None
+            else (niches[0].whatsapp_pacing or niches[0].pacing)
+        )
         posts_today = db.posts_today(conn, key, now)
-        slots = post_slots(now, db.last_post_at(conn, key), posts_today, pacing,
-                           db.get_setting(conn, f"jitter:{key}", 0.0))
-        ready = _expiries(conn, niches, READY, now)
-        waiting = sorted(_expiries(conn, niches, WAITING_LINK, now), reverse=True)
+        slots = post_slots(
+            now,
+            db.last_post_at(conn, key),
+            posts_today,
+            pacing,
+            db.get_setting(conn, f"jitter:{key}", 0.0),
+        )
+        ready_by = _expiries(conn, niches, READY, now)
+        waiting_by = _expiries(conn, niches, WAITING_LINK, now)
+        ready = [at for at, _ in ready_by]
+        waiting = sorted((at for at, _ in waiting_by), reverse=True)
         horizon = now + timedelta(hours=cfg.collector.stock_hours)
         target = sum(1 for s in slots if s < horizon)
         target += cfg.collector.stock_extra if target else 0  # sem post à vista, sem folga
-        needed = min(max(0, target - len(ready)), len(waiting))
-        report.append(GroupStock(
-            key=key, niches=tuple(n.name for n in niches), ready=len(ready),
-            waiting_links=needed, reserve=len(waiting) - needed, target=target,
-            posts_today=posts_today, max_posts=pacing.max_posts_per_day,
-            ends_at=_covered_until(slots, ready),
-            ends_at_with_links=_covered_until(slots, ready + waiting[:needed]),
-        ))
+        # O rodízio reparte os posts entre as lojas com oferta: o ML (o único que depende da
+        # extensão para o link) precisa da parte dele, senão a Amazon enche o estoque sozinha e
+        # o grupo nunca mais pede link do ML.
+        stores = {src for _, src in ready_by + waiting_by} or {ML}
+        ml_ready = sum(1 for _, src in ready_by if src == ML)
+        ml_target = math.ceil(target / len(stores))
+        needed = min(max(0, ml_target - ml_ready), len(waiting))
+        report.append(
+            GroupStock(
+                key=key,
+                niches=tuple(n.name for n in niches),
+                ready=len(ready),
+                waiting_links=needed,
+                reserve=len(waiting) - needed,
+                target=target,
+                posts_today=posts_today,
+                max_posts=pacing.max_posts_per_day,
+                ends_at=_covered_until(slots, ready),
+                ends_at_with_links=_covered_until(slots, ready + waiting[:needed]),
+            )
+        )
     return report
 
 
-def collect_now(conn: sqlite3.Connection, cfg: AppConfig, groups: list[GroupStock],
-                now: datetime, last_collect: datetime | None) -> bool:
+def collect_now(
+    conn: sqlite3.Connection,
+    cfg: AppConfig,
+    groups: list[GroupStock],
+    now: datetime,
+    last_collect: datetime | None,
+) -> bool:
     """A extensão deve coletar já: algum grupo está curto, a coleta não está pausada e a última
     começou há mais de `collect_now_gap_min` (o rodízio traz outras categorias a cada vez)."""
     if db.get_setting(conn, db.EXTENSION_PAUSED_KEY) is not None:
@@ -141,15 +188,18 @@ def collect_now(conn: sqlite3.Connection, cfg: AppConfig, groups: list[GroupStoc
     return any(g.short for g in groups)
 
 
-def niches_needing_links(conn: sqlite3.Connection, cfg: AppConfig, now: datetime,
-                         dry_run: bool) -> set[str]:
+def niches_needing_links(
+    conn: sqlite3.Connection, cfg: AppConfig, now: datetime, dry_run: bool
+) -> set[str]:
     """Nichos cujo grupo está abaixo do estoque-alvo: só deles a extensão gera link."""
-    return {name for g in group_stock(conn, cfg, now, dry_run) if g.waiting_links
-            for name in g.niches}
+    return {
+        name for g in group_stock(conn, cfg, now, dry_run) if g.waiting_links for name in g.niches
+    }
 
 
-async def alert_low_stock(conn: sqlite3.Connection, cfg: AppConfig, notify, now: datetime,
-                          dry_run: bool) -> int:
+async def alert_low_stock(
+    conn: sqlite3.Connection, cfg: AppConfig, notify, now: datetime, dry_run: bool
+) -> int:
     """Avisa o admin quando o estoque de um grupo acaba em menos de uma hora."""
     sent = 0
     for g in group_stock(conn, cfg, now, dry_run):
@@ -164,6 +214,5 @@ async def alert_low_stock(conn: sqlite3.Connection, cfg: AppConfig, notify, now:
             f"Coletar agora no Ofertinhas. Deixe aberto uns {minutes} min, até o popup "
             "dizer que pode fechar."
         )
-        sent += await notify_throttled(conn, notify, f"stock-low:{g.key}", text, now,
-                                       ALERT_EVERY)
+        sent += await notify_throttled(conn, notify, f"stock-low:{g.key}", text, now, ALERT_EVERY)
     return sent

@@ -43,11 +43,31 @@ def conn():
 def stock(conn, n, seen, state=S.RENDERED, start=0):
     for i in range(start, start + n):
         mlb = f"MLB{i}"
-        db.upsert_offer(conn, Offer(mlb_id=mlb, title="x", price=10, commission_pct=25,
-                                    category_path=("MLB1574",), permalink="https://x",
-                                    collected_at=seen), now=seen)
-        db.save_candidate(conn, Candidate(mlb_id=mlb, niche="casa", state=state, score=90 - i,
-                                          breakdown={}, ref_price=10, decided_at=seen))
+        db.upsert_offer(
+            conn,
+            Offer(
+                mlb_id=mlb,
+                title="x",
+                price=10,
+                commission_pct=25,
+                category_path=("MLB1574",),
+                permalink="https://x",
+                collected_at=seen,
+            ),
+            now=seen,
+        )
+        db.save_candidate(
+            conn,
+            Candidate(
+                mlb_id=mlb,
+                niche="casa",
+                state=state,
+                score=90 - i,
+                breakdown={},
+                ref_price=10,
+                decided_at=seen,
+            ),
+        )
 
 
 class Notes:
@@ -94,8 +114,15 @@ def test_stock_that_covers_the_rest_of_the_day_has_no_end(conn, cfg):
 
 
 def test_dry_run_counts_its_own_pace(conn, cfg):
-    db.record_post(conn, mlb_id="MLB9", niche="casa", channel="telegram", chat=str(GROUP),
-                   status="sent", sent_at=sp(8))
+    db.record_post(
+        conn,
+        mlb_id="MLB9",
+        niche="casa",
+        channel="telegram",
+        chat=str(GROUP),
+        status="sent",
+        sent_at=sp(8),
+    )
     [real] = group_stock(conn, cfg, sp(8, 5), dry_run=False)
     [test] = group_stock(conn, cfg, sp(8, 5), dry_run=True)
     assert (real.posts_today, test.posts_today) == (1, 0)
@@ -115,8 +142,10 @@ async def test_no_alert_with_enough_stock_or_at_night(conn, cfg):
     notes = Notes()
     stock(conn, 15, seen=sp(7, 30))
     assert await alert_low_stock(conn, cfg, notes, sp(8), dry_run=False) == 0
-    assert await alert_low_stock(conn, cfg, Notes(), sp(23, 30) + timedelta(minutes=1),
-                                 dry_run=False) == 0
+    assert (
+        await alert_low_stock(conn, cfg, Notes(), sp(23, 30) + timedelta(minutes=1), dry_run=False)
+        == 0
+    )
 
 
 def test_links_only_up_to_the_target_the_rest_waits_in_reserve(conn, cfg):
@@ -136,3 +165,47 @@ def test_full_stock_needs_no_links(conn, cfg):
     assert niches_needing_links(conn, cfg, sp(7), dry_run=False) == set()
     # às 11h, os mesmos 14 já não cobrem as próximas 6 h (15 posts + folga): volta a pedir
     assert niches_needing_links(conn, cfg, sp(11), dry_run=False) == {"casa"}
+
+
+def amazon(conn, n, seen):
+    for i in range(n):
+        asin = f"AMZ-B0{i:08d}"
+        db.upsert_offer(
+            conn,
+            Offer(
+                mlb_id=asin,
+                title="x",
+                price=10,
+                commission_pct=4,
+                category_path=("MLB1574",),
+                permalink="https://x",
+                affiliate_link="https://amazon.com.br/dp/x?tag=t",
+                collected_at=seen,
+            ),
+            now=seen,
+        )
+        db.save_candidate(
+            conn,
+            Candidate(
+                mlb_id=asin,
+                niche="casa",
+                state=S.RENDERED,
+                score=95,
+                breakdown={},
+                ref_price=10,
+                decided_at=seen,
+            ),
+        )
+
+
+def test_amazon_stock_does_not_starve_mercado_livre_links(conn, cfg):
+    from ofertinhas.stock import niches_needing_links
+
+    amazon(conn, 30, seen=sp(7))  # sozinha já cobriria o alvo inteiro
+    stock(conn, 20, seen=sp(7), state=S.APPROVED)
+    [g] = group_stock(conn, cfg, sp(7), dry_run=False)
+    # alvo 14, dividido entre as duas lojas do rodízio: o ML pede link para a metade dele
+    assert (g.ready, g.target, g.waiting_links, g.reserve) == (30, 14, 7, 13)
+    assert niches_needing_links(conn, cfg, sp(7), dry_run=False) == {"casa"}
+    stock(conn, 7, seen=sp(7), start=100)  # com a parte do ML pronta, para de pedir
+    assert niches_needing_links(conn, cfg, sp(7), dry_run=False) == set()
