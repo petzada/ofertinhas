@@ -93,7 +93,7 @@ Trocou o link do grupo ou o Pixel: atualize o secret do config e faça o deploy.
 
 Com `rules.review` igual a `rules.auto` (como está desde 05/11/2026), não sai card de
 aprovação: a oferta que passa no padrão de desconto e comissão entra direto na fila, a de
-maior nota sai a cada 30 min (com o rodízio de lojas) e o resto é descartado. As pendentes
+maior nota sai a cada 1 h (com o rodízio de lojas) e o resto é descartado. As pendentes
 antigas são decididas de novo pela regra (ou expiram, se a oferta sumiu da coleta). O chat do
 admin fica só com avisos: estoque baixo, erros, extensão pausada, status e ROAS.
 
