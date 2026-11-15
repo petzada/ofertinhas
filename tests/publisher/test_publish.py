@@ -93,6 +93,9 @@ def conn():
     c.close()
 
 
+NICHE_CATEGORY = {"casa": "MLB1574", "tech": "MLB1648", "pets": "MLB1071", "mulher": "MLB1430"}
+
+
 def seed(
     conn,
     tmp_path,
@@ -110,7 +113,7 @@ def seed(
             title="Air Fryer",
             price=299.9,
             commission_pct=12,
-            category_path=("MLB1574",),
+            category_path=(NICHE_CATEGORY.get(niche, "MLB1574"),),
             permalink="https://x",
             collected_at=seen,
             affiliate_link="https://meli.la/abc",
@@ -570,3 +573,15 @@ async def test_whatsapp_posts_the_priority_band_first_then_the_rest(conn, tmp_pa
     assert await run(conn, config, FakeTelegram(), wa, now=sp_time(9)) == ["MLB3"]
     # sem nenhuma na faixa, o resto sai pela nota
     assert await run(conn, config, FakeTelegram(), wa, now=sp_time(10, 30)) == ["MLB1"]
+
+
+async def test_offer_that_no_longer_fits_the_niche_is_not_posted(conn, tmp_path):
+    config = load_config_text(PRIORITY.format(jid=JID))
+    seed_priced(conn, tmp_path, "MLB1", price=59, original=120, score=95)
+    seed_priced(conn, tmp_path, "MLB2", price=89, original=100, score=60)
+    offer = db.get_offer(conn, "MLB1")  # entrou quando o nicho aceitava casa
+    db.upsert_offer(
+        conn, dataclasses.replace(offer, category_path=("MLB1574",)), now=sp_time(8, 50)
+    )
+    wa = FakeWhatsApp()
+    assert await run(conn, config, FakeTelegram(), wa, now=sp_time(9)) == ["MLB2"]

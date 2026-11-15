@@ -31,6 +31,8 @@ from ..cardstore import CardStore, DiskCards
 from ..config import AppConfig, NicheConfig, Pacing
 from ..creative.format import to_telegram_html, to_whatsapp, to_x
 from ..models import Candidate, CandidateState
+from ..ranking.filters import passes
+from ..ranking.niches import match_niches
 from ..sources import AMAZON, ML, SHOPEE, source_of
 from .cardhost import CardHostError
 from .pacing import can_post
@@ -118,6 +120,10 @@ def _next_in_group(
         cand = ready[0]
         niche = by_name[cand.niche]
         offer = db.get_offer(conn, cand.mlb_id)
+        if not _still_fits(offer, niche):
+            log.info("%s/%s não cabe mais no nicho (config mudou)", cand.mlb_id, cand.niche)
+            db.save_candidate(conn, dataclasses.replace(cand, state=S.DISCARDED, decided_at=now))
+            continue
         if offer.last_seen_at and now - offer.last_seen_at <= timedelta(
             hours=niche.max_offer_age_hours
         ):
@@ -153,9 +159,17 @@ def _whatsapp_choices(
                 offer = db.get_offer(conn, cand.mlb_id)
                 if not _card_is_current(cand, offer):
                     continue  # preço mudou: o card com o preço novo sai no Telegram antes
+                if not _still_fits(offer, niche):
+                    continue  # entrou antes de a config do nicho mudar
                 choices.append((_order(cand, rank, niche, offer), cand, niche))
     choices.sort(key=lambda c: c[0])
     return [(cand, niche) for _, cand, niche in choices]
+
+
+def _still_fits(offer, niche: NicheConfig) -> bool:
+    """A oferta ainda casa com o nicho e passa nos filtros dele na config de agora (a fila
+    pode ter entrado antes de uma mudança, ex.: o grupo feminino ficar só com moda)."""
+    return niche.name in match_niches(offer, [niche]) and passes(offer, niche.filters)[0]
 
 
 def _card_is_current(cand: Candidate, offer) -> bool:
