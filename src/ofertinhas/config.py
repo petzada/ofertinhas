@@ -170,6 +170,22 @@ class Rules(_Strict):
         return (gates.auto, gates.review) if gates else (self.auto, self.review)
 
 
+class Priority(_Strict):
+    """Ofertas que passam na frente na cota do dia e na fila de posts (ex.: mais de 40% OFF e
+    até R$ 100). Não descarta nada: sem nenhuma assim pronta, o resto sai normalmente."""
+
+    min_discount_pct: float = Field(0, ge=0, le=100)
+    max_price: float | None = Field(None, gt=0)
+    strict: bool = False  # "mais de" (>) em vez de "a partir de" (≥) no desconto
+
+    def hits(self, discount_pct: float, price: float) -> bool:
+        if self.strict:
+            ok = discount_pct > self.min_discount_pct
+        else:
+            ok = discount_pct >= self.min_discount_pct
+        return ok and (self.max_price is None or price <= self.max_price)
+
+
 class Profile(_Strict):
     weights: Weights = Weights()
     targets: Targets = Targets()
@@ -186,6 +202,11 @@ class Profile(_Strict):
     max_offer_age_hours: float = Field(6, gt=0)  # sem reaparecer na coleta, expira
     pacing: Pacing = Pacing()  # Telegram (e WhatsApp, se `whatsapp_pacing` não for definido)
     whatsapp_pacing: Pacing | None = None  # ritmo e janela próprios do WhatsApp
+    priority: Priority | None = None  # passam na frente na cota e na fila (não filtra)
+
+    def prioritized(self, offer) -> bool:
+        """A oferta está na faixa de prioridade do nicho (`priority`)."""
+        return self.priority is not None and self.priority.hits(offer.discount_pct, offer.price)
 
     @model_validator(mode="after")
     def _thresholds(self):

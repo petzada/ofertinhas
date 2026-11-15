@@ -140,4 +140,5 @@ niches:
   #   filters:
   #     required_keywords: [maquiagem, batom*, perfume*, feminin*, vestido*, panela*, airfryer]
   #     blocked_keywords: [usado, recondicionado, réplica, seminovo, masculino, infantil]
+  #   priority: {min_discount_pct: 40, max_price: 100, strict: true}  # passam na frente (não filtra)
   #   polls: {weekday: qua, at: "12:30"}  # enquete semanal no grupo (perguntas em polls.py)

@@ -75,9 +75,21 @@ def store_rank(conn: sqlite3.Connection, chat: str, now: datetime) -> dict[str, 
     return {src: (src == last, sent.count(src)) for src in (ML, AMAZON, SHOPEE)}
 
 
-def _order(cand: Candidate, rank: dict[str, tuple] | None) -> tuple:
-    """Rodízio de lojas primeiro; dentro da loja, automáticas antes e a maior nota."""
-    return ((rank or {}).get(source_of(cand.mlb_id), ()), cand.notified_at is not None, -cand.score)
+def _order(
+    cand: Candidate,
+    rank: dict[str, tuple] | None,
+    niche: NicheConfig | None = None,
+    offer=None,
+) -> tuple:
+    """Faixa de prioridade do nicho primeiro (ex.: 40% OFF e até R$ 100); depois o rodízio de
+    lojas; dentro da loja, automáticas antes e a maior nota."""
+    first = niche is not None and offer is not None and niche.prioritized(offer)
+    return (
+        not first,
+        (rank or {}).get(source_of(cand.mlb_id), ()),
+        cand.notified_at is not None,
+        -cand.score,
+    )
 
 
 def _next_in_group(
@@ -102,13 +114,7 @@ def _next_in_group(
         ]
         if not ready:
             return None
-        ready.sort(
-            key=lambda c: (
-                (rank or {}).get(source_of(c.mlb_id), ()),
-                c.notified_at is not None,
-                -c.score,
-            )
-        )
+        ready.sort(key=lambda c: _order(c, rank, by_name[c.niche], db.get_offer(conn, c.mlb_id)))
         cand = ready[0]
         niche = by_name[cand.niche]
         offer = db.get_offer(conn, cand.mlb_id)
@@ -144,19 +150,10 @@ def _whatsapp_choices(
                     continue
                 if db.sent_to_chat_since(conn, cand.mlb_id, chat, since):
                     continue
-                if not _card_is_current(cand, db.get_offer(conn, cand.mlb_id)):
+                offer = db.get_offer(conn, cand.mlb_id)
+                if not _card_is_current(cand, offer):
                     continue  # preço mudou: o card com o preço novo sai no Telegram antes
-                choices.append(
-                    (
-                        (
-                            (rank or {}).get(source_of(cand.mlb_id), ()),
-                            cand.notified_at is not None,
-                            -cand.score,
-                        ),
-                        cand,
-                        niche,
-                    )
-                )
+                choices.append((_order(cand, rank, niche, offer), cand, niche))
     choices.sort(key=lambda c: c[0])
     return [(cand, niche) for _, cand, niche in choices]
 
