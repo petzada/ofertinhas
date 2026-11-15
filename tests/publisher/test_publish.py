@@ -93,28 +93,65 @@ def conn():
     c.close()
 
 
-def seed(conn, tmp_path, mlb_id="MLB1", niche="casa", score=90.0, seen=NOW, state=S.RENDERED,
-         notified=False):
-    db.upsert_offer(conn, Offer(
-        mlb_id=mlb_id, title="Air Fryer", price=299.9, commission_pct=12,
-        category_path=("MLB1574",), permalink="https://x", collected_at=seen,
-        affiliate_link="https://meli.la/abc",
-    ), now=seen)
+def seed(
+    conn,
+    tmp_path,
+    mlb_id="MLB1",
+    niche="casa",
+    score=90.0,
+    seen=NOW,
+    state=S.RENDERED,
+    notified=False,
+):
+    db.upsert_offer(
+        conn,
+        Offer(
+            mlb_id=mlb_id,
+            title="Air Fryer",
+            price=299.9,
+            commission_pct=12,
+            category_path=("MLB1574",),
+            permalink="https://x",
+            collected_at=seen,
+            affiliate_link="https://meli.la/abc",
+        ),
+        now=seen,
+    )
     card = tmp_path / f"{mlb_id}.png"
     card.write_bytes(b"\x89PNG card")
-    db.save_candidate(conn, Candidate(
-        mlb_id=mlb_id, niche=niche, state=state, score=score, breakdown={}, ref_price=299.9,
-        decided_at=seen, caption="🔥 *Air Fryer* por ~R$ 499~\n👉 https://meli.la/abc",
-        card_path=str(card), notified_at=seen if notified else None,
-    ))
+    db.save_candidate(
+        conn,
+        Candidate(
+            mlb_id=mlb_id,
+            niche=niche,
+            state=state,
+            score=score,
+            breakdown={},
+            ref_price=299.9,
+            decided_at=seen,
+            caption="🔥 *Air Fryer* por ~R$ 499~\n👉 https://meli.la/abc",
+            card_path=str(card),
+            notified_at=seen if notified else None,
+        ),
+    )
 
 
-async def run(conn, config, tg, wa=None, dry_run=False, now=NOW, notes=None, host=None,
-              wa_test=None):
-    return await publish_due(conn, config, telegram=tg, whatsapp=wa,
-                             card_host=host or FakeCardHost(), admin_chat_id=ADMIN,
-                             dry_run=dry_run, now=now, notify=notes or Notes(), sleep=no_sleep,
-                             whatsapp_test_jid=wa_test)
+async def run(
+    conn, config, tg, wa=None, dry_run=False, now=NOW, notes=None, host=None, wa_test=None
+):
+    return await publish_due(
+        conn,
+        config,
+        telegram=tg,
+        whatsapp=wa,
+        card_host=host or FakeCardHost(),
+        admin_chat_id=ADMIN,
+        dry_run=dry_run,
+        now=now,
+        notify=notes or Notes(),
+        sleep=no_sleep,
+        whatsapp_test_jid=wa_test,
+    )
 
 
 async def test_real_mode_posts_to_telegram_group(conn, tmp_path):
@@ -252,9 +289,18 @@ async def test_force_posts_outside_the_window_and_interval(conn, tmp_path):
     seed(conn, tmp_path, "MLB2", seen=three_am)
     tg = FakeTelegram()
     assert await run(conn, cfg(), tg, now=three_am) == []
-    posted = await publish_due(conn, cfg(), telegram=tg, card_host=FakeCardHost(),
-                               admin_chat_id=ADMIN, dry_run=False, now=three_am,
-                               notify=Notes(), sleep=no_sleep, force=True)
+    posted = await publish_due(
+        conn,
+        cfg(),
+        telegram=tg,
+        card_host=FakeCardHost(),
+        admin_chat_id=ADMIN,
+        dry_run=False,
+        now=three_am,
+        notify=Notes(),
+        sleep=no_sleep,
+        force=True,
+    )
     assert len(posted) == 1 and tg.sent[0][0] == str(GROUP)
     assert db.posts_today(conn, str(GROUP), three_am) == 1  # conta no limite do dia
 
@@ -263,9 +309,19 @@ async def test_force_can_pick_one_offer(conn, tmp_path):
     seed(conn, tmp_path, "MLB1", score=90)
     seed(conn, tmp_path, "MLB2", score=50)
     tg = FakeTelegram()
-    posted = await publish_due(conn, cfg(), telegram=tg, card_host=FakeCardHost(),
-                               admin_chat_id=ADMIN, dry_run=False, now=NOW, notify=Notes(),
-                               sleep=no_sleep, force=True, only_mlb="MLB2")
+    posted = await publish_due(
+        conn,
+        cfg(),
+        telegram=tg,
+        card_host=FakeCardHost(),
+        admin_chat_id=ADMIN,
+        dry_run=False,
+        now=NOW,
+        notify=Notes(),
+        sleep=no_sleep,
+        force=True,
+        only_mlb="MLB2",
+    )
     assert posted == ["MLB2"]
     assert db.get_candidate(conn, "MLB1", "casa").state is S.RENDERED
 
@@ -315,8 +371,12 @@ async def test_whatsapp_gets_the_best_of_the_period_once(conn, tmp_path):
     await run(conn, split_cfg(), tg, wa, now=sp_time(10, 15))  # WA: MLB2, que já foi ao TG
     assert [c for c, _, _ in tg.sent] == [str(GROUP)] * 2
     assert len(wa.sent) == 2
-    sent_wa = [r[0] for r in conn.execute(
-        "SELECT mlb_id FROM posts WHERE channel = 'whatsapp' ORDER BY sent_at")]
+    sent_wa = [
+        r[0]
+        for r in conn.execute(
+            "SELECT mlb_id FROM posts WHERE channel = 'whatsapp' ORDER BY sent_at"
+        )
+    ]
     assert sent_wa == ["MLB1", "MLB2"]
     assert db.get_candidate(conn, "MLB3", "casa").state is S.RENDERED  # fica para o Telegram
 
@@ -339,12 +399,25 @@ async def test_whatsapp_only_group_takes_the_offer_out_of_the_queue(conn, tmp_pa
 
 async def test_whatsapp_skips_an_offer_whose_card_is_missing(conn, tmp_path):
     seed(conn, tmp_path, "MLB1", seen=sp_time(8, 50), score=95)  # postada pelo PC antes da
-    db.save_candidate(conn, dataclasses.replace(  # virada: o card ficou no disco de lá
-        db.get_candidate(conn, "MLB1", "casa"), state=S.POSTED, decided_at=sp_time(7),
-        card_path=str(tmp_path / "sumiu.png")))
+    db.save_candidate(
+        conn,
+        dataclasses.replace(  # virada: o card ficou no disco de lá
+            db.get_candidate(conn, "MLB1", "casa"),
+            state=S.POSTED,
+            decided_at=sp_time(7),
+            card_path=str(tmp_path / "sumiu.png"),
+        ),
+    )
     seed(conn, tmp_path, "MLB2", seen=sp_time(8, 50), score=80)
-    db.record_post(conn, mlb_id="MLB2", niche="casa", channel="telegram", chat=str(GROUP),
-                   status="sent", sent_at=sp_time(8, 50))  # Telegram ainda não está na vez
+    db.record_post(
+        conn,
+        mlb_id="MLB2",
+        niche="casa",
+        channel="telegram",
+        chat=str(GROUP),
+        status="sent",
+        sent_at=sp_time(8, 50),
+    )  # Telegram ainda não está na vez
     wa = FakeWhatsApp()
     assert await run(conn, split_cfg(), FakeTelegram(), wa, now=sp_time(9)) == ["MLB2"]
     assert len(wa.sent) == 1
@@ -372,16 +445,26 @@ class FakeX:
 
 
 def x_cfg(enabled=True):
-    return load_config_text(CONFIG.format(wa="false", group=GROUP, jid=JID)
-                            + f"\nx_enabled: {str(enabled).lower()}\n")
+    return load_config_text(
+        CONFIG.format(wa="false", group=GROUP, jid=JID) + f"\nx_enabled: {str(enabled).lower()}\n"
+    )
 
 
 async def x_run(conn, config, tg, x, dry_run=False):
     for (mlb,) in conn.execute("SELECT mlb_id FROM offers").fetchall():
         db.set_affiliate_link(conn, mlb, "https://meli.la/abc")  # o upsert não grava o link
-    return await publish_due(conn, config, telegram=tg, card_host=FakeCardHost(),
-                             admin_chat_id=ADMIN, dry_run=dry_run, now=NOW, notify=Notes(),
-                             sleep=no_sleep, x=x)
+    return await publish_due(
+        conn,
+        config,
+        telegram=tg,
+        card_host=FakeCardHost(),
+        admin_chat_id=ADMIN,
+        dry_run=dry_run,
+        now=NOW,
+        notify=Notes(),
+        sleep=no_sleep,
+        x=x,
+    )
 
 
 async def test_x_thread_follows_each_telegram_post(conn, tmp_path):
@@ -415,12 +498,15 @@ async def test_x_off_or_dry_run_posts_nothing_there(conn, tmp_path):
     assert x.threads == []
 
 
-RULES = CONFIG + """
+RULES = (
+    CONFIG
+    + """
 defaults:
   rules:
     auto: {{min_discount_pct: 39, min_commission_pct: 10, strict: true}}
     review: {{min_discount_pct: 30, min_commission_pct: 5}}
 """
+)
 
 
 async def test_price_change_redraws_the_card_before_posting(conn, tmp_path):
@@ -436,8 +522,51 @@ async def test_price_change_redraws_the_card_before_posting(conn, tmp_path):
 async def test_automatic_offer_that_left_the_rule_is_dropped(conn, tmp_path):
     seed(conn, tmp_path, "MLB1")
     offer = db.get_offer(conn, "MLB1")
-    db.upsert_offer(conn, dataclasses.replace(offer, price=289.9, original_price=399.9),
-                    now=NOW)  # 27% de desconto: abaixo dos 39% da regra
+    db.upsert_offer(
+        conn, dataclasses.replace(offer, price=289.9, original_price=399.9), now=NOW
+    )  # 27% de desconto: abaixo dos 39% da regra
     config = load_config_text(RULES.format(wa="false", group=GROUP, jid=JID))
     assert await run(conn, config, FakeTelegram()) == []
     assert db.get_candidate(conn, "MLB1", "casa").state is S.DISCARDED
+
+
+PRIORITY = """
+whatsapp_enabled: true
+niches:
+  mulher:
+    categories: [MLB1430]
+    whatsapp_group_jid: "{jid}"
+    priority: {{min_discount_pct: 40, max_price: 100}}
+"""
+
+
+def seed_priced(conn, tmp_path, mlb_id, price, original, score):
+    seed(conn, tmp_path, mlb_id, niche="mulher", score=score, seen=sp_time(8, 50))
+    db.upsert_offer(
+        conn,
+        Offer(
+            mlb_id=mlb_id,
+            title="Vestido",
+            price=price,
+            original_price=original,
+            commission_pct=16,
+            category_path=("MLB1430",),
+            permalink="https://x",
+            collected_at=sp_time(8, 50),
+            affiliate_link="https://meli.la/abc",
+        ),
+        now=sp_time(8, 50),
+    )
+    cand = db.get_candidate(conn, mlb_id, "mulher")
+    db.save_candidate(conn, dataclasses.replace(cand, ref_price=price))
+
+
+async def test_whatsapp_posts_the_priority_band_first_then_the_rest(conn, tmp_path):
+    config = load_config_text(PRIORITY.format(jid=JID))
+    seed_priced(conn, tmp_path, "MLB1", price=150, original=400, score=95)  # caro: depois
+    seed_priced(conn, tmp_path, "MLB2", price=89, original=100, score=90)  # 11% OFF: depois
+    seed_priced(conn, tmp_path, "MLB3", price=59, original=120, score=60)  # 50% OFF e barato
+    wa = FakeWhatsApp()
+    assert await run(conn, config, FakeTelegram(), wa, now=sp_time(9)) == ["MLB3"]
+    # sem nenhuma na faixa, o resto sai pela nota
+    assert await run(conn, config, FakeTelegram(), wa, now=sp_time(10, 30)) == ["MLB1"]

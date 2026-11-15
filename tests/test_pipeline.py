@@ -42,8 +42,14 @@ def conn():
 
 def add(conn, mlb_id="MLB1", commission=18.0, price=100.0, **kw) -> str:
     o = Offer(
-        mlb_id=mlb_id, title="Produto", price=price, commission_pct=commission,
-        category_path=("MLB1574",), permalink="https://x", collected_at=NOW, **kw,
+        mlb_id=mlb_id,
+        title="Produto",
+        price=price,
+        commission_pct=commission,
+        category_path=("MLB1574",),
+        permalink="https://x",
+        collected_at=NOW,
+        **kw,
     )
     db.upsert_offer(conn, o, now=NOW)
     return mlb_id
@@ -55,10 +61,18 @@ def state(conn, mlb_id="MLB1", niche="casa"):
 
 
 def put(conn, state_, niche="casa", ref_price=100.0, decided_at=NOW, mlb_id="MLB1"):
-    db.save_candidate(conn, Candidate(
-        mlb_id=mlb_id, niche=niche, state=state_, score=50.0, breakdown={},
-        ref_price=ref_price, decided_at=decided_at,
-    ))
+    db.save_candidate(
+        conn,
+        Candidate(
+            mlb_id=mlb_id,
+            niche=niche,
+            state=state_,
+            score=50.0,
+            breakdown={},
+            ref_price=ref_price,
+            decided_at=decided_at,
+        ),
+    )
 
 
 @pytest.mark.parametrize(
@@ -169,10 +183,19 @@ def put_scored(conn, mlb_id, state_, score, notified=False, link=None):
     add(conn, mlb_id)
     if link:
         db.set_affiliate_link(conn, mlb_id, link)
-    db.save_candidate(conn, Candidate(
-        mlb_id=mlb_id, niche="casa", state=state_, score=score, breakdown={},
-        ref_price=100.0, decided_at=NOW, notified_at=NOW if notified else None,
-    ))
+    db.save_candidate(
+        conn,
+        Candidate(
+            mlb_id=mlb_id,
+            niche="casa",
+            state=state_,
+            score=score,
+            breakdown={},
+            ref_price=100.0,
+            decided_at=NOW,
+            notified_at=NOW if notified else None,
+        ),
+    )
 
 
 def test_reapply_cutoffs_moves_queue_to_new_thresholds(conn):
@@ -235,10 +258,12 @@ def test_reapply_cutoffs_trims_queue_to_quota(conn):
     assert state(conn, "MLB4") is S.DISCARDED
 
 
-RULES = {"rules": {
-    "auto": {"min_discount_pct": 39, "min_commission_pct": 20, "strict": True},
-    "review": {"min_discount_pct": 30, "min_commission_pct": 15},
-}}
+RULES = {
+    "rules": {
+        "auto": {"min_discount_pct": 39, "min_commission_pct": 20, "strict": True},
+        "review": {"min_discount_pct": 30, "min_commission_pct": 15},
+    }
+}
 
 
 @pytest.mark.parametrize(
@@ -263,8 +288,15 @@ def test_rules_decide_instead_of_score(conn, discount, commission, expected):
 def test_inflated_discount_is_discarded_and_counted(conn):
     db.set_niche_override(conn, "casa", "rules", RULES["rules"])
     db.set_niche_override(conn, "tech", "paused", True)
-    old = Offer(mlb_id="MLB1", title="Produto", price=60, original_price=70,
-                commission_pct=25, category_path=("MLB1574",), permalink="https://x")
+    old = Offer(
+        mlb_id="MLB1",
+        title="Produto",
+        price=60,
+        original_price=70,
+        commission_pct=25,
+        category_path=("MLB1574",),
+        permalink="https://x",
+    )
     db.upsert_offer(conn, old, now=NOW - timedelta(days=5))
     add(conn, commission=25, price=55, original_price=100)  # "de" 70 virou 100 em 5 dias
     score_and_route(conn, cfg(), ["MLB1"], now=NOW)
@@ -276,8 +308,15 @@ def test_inflated_discount_is_discarded_and_counted(conn):
 def test_real_price_drop_keeps_the_rule(conn):
     db.set_niche_override(conn, "casa", "rules", RULES["rules"])
     db.set_niche_override(conn, "tech", "paused", True)
-    old = Offer(mlb_id="MLB1", title="Produto", price=90, original_price=100,
-                commission_pct=25, category_path=("MLB1574",), permalink="https://x")
+    old = Offer(
+        mlb_id="MLB1",
+        title="Produto",
+        price=90,
+        original_price=100,
+        commission_pct=25,
+        category_path=("MLB1574",),
+        permalink="https://x",
+    )
     db.upsert_offer(conn, old, now=NOW - timedelta(days=5))
     add(conn, commission=25, price=55, original_price=100)
     score_and_route(conn, cfg(), ["MLB1"], now=NOW)
@@ -290,8 +329,18 @@ def test_reapply_cutoffs_uses_rules(conn):
 
     db.set_niche_override(conn, "casa", "rules", RULES["rules"])
     add(conn, "MLB1", commission=25, price=50, original_price=100)
-    db.save_candidate(conn, Candidate(mlb_id="MLB1", niche="casa", state=S.PENDING, score=60,
-                                      breakdown={}, ref_price=50, decided_at=NOW))
+    db.save_candidate(
+        conn,
+        Candidate(
+            mlb_id="MLB1",
+            niche="casa",
+            state=S.PENDING,
+            score=60,
+            breakdown={},
+            ref_price=50,
+            decided_at=NOW,
+        ),
+    )
     reapply_cutoffs(conn, cfg(), now=NOW)
     assert state(conn) is S.APPROVED
 
@@ -302,3 +351,20 @@ def test_multi_niche_mode_checks_cooldown_per_niche(conn):
     score_and_route(conn, cfg(multi=True), ["MLB1"], now=NOW)
     assert state(conn, niche="casa") is S.APPROVED
     assert state(conn, niche="tech") is S.POSTED
+
+
+def test_priority_band_takes_the_quota_before_higher_scores(conn):
+    config = load_config_text(
+        CFG_TEXT.format(multi="false").replace(
+            "    telegram_chat_id: -1\n",
+            "    telegram_chat_id: -1\n"
+            "    priority: {min_discount_pct: 40, max_price: 100}\n"
+            "    max_auto_per_day: 1\n    max_review_per_day: 0\n",
+        )
+    )
+    db.set_niche_override(conn, "tech", "paused", True)
+    best = add(conn, "MLB1", commission=20, price=150, original_price=400)  # mesma nota, caro
+    band = add(conn, "MLB2", commission=20, price=60, original_price=120)  # 50% OFF, R$ 60
+    score_and_route(conn, config, [best, band], now=NOW)
+    assert state(conn, "MLB2") is S.APPROVED
+    assert state(conn, "MLB1") is S.DISCARDED

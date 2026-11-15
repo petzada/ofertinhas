@@ -161,10 +161,11 @@ def score_and_route(
         routes.extend(scores)
     _record_inflated(conn, inflated, now)
 
-    # As melhores do lote ocupam as vagas da cota primeiro.
+    # As da faixa de prioridade do nicho e depois as melhores do lote ocupam a cota primeiro.
     counts: Counter[CandidateState] = Counter()
     quotas: dict[str, DailyQuota] = {}
-    for s, offer in sorted(routes, key=lambda route: route[0].score, reverse=True):
+    routes.sort(key=lambda r: (not all_niches[r[0].niche].prioritized(r[1]), -r[0].score))
+    for s, offer in routes:
         quota = quotas.setdefault(s.niche, DailyQuota(conn, s.niche, now))
         state = decide_with_quota(s.score, all_niches[s.niche], quota, offer)
         db.save_candidate(
@@ -226,8 +227,13 @@ def reapply_cutoffs(
             if cand.notified_at is not None and cand.state is CandidateState.PENDING:
                 quota.take("review", niche.max_review_per_day)
         free = [c for c in cands if c.notified_at is None]
-        for cand in sorted(free, key=lambda c: c.score, reverse=True):
-            offer = checked_offer(conn, db.get_offer(conn, cand.mlb_id), niche, now).offer
+        checked = {
+            c.mlb_id: checked_offer(conn, db.get_offer(conn, c.mlb_id), niche, now).offer
+            for c in free
+        }
+        free.sort(key=lambda c: (not niche.prioritized(checked[c.mlb_id]), -c.score))
+        for cand in free:
+            offer = checked[cand.mlb_id]
             new = decide_with_quota(cand.score, niche, quota, offer)
             if new is not cand.state:
                 db.save_candidate(conn, dataclasses.replace(cand, state=new, decided_at=now))

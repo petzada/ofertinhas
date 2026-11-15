@@ -150,3 +150,13 @@ def test_collector_validation():
 def test_unknown_niche():
     with pytest.raises(KeyError):
         load_config_text(MINIMAL).for_niche("pets")
+
+
+def test_priority_band_is_optional_and_checks_discount_and_price():
+    from ofertinhas.config import Priority
+
+    band = Priority(min_discount_pct=40, max_price=100)
+    assert band.hits(40, 100)
+    assert not band.hits(39, 50)
+    assert not band.hits(60, 100.01)
+    assert not Priority(min_discount_pct=40, strict=True).hits(40, 10)
