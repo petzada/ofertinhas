@@ -599,3 +599,25 @@ def test_stock_ignores_and_drops_offers_that_left_the_niche(conn, tmp_path):
     (stock,) = group_stock(conn, config, sp_time(9), dry_run=False)
     assert stock.ready == 0
     assert db.get_candidate(conn, "MLB1", "mulher").state is S.DISCARDED
+
+
+SAME_DAY = """
+defaults:
+  same_day_only: true
+  max_offer_age_hours: 2
+  pacing: {{min_interval_min: 60, jitter_min: 0, window: ["06:00", "23:00"]}}
+niches:
+  casa:
+    categories: [MLB1574]
+    telegram_chat_id: {group}
+"""
+
+
+async def test_same_day_only_posts_todays_offers_and_drops_yesterdays(conn, tmp_path):
+    config = load_config_text(SAME_DAY.format(group=GROUP))
+    seed(conn, tmp_path, "MLB1", score=99, seen=sp_time(8) - timedelta(hours=9))  # ontem 23h
+    seed(conn, tmp_path, "MLB2", score=50, seen=sp_time(8, 30))  # coleta de hoje cedo
+    tg = FakeTelegram()
+    # 18h: 9,5 h depois da coleta, além das 2 h de max_offer_age_hours, mas é do dia
+    assert await run(conn, config, tg, now=sp_time(18)) == ["MLB2"]
+    assert db.get_candidate(conn, "MLB1", "casa").state is S.EXPIRED

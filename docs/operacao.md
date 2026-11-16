@@ -122,6 +122,19 @@ das próximas `stock_hours` horas. Nesse caso o `/ext/config` devolve `collect_n
 extensão coleta na hora, sem esperar o alarme. Ela faz isso no máximo uma vez a cada
 `collector.collect_now_gap_min` minutos (30 por padrão), e nunca com a coleta pausada.
 
+### Coleta única do dia (`collector.daily_at` + `same_day_only`)
+
+Com `daily_at: "08:30"`, a partir desse horário a nuvem pede uma coleta de **todas** as
+categorias (e da Amazon) de uma vez; no resto do dia o `/ext/config` devolve a lista vazia.
+O estoque-alvo passa a ser o que falta postar até o fim do dia, então os links do dia saem
+logo depois dessa coleta. Só se o estoque do dia acabar a nuvem pede um reforço (rodízio,
+no máximo a cada `collect_now_gap_min`), ainda com ofertas do mesmo dia. Com a extensão
+pausada, a coleta do dia espera a retomada. "Coletar agora" fora disso não traz categorias.
+
+Com `same_day_only: true`, só é postada oferta vista na coleta de hoje (dia de São Paulo);
+`max_offer_age_hours` deixa de contar e, à meia-noite, as de ontem expiram. O preço do card é
+o da coleta da manhã: se mudar durante o dia, só um reforço de coleta o atualiza.
+
 ### Desconto inflado (`price_check`)
 
 Cada coleta guarda o preço e o preço "de" no `price_history`. Antes de decidir, a oferta é

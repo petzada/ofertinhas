@@ -124,9 +124,7 @@ def _next_in_group(
             log.info("%s/%s não cabe mais no nicho (config mudou)", cand.mlb_id, cand.niche)
             db.save_candidate(conn, dataclasses.replace(cand, state=S.DISCARDED, decided_at=now))
             continue
-        if offer.last_seen_at and now - offer.last_seen_at <= timedelta(
-            hours=niche.max_offer_age_hours
-        ):
+        if niche.offer_fresh(offer.last_seen_at, now):
             return cand, niche
         db.save_candidate(conn, dataclasses.replace(cand, state=S.EXPIRED))
 
@@ -143,16 +141,14 @@ def _whatsapp_choices(
     este chat do WhatsApp dentro do cooldown de repost, da melhor para a pior."""
     choices = []
     for niche in niches:
-        max_age = timedelta(hours=niche.max_offer_age_hours)
         since = now - timedelta(days=niche.repost_cooldown_days)
         for state in (S.RENDERED, S.POSTED):
             for cand in db.candidates_by_state(conn, state, niche.name):
                 if only_mlb is not None and cand.mlb_id != only_mlb:
                     continue
-                if state is S.POSTED and now - cand.decided_at > max_age:
+                if state is S.POSTED and not niche.offer_fresh(cand.decided_at, now):
                     continue  # postada no Telegram há tempo demais: não é mais "do período"
-                seen = db.get_offer(conn, cand.mlb_id).last_seen_at
-                if seen is None or now - seen > max_age:
+                if not niche.offer_fresh(db.get_offer(conn, cand.mlb_id).last_seen_at, now):
                     continue
                 if db.sent_to_chat_since(conn, cand.mlb_id, chat, since):
                     continue

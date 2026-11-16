@@ -6,7 +6,7 @@ pelo bot no banco. Só o que muda precisa ser declarado em cada camada.
 
 import re
 from collections.abc import Mapping
-from datetime import time
+from datetime import datetime, time, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
@@ -14,6 +14,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 from .collector.categories import ROOT_CATEGORIES
+from .models import TZ
 
 
 class ConfigError(ValueError):
@@ -32,6 +33,8 @@ def _reject_unquoted_times(v):
     # YAML 1.1 lê 23:00 sem aspas como número sexagesimal (1380).
     if isinstance(v, list | tuple) and any(isinstance(x, int) for x in v):
         raise ValueError('horários da janela precisam de aspas no YAML: ["08:00", "23:00"]')
+    if isinstance(v, int):
+        raise ValueError('o horário precisa de aspas no YAML: daily_at: "08:30"')
     return v
 
 
@@ -200,9 +203,27 @@ class Profile(_Strict):
     repost_cooldown_days: int = Field(7, ge=0)
     repost_price_drop_pct: float = Field(10, ge=0, le=100)
     max_offer_age_hours: float = Field(6, gt=0)  # sem reaparecer na coleta, expira
+    # Só ofertas vistas na coleta de hoje (dia de São Paulo) são postadas; à meia-noite as de
+    # ontem deixam de valer, mesmo dentro de `max_offer_age_hours` (que passa a não contar).
+    same_day_only: bool = False
     pacing: Pacing = Pacing()  # Telegram (e WhatsApp, se `whatsapp_pacing` não for definido)
     whatsapp_pacing: Pacing | None = None  # ritmo e janela próprios do WhatsApp
     priority: Priority | None = None  # passam na frente na cota e na fila (não filtra)
+
+    def offer_expires_at(self, seen: datetime) -> datetime:
+        """Até quando a oferta vista na coleta em `seen` pode ser postada."""
+        if self.same_day_only:
+            day = seen.astimezone(TZ).date()
+            return datetime.combine(day + timedelta(days=1), time(0), tzinfo=TZ)
+        return seen + timedelta(hours=self.max_offer_age_hours)
+
+    def offer_fresh(self, seen: datetime | None, now: datetime) -> bool:
+        """A oferta vista na coleta em `seen` ainda pode ser postada em `now`."""
+        if seen is None:
+            return False
+        if self.same_day_only:
+            return seen.astimezone(TZ).date() == now.astimezone(TZ).date()
+        return now - seen <= timedelta(hours=self.max_offer_age_hours)
 
     def prioritized(self, offer) -> bool:
         """A oferta está na faixa de prioridade do nicho (`priority`)."""
@@ -266,8 +287,14 @@ class CollectorConfig(_Strict):
     # Estoque abaixo do alvo mesmo com todas as aprovadas: a nuvem pede uma coleta fora de
     # hora (`collect_now` no /ext/config), no máximo uma a cada `collect_now_gap_min`.
     collect_now_gap_min: int = Field(30, ge=5)
+    # Coleta única do dia: a partir deste horário (SP) a extensão lê todas as categorias uma
+    # vez; no resto do dia não coleta, a não ser que o estoque do dia fique curto. O estoque-
+    # alvo passa a ser o que falta postar até o fim do dia. Use com `same_day_only`.
+    daily_at: time | None = None
 
-    _window_needs_quotes = field_validator("window", mode="before")(_reject_unquoted_times)
+    _window_needs_quotes = field_validator("window", "daily_at", mode="before")(
+        _reject_unquoted_times
+    )
 
     @model_validator(mode="after")
     def _ranges(self):

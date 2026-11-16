@@ -101,6 +101,12 @@ def _covered_until(slots: list[datetime], expiries: list[datetime]) -> datetime 
     return None
 
 
+def end_of_day(now: datetime) -> datetime:
+    """Meia-noite seguinte em São Paulo."""
+    day = now.astimezone(TZ).date() + timedelta(days=1)
+    return datetime.combine(day, datetime.min.time(), tzinfo=TZ)
+
+
 def _expiries(
     conn: sqlite3.Connection,
     niches: list[NicheConfig],
@@ -110,12 +116,11 @@ def _expiries(
     """Validade de cada oferta pronta (ou à espera), com a loja dela."""
     out = []
     for niche in niches:
-        max_age = timedelta(hours=niche.max_offer_age_hours)
         for state in states:
             for cand in db.candidates_by_state(conn, state, niche=niche.name):
                 seen = db.get_offer(conn, cand.mlb_id).last_seen_at
-                if seen and seen + max_age > now:
-                    out.append((seen + max_age, source_of(cand.mlb_id)))
+                if seen and niche.offer_expires_at(seen) > now:
+                    out.append((niche.offer_expires_at(seen), source_of(cand.mlb_id)))
     return out
 
 
@@ -146,6 +151,8 @@ def group_stock(
         ready = [at for at, _ in ready_by]
         waiting = sorted((at for at, _ in waiting_by), reverse=True)
         horizon = now + timedelta(hours=cfg.collector.stock_hours)
+        if cfg.collector.daily_at is not None:  # coleta única: o estoque cobre o dia inteiro
+            horizon = end_of_day(now)
         target = sum(1 for s in slots if s < horizon)
         target += cfg.collector.stock_extra if target else 0  # sem post à vista, sem folga
         # O rodízio reparte os posts entre as lojas com oferta: o ML (o único que depende da

@@ -209,3 +209,13 @@ def test_amazon_stock_does_not_starve_mercado_livre_links(conn, cfg):
     assert niches_needing_links(conn, cfg, sp(7), dry_run=False) == {"casa"}
     stock(conn, 7, seen=sp(7), start=100)  # com a parte do ML pronta, para de pedir
     assert niches_needing_links(conn, cfg, sp(7), dry_run=False) == set()
+
+
+def test_daily_collection_targets_the_rest_of_the_day(conn, cfg):
+    from datetime import time
+
+    (six_hours,) = group_stock(conn, cfg, sp(12), dry_run=False)
+    cfg.collector.daily_at = time(8, 30)
+    (whole_day,) = group_stock(conn, cfg, sp(12), dry_run=False)
+    assert whole_day.target > six_hours.target
+    assert whole_day.target == 25 + cfg.collector.stock_extra  # todos os posts do dia + folga
