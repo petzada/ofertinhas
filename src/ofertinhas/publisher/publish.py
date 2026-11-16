@@ -165,15 +165,23 @@ def _whatsapp_choices(
 IN_QUEUE = (S.PENDING, S.APPROVED, S.LINKED, S.RENDERED, S.QUEUED)
 
 
-def drop_misfits(conn: sqlite3.Connection, niches: list[NicheConfig], now: datetime) -> int:
+def drop_misfits(
+    conn: sqlite3.Connection,
+    niches: list[NicheConfig],
+    now: datetime,
+    sources: set[str] | None = None,
+) -> int:
     """Descarta da fila (ainda não postadas) as ofertas que não cabem mais no nicho na config
-    de agora. Sem isso elas ficam paradas: o post as pula, mas o estoque as conta como prontas
-    e o grupo nunca pede link para as novas."""
+    de agora, ou cuja loja foi desligada (`sources`: as lojas ligadas). Sem isso elas ficam
+    paradas: o post as pula, mas o estoque as conta como prontas e o grupo nunca pede link
+    para as novas."""
     dropped = 0
     for niche in niches:
         for state in IN_QUEUE:
             for cand in db.candidates_by_state(conn, state, niche.name):
-                if _still_fits(db.get_offer(conn, cand.mlb_id), niche):
+                if (sources is None or source_of(cand.mlb_id) in sources) and _still_fits(
+                    db.get_offer(conn, cand.mlb_id), niche
+                ):
                     continue
                 db.save_candidate(
                     conn, dataclasses.replace(cand, state=S.DISCARDED, decided_at=now)
@@ -276,7 +284,7 @@ async def publish_due(
     store = card_store or _DISK
     posted: list[str] = []
     for (tg_chat, wa_jid), members in destination_groups(conn, cfg).items():
-        drop_misfits(conn, members, now)
+        drop_misfits(conn, members, now, cfg.sources.enabled())
         if tg_chat is not None or dry_run:
             mlb = await _telegram_turn(
                 conn,

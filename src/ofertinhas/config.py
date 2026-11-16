@@ -356,6 +356,10 @@ class SourcesConfig(_Strict):
     amazon: AmazonSource | None = None
     shopee: ShopeeSource | None = None
 
+    def enabled(self) -> set[str]:
+        """Lojas ligadas: o Mercado Livre sempre; as outras só com o bloco na config."""
+        return {"ml"} | {name for name in ("amazon", "shopee") if getattr(self, name) is not None}
+
 
 class AdsConfig(_Strict):
     """Campanhas da Meta cujo gasto entra no ROAS do status (job `ads_sync`, `roas.py`)."""

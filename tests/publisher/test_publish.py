@@ -621,3 +621,11 @@ async def test_same_day_only_posts_todays_offers_and_drops_yesterdays(conn, tmp_
     # 18h: 9,5 h depois da coleta, além das 2 h de max_offer_age_hours, mas é do dia
     assert await run(conn, config, tg, now=sp_time(18)) == ["MLB2"]
     assert db.get_candidate(conn, "MLB1", "casa").state is S.EXPIRED
+
+
+async def test_offers_from_a_disabled_store_leave_the_queue(conn, tmp_path):
+    config = cfg()  # sem `sources.amazon`: a Amazon está desligada
+    seed(conn, tmp_path, "AMZ-B0TESTE01", score=99)
+    seed(conn, tmp_path, "MLB1", score=50)
+    assert await run(conn, config, FakeTelegram()) == ["MLB1"]
+    assert db.get_candidate(conn, "AMZ-B0TESTE01", "casa").state is S.DISCARDED
