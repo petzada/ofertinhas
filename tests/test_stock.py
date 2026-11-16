@@ -10,6 +10,8 @@ from ofertinhas.stock import alert_low_stock, group_stock, post_slots
 S = CandidateState
 GROUP = -1004330132499
 CONFIG = f"""
+sources:
+  amazon: {{tag: teste-20}}
 defaults:
   max_offer_age_hours: 6
   pacing:
@@ -219,3 +221,10 @@ def test_daily_collection_targets_the_rest_of_the_day(conn, cfg):
     (whole_day,) = group_stock(conn, cfg, sp(12), dry_run=False)
     assert whole_day.target > six_hours.target
     assert whole_day.target == 25 + cfg.collector.stock_extra  # todos os posts do dia + folga
+
+
+def test_disabled_store_does_not_count_as_stock(conn, cfg):
+    cfg.sources.amazon = None  # conta da Amazon fora do ar: só Mercado Livre
+    amazon(conn, 30, seen=sp(7))
+    [g] = group_stock(conn, cfg, sp(7), dry_run=False)
+    assert g.ready == 0

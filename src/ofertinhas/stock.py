@@ -131,7 +131,9 @@ def group_stock(
     for (tg_chat, wa_jid), niches in destination_groups(conn, cfg).items():
         if tg_chat is None and wa_jid is None:
             continue
-        drop_misfits(conn, niches, now)  # senão contam como estoque e travam os links
+        drop_misfits(
+            conn, niches, now, cfg.sources.enabled()
+        )  # senão contam como estoque e travam os links
         key = pacing_key(tg_chat, wa_jid, dry_run)
         pacing = (
             niches[0].pacing
