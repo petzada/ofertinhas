@@ -22,6 +22,7 @@ brand: "Ofertas 2KAI"    # texto do topo do card (o mesmo para todos os nichos)
 #   telegram_url: "https://t.me/seugrupo"  # banner azul abaixo da dobra (opcional)
 
 collector:              # ritmo da extensão no portal de afiliados
+  # daily_at: "08:30"   # coleta única do dia (todas as categorias) + estoque até o fim do dia
   every_min: 60         # um ciclo de coleta a cada ~60 min
   jitter_min: 10        # ± variação aleatória
   pages_per_category: 1 # 18 ofertas por página (as melhores da categoria ficam na 1ª)
@@ -75,6 +76,7 @@ defaults:
   repost_cooldown_days: 7
   repost_price_drop_pct: 10  # dentro do cooldown, só reposta se o preço cair isso
   max_offer_age_hours: 6     # oferta que não reaparece na coleta nesse tempo não é postada
+  # same_day_only: true      # só ofertas da coleta de hoje (use com collector.daily_at)
   pacing:                    # Telegram: a melhor oferta pronta a cada 30 a 60 min
     min_interval_min: 45
     jitter_min: 15                  # 45 ± 15 min, sorteado a cada post

@@ -278,3 +278,41 @@ def test_unexpected_earnings_is_saved_for_inspection(env, tmp_path):
     )
     assert r.status_code == 422
     assert list((tmp_path / "unparsed").glob("earnings-*.json"))
+
+
+def sp_utc(day, hour, minute=0):
+    return datetime(2026, 10, day, hour + 3, minute, tzinfo=UTC)  # São Paulo = UTC-3
+
+
+def test_daily_collection_runs_once_from_its_time(env):
+    from datetime import time
+
+    env.state.cfg.collector.daily_at = time(8, 30)
+    every = env.state.cfg.collector_categories(set())
+
+    def config(collect=False):
+        url = "/ext/config?purpose=collect" if collect else "/ext/config"
+        return env.client.get(url, headers=H).json()
+
+    env.now = sp_utc(22, 8)  # antes do horário: nada, nem a pedido do estoque
+    assert config()["collect_now"] is False
+    assert config(collect=True)["categories"] == []
+    env.now = sp_utc(22, 8, 31)  # na hora: pede já e entrega todas as categorias de uma vez
+    assert config()["collect_now"] is True
+    assert [c["id"] for c in config(collect=True)["categories"]] == every
+    assert config()["collect_now"] is False
+    assert config(collect=True)["categories"] == []  # o ciclo seguinte não coleta de novo
+    env.now = sp_utc(23, 8, 31)  # dia seguinte: uma nova coleta completa
+    assert [c["id"] for c in config(collect=True)["categories"]] == every
+
+
+def test_daily_collection_waits_while_paused(env):
+    from datetime import time
+
+    env.state.cfg.collector.daily_at = time(8, 30)
+    db.set_setting(env.conn, db.EXTENSION_PAUSED_KEY, {"reason": "captcha"})
+    env.now = sp_utc(22, 9)
+    assert env.client.get("/ext/config?purpose=collect", headers=H).json()["categories"] == []
+    db.set_setting(env.conn, db.EXTENSION_PAUSED_KEY, None)
+    out = env.client.get("/ext/config?purpose=collect", headers=H).json()["categories"]
+    assert out  # a coleta do dia não se perdeu na pausa

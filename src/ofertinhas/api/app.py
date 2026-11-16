@@ -41,6 +41,7 @@ SEARCH_URL = (
 )
 SEARCH_PATH = "/affiliate-program/api/hub/search"
 ROTATION_KEY = "collector:rotation"
+DAILY_KEY = "collector:daily:{date}"  # coleta única do dia já entregue à extensão
 UNKNOWN_FORMAT_EVERY = timedelta(hours=1)
 ALERT_EVERY = timedelta(minutes=30)
 
@@ -133,7 +134,7 @@ def create_app(state: ApiState) -> FastAPI:
             db.set_setting(conn, ROTATION_KEY, (offset + size) % len(all_ids))
         return [all_ids[(offset + i) % len(all_ids)] for i in range(size)]
 
-    def amazon_requests(now) -> dict | None:
+    def amazon_requests(now, force: bool = False) -> dict | None:
         src = state.cfg.sources.amazon
         if src is None:
             return None
@@ -142,7 +143,11 @@ def create_app(state: ApiState) -> FastAPI:
         if window and not window[0] <= local <= window[1]:
             return None  # a extensão não coleta fora da janela: não gasta a vez da Amazon
         last = db.get_setting(conn, AMAZON_LAST_KEY)
-        if last and now - datetime.fromisoformat(last) < timedelta(minutes=src.every_min):
+        if (
+            not force
+            and last
+            and now - datetime.fromisoformat(last) < timedelta(minutes=src.every_min)
+        ):
             return None
         db.set_setting(conn, AMAZON_LAST_KEY, now.isoformat())
         paused = {n for n, c in niche_configs(conn, state.cfg).items() if c.paused}
@@ -157,12 +162,36 @@ def create_app(state: ApiState) -> FastAPI:
         pause = db.get_setting(conn, db.EXTENSION_PAUSED_KEY)
         paused_niches = {n for n, c in niche_configs(conn, state.cfg).items() if c.paused}
         collecting = purpose == "collect"
-        ids = rotate(state.cfg.collector_categories(paused_niches), advance=collecting)
         now = state.clock()
-        if collecting:
+        all_ids = state.cfg.collector_categories(paused_niches)
+
+        def short() -> bool:
+            stock = group_stock(conn, state.cfg, now, state.dry_run)
+            return collect_now(conn, state.cfg, stock, now, last_collect(conn))
+
+        if col.daily_at is None:  # rodízio: algumas categorias a cada ciclo
+            ids = rotate(all_ids, advance=collecting)
+            amazon = amazon_requests(now) if collecting else None
+            wants_collect = not collecting and short()
+        else:  # coleta única do dia (+ reforço só se o estoque do dia ficar curto)
+            daily_key = DAILY_KEY.format(date=now.astimezone(TZ).date().isoformat())
+            done = db.get_setting(conn, daily_key) is not None
+            due = not done and pause is None and now.astimezone(TZ).time() >= col.daily_at
+            ids, amazon, wants_collect = [], None, False
+            if collecting and due:
+                db.set_setting(conn, daily_key, now.isoformat())
+                ids, amazon = all_ids, amazon_requests(now, force=True)
+            elif done and short():
+                if collecting:
+                    ids, amazon = rotate(all_ids, advance=True), amazon_requests(now)
+                else:
+                    wants_collect = True
+            elif due and not collecting:
+                wants_collect = True
+        if collecting and (ids or amazon):
             db.set_setting(conn, LAST_COLLECT_KEY, now.isoformat())
         categories = [{"id": c, "name": ROOT_CATEGORIES[c]} for c in ids]
-        if col.include_unfiltered:
+        if col.include_unfiltered and (ids or col.daily_at is None):
             categories.append(None)
         return {
             "paused": pause is not None,
@@ -179,19 +208,12 @@ def create_app(state: ApiState) -> FastAPI:
             "search_url": SEARCH_URL,
             "categories": categories,
             # pedido de coleta fora de hora (estoque curto); a extensão confere a cada 30 s
-            "collect_now": not collecting
-            and collect_now(
-                conn,
-                state.cfg,
-                group_stock(conn, state.cfg, now, state.dry_run),
-                now,
-                last_collect(conn),
-            ),
+            "collect_now": wants_collect,
             "collect_now_gap_min": col.collect_now_gap_min,
             # relatório de ganhos do portal (ROAS no status): a extensão lê quando vier
             "earnings": earnings_request(conn, now),
             # Ofertas do Dia da Amazon: lista de leituras quando estiver na hora (ver amazon.py)
-            "amazon": amazon_requests(now) if collecting else None,
+            "amazon": amazon,
         }
 
     def ingest(offers, now) -> dict:

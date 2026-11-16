@@ -9,7 +9,7 @@ import logging
 import sqlite3
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from telegram.constants import ParseMode
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, MessageHandler, filters
@@ -80,9 +80,7 @@ async def send_pending_cards(bot, deps: BotDeps, limit: int = 5) -> int:
             # sem aprovação manual: a pendente antiga é decidida de novo pela regra, sem card
             offer = db.get_offer(deps.conn, cand.mlb_id)
             now = deps.clock()
-            stale = offer.last_seen_at is None or now - offer.last_seen_at > timedelta(
-                hours=niche.max_offer_age_hours
-            )
+            stale = not niche.offer_fresh(offer.last_seen_at, now)
             state = CandidateState.EXPIRED if stale else decide(cand.score, niche, offer)
             db.save_candidate(deps.conn, dataclasses.replace(cand, state=state, decided_at=now))
             continue

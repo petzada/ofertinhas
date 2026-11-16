@@ -2,7 +2,7 @@
 
 import dataclasses
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from .. import db
 from ..config import AppConfig, Profile
@@ -26,9 +26,8 @@ def expire_stale(conn: sqlite3.Connection, cfg: AppConfig, now: datetime) -> int
     expired = 0
     for state in EXPIRABLE:
         for cand in db.candidates_by_state(conn, state):
-            max_age = timedelta(hours=rules.get(cand.niche, fallback).max_offer_age_hours)
             offer = db.get_offer(conn, cand.mlb_id)
-            if offer.last_seen_at is None or now - offer.last_seen_at > max_age:
+            if not rules.get(cand.niche, fallback).offer_fresh(offer.last_seen_at, now):
                 db.save_candidate(conn, dataclasses.replace(cand, state=S.EXPIRED))
                 expired += 1
     return expired
