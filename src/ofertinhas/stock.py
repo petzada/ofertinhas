@@ -17,7 +17,7 @@ from .alerts import notify_throttled
 from .config import AppConfig, NicheConfig, Pacing
 from .models import TZ, CandidateState
 from .publisher.pacing import can_post
-from .publisher.publish import destination_groups, pacing_key
+from .publisher.publish import destination_groups, drop_misfits, pacing_key
 from .sources import ML, source_of
 
 S = CandidateState
@@ -126,6 +126,7 @@ def group_stock(
     for (tg_chat, wa_jid), niches in destination_groups(conn, cfg).items():
         if tg_chat is None and wa_jid is None:
             continue
+        drop_misfits(conn, niches, now)  # senão contam como estoque e travam os links
         key = pacing_key(tg_chat, wa_jid, dry_run)
         pacing = (
             niches[0].pacing
