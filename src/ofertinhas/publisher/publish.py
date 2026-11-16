@@ -31,7 +31,7 @@ from ..cardstore import CardStore, DiskCards
 from ..config import AppConfig, NicheConfig, Pacing
 from ..creative.format import to_telegram_html, to_whatsapp, to_x
 from ..models import Candidate, CandidateState
-from ..ranking.filters import passes
+from ..ranking.filters import contains_term, normalize_text
 from ..ranking.niches import match_niches
 from ..sources import AMAZON, ML, SHOPEE, source_of
 from .cardhost import CardHostError
@@ -166,10 +166,38 @@ def _whatsapp_choices(
     return [(cand, niche) for _, cand, niche in choices]
 
 
+IN_QUEUE = (S.PENDING, S.APPROVED, S.LINKED, S.RENDERED, S.QUEUED)
+
+
+def drop_misfits(conn: sqlite3.Connection, niches: list[NicheConfig], now: datetime) -> int:
+    """Descarta da fila (ainda não postadas) as ofertas que não cabem mais no nicho na config
+    de agora. Sem isso elas ficam paradas: o post as pula, mas o estoque as conta como prontas
+    e o grupo nunca pede link para as novas."""
+    dropped = 0
+    for niche in niches:
+        for state in IN_QUEUE:
+            for cand in db.candidates_by_state(conn, state, niche.name):
+                if _still_fits(db.get_offer(conn, cand.mlb_id), niche):
+                    continue
+                db.save_candidate(
+                    conn, dataclasses.replace(cand, state=S.DISCARDED, decided_at=now)
+                )
+                dropped += 1
+    if dropped:
+        log.info("%d oferta(s) fora do nicho descartada(s) da fila", dropped)
+    return dropped
+
+
 def _still_fits(offer, niche: NicheConfig) -> bool:
     """A oferta ainda casa com o nicho e passa nos filtros dele na config de agora (a fila
     pode ter entrado antes de uma mudança, ex.: o grupo feminino ficar só com moda)."""
-    return niche.name in match_niches(offer, [niche]) and passes(offer, niche.filters)[0]
+    if niche.name not in match_niches(offer, [niche]):
+        return False
+    title = normalize_text(offer.title)
+    f = niche.filters
+    if any(contains_term(title, k) for k in f.blocked_keywords):
+        return False
+    return not f.required_keywords or any(contains_term(title, k) for k in f.required_keywords)
 
 
 def _card_is_current(cand: Candidate, offer) -> bool:
@@ -252,6 +280,7 @@ async def publish_due(
     store = card_store or _DISK
     posted: list[str] = []
     for (tg_chat, wa_jid), members in destination_groups(conn, cfg).items():
+        drop_misfits(conn, members, now)
         if tg_chat is not None or dry_run:
             mlb = await _telegram_turn(
                 conn,

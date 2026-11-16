@@ -585,3 +585,17 @@ async def test_offer_that_no_longer_fits_the_niche_is_not_posted(conn, tmp_path)
     )
     wa = FakeWhatsApp()
     assert await run(conn, config, FakeTelegram(), wa, now=sp_time(9)) == ["MLB2"]
+
+
+def test_stock_ignores_and_drops_offers_that_left_the_niche(conn, tmp_path):
+    from ofertinhas.stock import group_stock
+
+    config = load_config_text(PRIORITY.format(jid=JID))
+    seed_priced(conn, tmp_path, "MLB1", price=59, original=120, score=95)
+    offer = db.get_offer(conn, "MLB1")  # casa, de quando o nicho aceitava
+    db.upsert_offer(
+        conn, dataclasses.replace(offer, category_path=("MLB1574",)), now=sp_time(8, 50)
+    )
+    (stock,) = group_stock(conn, config, sp_time(9), dry_run=False)
+    assert stock.ready == 0
+    assert db.get_candidate(conn, "MLB1", "mulher").state is S.DISCARDED

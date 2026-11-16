@@ -157,6 +157,9 @@ def approve_one(env):
             "('MLB7818802816','casa','approved',90,'{}',87.2,?,NULL,NULL,NULL)",
             (NOW.isoformat(),),
         )
+        env.conn.execute(  # da lista geral (sem categoria): põe na de casa para caber no nicho
+            "UPDATE offers SET category_path = '[\"MLB1574\"]' WHERE mlb_id = 'MLB7818802816'"
+        )
 
 
 def test_link_request_and_success(env):
