@@ -1,0 +1,4 @@
+# Arquivos locais (fora do Git) copiados para worktrees novas.
+.env
+config.yaml
+extension/config.local.json
