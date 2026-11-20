@@ -2,7 +2,11 @@
   "name": "ofertinhas-extension",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test": "node --test \"tests/**/*.test.js\""
+    "test": "node --test \"tests/**/*.test.js\"",
+    "test:ci": "node --test \"tests/**/*.test.js\""
   }
 }

@@ -99,12 +99,12 @@ O Worker é publicado pelo workflow `deploy.yml` a cada merge na `main` (`cloud/
 
 ```bash
 .venv/Scripts/python -m pytest                       # suíte Python completa
-.venv/Scripts/python -m pytest --testmon             # só o que o diff afeta
+.venv/Scripts/python scripts/test_related.py         # só o que o diff afeta (antes do PR)
 node --test "extension/tests/**/*.test.js"           # testes da extensão
 .venv/Scripts/python -m ruff check .                 # lint
 ```
 
-Os testes usam mocks e `config.example.yaml`: não precisam de tokens reais nem de banco. No dia a dia, o **lefthook** formata e faz lint no commit e roda os testes afetados no push; o **GitHub Actions** roda o lint em todo PR e a matriz Python 3.12/3.13 + extensão quando o PR fica pronto.
+Os testes usam mocks e `config.example.yaml`: não precisam de tokens reais nem de banco. No dia a dia, o **lefthook** faz lint e formata no commit (não há pre-push); os testes afetados rodam antes de abrir o PR e o **GitHub Actions** roda lint, matriz Python 3.12/3.13 e extensão, em paralelo, em todo PR.
 
 ## Contribuição
 

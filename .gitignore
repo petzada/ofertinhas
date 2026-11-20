@@ -9,3 +9,8 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .testmondata*
+.claude/worktrees/
+.claude/settings.local.json
+.eslintcache
+*.tsbuildinfo
+.turbo
