@@ -58,11 +58,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-      - uses: awalsh128/cache-apt-pkgs-action@v1.6.3
-        with:
-          packages: libzbar0
-          version: 1
-      - run: sudo ldconfig
+      # Deploy roda raramente: apt direto, sem action de terceiro com sudo depois do config de produção.
+      - run: sudo apt-get update && sudo apt-get install -y libzbar0
       - run: pip install -e ".[dev]"
       - name: Token ausente — só validar (dry-run)
         if: env.HAS_CLOUDFLARE_TOKEN != 'true'

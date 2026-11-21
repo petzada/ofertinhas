@@ -34,7 +34,7 @@ Python 3.12+ (`src/ofertinhas`), extensão de navegador (`extension/`) e o Worke
 4. Migrations do SQLite do Durable Object: expand automático; contract em 2 tempos (PR posterior, depois do
    deploy sem uso e smoke verde, snapshot antes de drop). Smoke falhou = corrigir pra frente, rollback do
    app (nunca do banco).
-5. Nunca `--no-verify`, push na `main`, deploy do notebook, banco ou Docker local.
+5. Nunca `--no-verify`, push na `main`, force-push em branch compartilhada, deploy do notebook, banco ou Docker local.
 
 ### PR na VM da nuvem (Claude Code na web, app ou thread de projeto)
 
