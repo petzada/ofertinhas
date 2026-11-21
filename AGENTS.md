@@ -7,39 +7,43 @@ Python 3.12+ (`src/ofertinhas`), extensão de navegador (`extension/`) e o Worke
 
 | Camada | O que roda | Escopo |
 | --- | --- | --- |
-| **pre-commit** (lefthook) | `ruff format` + `ruff check --fix` nos arquivos em stage | staged |
-| **pre-push** (lefthook) | `pytest --testmon` (só o que o diff afeta) e os testes da extensão | diff |
-| **CI** (`ci.yml`) | `ruff check .` em todo PR; matriz 3.12/3.13 + extensão quando o PR fica pronto | repositório |
+| **pre-commit** (lefthook) | um job em série: `ruff check --fix` e depois `ruff format`, nos arquivos em stage | staged |
+| **pre-push** | nada (sem typecheck: pyright/mypy básicos dão ~90-120 erros hoje) | — |
+| **Antes do PR** | `python scripts/test_related.py`: `pytest --testmon` + extensão se `extension/` mudou | diff |
+| **CI** (`ci.yml`) | `ruff check .`, matriz 3.12/3.13 e extensão, em paralelo, em todo PR e push na `main` | repositório |
 | **Deploy** (`deploy.yml`) | `cloud/worker/deploy.py` em push na `main` | Worker `ofertinhas` |
 
-- Gates leves onde o agente está (notebook ou VM da nuvem); o pesado fica no CI. Não aumente o pre-push.
+- Gates leves onde o agente está (notebook ou VM da nuvem); o pesado fica no CI. Não crie pre-push.
+- Node da extensão e do CI: `.nvmrc` (major 22).
 - **A coleta roda só no PC** (Brave + extensão): o Mercado Livre bloqueia navegador automatizado. Nada disso
   vai para a nuvem nem para o CI.
 - `config.yaml` e `.env` ficam fora do Git e nunca vão para o ambiente da nuvem. Os testes usam mocks; para
   rodar algo que leia config use `config.example.yaml`.
 - Sem banco local e sem Docker local. O banco da nuvem é o SQLite do Durable Object; o do PC é separado.
+- `deploy.py`, `push_secrets.py`, `set_webhook.py` e qualquer `wrangler` com a conta real são ações do
+  responsável ou do workflow `deploy.yml`, nunca do agente.
 
-## Fluxo de git — obrigatório
+## Fluxo autônomo
 
-1. Branch nova a partir da `main` atualizada: `<tipo>/<nome-kebab>` (`feat`, `fix`, `chore`, `docs`, `test`,
-   `refactor`, `ci`). Nunca commitar direto na `main`.
-2. Commits semânticos: `<tipo>(<escopo>): <descrição no imperativo>`.
-3. **Fluxo de git (dev solo; mesmo de `~/.claude/CLAUDE.md`):** ao terminar uma implementação, commit +
-   push da branch da feature, automático (sem PR não há custo de CI relevante). **"Finaliza"** = PR e
-   pronto na sequência, acompanhar o CI, corrigir num push só e avisar. **"Suba pra produção" / "faça o
-   merge"** = squash merge e acompanhar o deploy. Draft só se pedido; merge só com esse pedido.
-4. Nunca `--no-verify`, nunca desligar hooks, nunca force-push em branch compartilhada.
-5. `deploy.py`, `push_secrets.py`, `set_webhook.py` e qualquer `wrangler` com a conta real são ações do
-   responsável ou do workflow `deploy.yml`, nunca do agente.
+1. Branch de feature a partir de `origin/main`: `<tipo>/<nome-kebab>`; commits `<tipo>(<escopo>): …` em
+   PT-BR. Commit + push a cada parte pronta.
+2. Ao terminar: `scripts/test_related.py` e `ruff check .`; abre o PR pronto (não draft), acompanha o CI e
+   corrige num push só.
+3. CI verde e baixo risco = squash merge sozinho. Risco (auth/tokens, pagamento, dados de usuário,
+   infra/CI/deploy, deleção) = perguntar antes.
+4. Migrations do SQLite do Durable Object: expand automático; contract em 2 tempos (PR posterior, depois do
+   deploy sem uso e smoke verde, snapshot antes de drop). Smoke falhou = corrigir pra frente, rollback do
+   app (nunca do banco).
+5. Nunca `--no-verify`, push na `main`, force-push em branch compartilhada, deploy do notebook, banco ou Docker local.
 
 ### PR na VM da nuvem (Claude Code na web, app ou thread de projeto)
 
 Na nuvem o proxy do GitHub bloqueia GraphQL, então `gh pr …` e `gh issue …` dão 403. `git push` e
-`gh api` (REST) funcionam. O fluxo é o mesmo, pela API REST:
+`gh api` (REST) funcionam:
 
-- **"Finaliza":** abrir o PR já pronto (`draft=false`):
+- Abrir PR pronto:
   `gh api repos/{owner}/{repo}/pulls -f title='<tipo>(<escopo>): …' -f head=<branch> -f base=main -f body='…' -F draft=false`.
-- **"Suba pra produção":** `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash`.
+- Squash merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash`.
 - Listar ou ver PR: `gh api repos/{owner}/{repo}/pulls?head={owner}:<branch>`.
 - Não coloque `GH_TOKEN` no ambiente da nuvem: não resolve o 403 e deixa o token legível.
 
