@@ -50,7 +50,7 @@ Operação completa em [`docs/operacao.md`](docs/operacao.md).
 - **Cloudflare**: Python Workers, Durable Objects (SQLite), R2, Cron Triggers
 - **Extensão de navegador** em JavaScript (Manifest V3)
 - **Integrações**: Telegram Bot API, WhatsMiau (WhatsApp), API do X, Mercado Livre
-- **Qualidade**: pytest (+ pytest-asyncio, respx, freezegun, pytest-testmon), Ruff, lefthook, GitHub Actions
+- **Qualidade**: pytest (+ pytest-asyncio, respx, freezegun, pytest-testmon), Ruff, GitHub Actions
 
 ## Pré-requisitos e instalação
 
@@ -68,7 +68,6 @@ git clone https://github.com/petzada/ofertinhas.git
 cd ofertinhas
 python -m venv .venv
 .venv/Scripts/python -m pip install -e ".[dev]"     # Linux/macOS: .venv/bin/python
-.venv/Scripts/lefthook install
 python -m ofertinhas setup                           # cria config.yaml, .env e a config da extensão
 ```
 
@@ -104,7 +103,7 @@ node --test "extension/tests/**/*.test.js"           # testes da extensão
 .venv/Scripts/python -m ruff check .                 # lint
 ```
 
-Os testes usam mocks e `config.example.yaml`: não precisam de tokens reais nem de banco. No dia a dia, o **lefthook** faz lint e formata no commit (não há pre-push); os testes afetados rodam antes de abrir o PR e o **GitHub Actions** roda lint, matriz Python 3.12/3.13 e extensão, em paralelo, em todo PR.
+Os testes usam mocks e `config.example.yaml`: não precisam de tokens reais nem de banco. O **GitHub Actions** roda lint, matriz Python 3.12/3.13 e extensão, em paralelo, em todo PR.
 
 ## Contribuição
 
